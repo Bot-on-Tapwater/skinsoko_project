@@ -17,6 +17,12 @@ from django.contrib import admin
 from django.urls import path
 from django.urls import include
 
+handler404 = 'eridosolutions.views.handler404'
+# handler500 = 'eridosolutions.views.handler500'
+# handler403 = 'eridosolutions.views.handler403'
+# handler400 = 'eridosolutions.views.handler400'
+# handler401 = 'eridosolutions.views.handler401'
+
 urlpatterns = [
     path('eridosolutions/', include("eridosolutions.urls")),
     path('admin/', admin.site.urls),

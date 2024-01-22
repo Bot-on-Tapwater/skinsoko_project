@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from pathlib import Path
+import os
+from django.utils.log import DEFAULT_LOGGING
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -23,14 +25,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-j0ob=w%zc5h7(fo(bbkk@3=thmbu&ek9rlepjj=##y^hjllrtc'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'eridosolutions.apps.EridosolutionsConfig',
     'drf_auto_endpoint',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -41,7 +44,6 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'rest_framework_api_key.authentication.ApiKeyMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -125,3 +127,55 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'filters': {
+#         'require_debug_false': {
+#             '()': 'django.utils.log.RequireDebugFalse'
+#         }
+#     },
+#     'formatters': {
+#         'verbose': {
+#             'format': '[contactor] %(levelname)s %(asctime)s %(message)s'
+#         },
+#     },
+#     'handlers': {
+#         # Send all messages to console
+#         'console': {
+#             'level': 'DEBUG',
+#             'class': 'logging.StreamHandler',
+#         },
+#         # Send info messages to syslog
+#         'syslog':{
+#             'level':'INFO',
+#             'class': 'logging.handlers.SysLogHandler',
+#             'facility': SysLogHandler.LOG_LOCAL2,
+#             'address': '/dev/log',
+#             'formatter': 'verbose',
+#         },
+#         # Warning messages are sent to admin emails
+#         'mail_admins': {
+#             'level': 'WARNING',
+#             'filters': ['require_debug_false'],
+#             'class': 'django.utils.log.AdminEmailHandler',
+#         },
+#         # critical errors are logged to sentry
+#         'sentry': {
+#             'level': 'ERROR',
+#             'filters': ['require_debug_false'],
+#             'class': 'raven.contrib.django.handlers.SentryHandler',
+#         },
+#     },
+#     'loggers': {
+#         # This is the "catch all" logger
+#         '': {
+#             'handlers': ['console', 'syslog', 'mail_admins', 'sentry'],
+#             'level': 'DEBUG',
+#             'propagate': False,
+#         },
+#     }
+# }
+
+DEFAULT_LOGGING['handlers']['console']['filters'] = []
