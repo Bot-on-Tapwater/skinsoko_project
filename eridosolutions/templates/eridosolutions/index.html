@@ -1,34 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Page Not Found</title>
-    <style>
-        /* Your custom CSS styles go here */
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f3f3f3;
-        }
-        .container {
-            text-align: center;
-            padding: 100px;
-        }
-        h1 {
-            font-size: 48px;
-            color: #ff5733;
-        }
-        p {
-            font-size: 18px;
-            color: #555;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Oops! Page Not Found</h1>
-        <p>The page you're looking for doesn't exist. Let's get you back on track:</p>
-        <a href="/" style="text-decoration: none; color: #ff5733;">Go to Homepage</a>
-    </div>
-</body>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Auth0 Example</title>
+  </head>
+  <body>
+    {% if session %}
+    <h1>Welcome {{session.userinfo.name}}!</h1>
+    <p><a href="{% url 'eridosolutions:logout' %}">Logout</a></p>
+    <div><pre>{{pretty}}</pre></div>
+    {% else %}
+    <h1>Welcome Guest</h1>
+    <p><a href="{% url 'eridosolutions:login' %}">Login</a></p>
+    {% endif %}
+  </body>
 </html>

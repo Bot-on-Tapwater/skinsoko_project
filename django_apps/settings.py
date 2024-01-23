@@ -13,6 +13,12 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 from pathlib import Path
 import os
 from django.utils.log import DEFAULT_LOGGING
+from dotenv import load_dotenv, find_dotenv
+
+# Load environment definition file
+ENV_FILE = find_dotenv()
+if ENV_FILE:
+    load_dotenv(ENV_FILE)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -25,9 +31,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-j0ob=w%zc5h7(fo(bbkk@3=thmbu&ek9rlepjj=##y^hjllrtc'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -79,8 +85,12 @@ WSGI_APPLICATION = 'django_apps.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': os.environ.get('DATABASE'),
+        'USER': os.environ.get('DATABASE_USERNAME'),
+        'PASSWORD': os.environ.get('PASSWORD'),
+        'HOST': os.environ.get('HOST'),
+        'PORT': os.environ.get('PORT'),
     }
 }
 
@@ -128,54 +138,7 @@ STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# LOGGING = {
-#     'version': 1,
-#     'disable_existing_loggers': False,
-#     'filters': {
-#         'require_debug_false': {
-#             '()': 'django.utils.log.RequireDebugFalse'
-#         }
-#     },
-#     'formatters': {
-#         'verbose': {
-#             'format': '[contactor] %(levelname)s %(asctime)s %(message)s'
-#         },
-#     },
-#     'handlers': {
-#         # Send all messages to console
-#         'console': {
-#             'level': 'DEBUG',
-#             'class': 'logging.StreamHandler',
-#         },
-#         # Send info messages to syslog
-#         'syslog':{
-#             'level':'INFO',
-#             'class': 'logging.handlers.SysLogHandler',
-#             'facility': SysLogHandler.LOG_LOCAL2,
-#             'address': '/dev/log',
-#             'formatter': 'verbose',
-#         },
-#         # Warning messages are sent to admin emails
-#         'mail_admins': {
-#             'level': 'WARNING',
-#             'filters': ['require_debug_false'],
-#             'class': 'django.utils.log.AdminEmailHandler',
-#         },
-#         # critical errors are logged to sentry
-#         'sentry': {
-#             'level': 'ERROR',
-#             'filters': ['require_debug_false'],
-#             'class': 'raven.contrib.django.handlers.SentryHandler',
-#         },
-#     },
-#     'loggers': {
-#         # This is the "catch all" logger
-#         '': {
-#             'handlers': ['console', 'syslog', 'mail_admins', 'sentry'],
-#             'level': 'DEBUG',
-#             'propagate': False,
-#         },
-#     }
-# }
-
-DEFAULT_LOGGING['handlers']['console']['filters'] = []
+# Load Auth0 application settings into memory
+AUTH0_DOMAIN = os.environ.get("AUTH0_DOMAIN")
+AUTH0_CLIENT_ID = os.environ.get("AUTH0_CLIENT_ID")
+AUTH0_CLIENT_SECRET = os.environ.get("AUTH0_CLIENT_SECRET")

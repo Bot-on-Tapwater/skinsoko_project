@@ -17,7 +17,7 @@ from django.contrib import admin
 from django.urls import path
 from django.urls import include
 
-handler404 = 'eridosolutions.views.handler404'
+# handler404 = 'eridosolutions.views.handler404'
 # handler500 = 'eridosolutions.views.handler500'
 # handler403 = 'eridosolutions.views.handler403'
 # handler400 = 'eridosolutions.views.handler400'
