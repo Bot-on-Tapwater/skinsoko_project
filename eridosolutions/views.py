@@ -11,7 +11,7 @@ import json
 import requests
 from django.http import JsonResponse
 from django.http import HttpResponseNotFound, HttpResponseServerError, Http404
-from .models import *
+from .models import Product
 
 
 """AUTHO"""
@@ -88,19 +88,44 @@ def index(request):
 @require_http_methods(["GET"])
 def list_all_products(request):
     # http://127.0.0.1:8000/eridosolutions/products/
-    return JsonResponse("Get a list of all products.", safe=False)
+
+    all_products = Product.objects.all()
+
+    if all_products.exists():
+        return JsonResponse(all_products, safe=False)
+    else:
+        return JsonResponse("No products found, add a product and try again.", safe=False)
+    # return JsonResponse("Get a list of all products.", safe=False)
 
 @require_http_methods(["GET"])
 def get_product_with_product_id(request, id):
     # http://127.0.0.1:8000/eridosolutions/products/<id>/
-    return JsonResponse("Get details of a specific product.", safe=False)
+
+    try:
+        specific_product = Product.objects.get(product_id=id)
+        return JsonResponse(specific_product, safe=False)
+
+    except Product.DoesNotExist:
+        return JsonResponse(f"Product with ID: {id} does not exist", safe=False)
+    # return JsonResponse("Get details of a specific product.", safe=False)
 
 
 @require_http_methods(["POST"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def create_new_product(request):
     # http://127.0.0.1:8000/eridosolutions/products/create/
-    return JsonResponse(f"Add a new product to the catalog.", safe=False)
+    name = request.POST['name']
+    description = request.POST['description']
+    price = request.POST['price']
+    quantity_in_stock = request.POST['quantity_in_stock']
+    category = request.POST['category']
+
+    new_product = Product(name=name, description=description, price=price, quantity_in_stock=quantity_in_stock, category=category)
+
+    new_product.save()
+
+    return JsonResponse(new_product, safe=False)
+    # return JsonResponse(f"Add a new product to the catalog.", safe=False)
 
 @require_http_methods(["PUT"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
