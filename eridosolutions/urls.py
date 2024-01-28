@@ -38,10 +38,10 @@ urlpatterns = [
     path('orders/', views.get_list_of_all_orders, name='list-all-orders'),
     path('orders/<int:id>/', views.get_details_of_order_with_order_id, name='get-order-details'),
     path('users/<str:userId>/orders/create/', views.create_new_order, name='create-new-order'),
-    path('users/<str:userId>/orders/<int:id>/cancel/', views.cancel_order_with_order_id, name='cancel-order'),
+    path('orders/<int:id>/cancel/', views.cancel_order_with_order_id, name='cancel-order'),
 
     # Payment Integration
-    path('payment/charge/', views.process_payment, name='process-payment'),
+    path('payment/charge/<int:orderId>/', views.process_payment, name='process-payment'),
     path('payment/refund/<int:orderId>/', views.refund_payment, name='refund-payment'),
 
     # Category Management

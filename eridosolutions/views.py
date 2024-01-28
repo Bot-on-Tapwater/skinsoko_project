@@ -370,20 +370,40 @@ def create_new_order(request, userId):
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def cancel_order_with_order_id(request, id):
     # http://127.0.0.1:8000/eridosolutions/orders/<id>/cancel/
-    return JsonResponse("Cancel a specific order.", safe=False)
+    try:
+        order_to_cancel = Order.objects.get(order_id=id)
+
+        order_to_cancel.order_status = "CANCELED"
+
+        order_to_cancel.save()
+
+        return JsonResponse(order_to_cancel.to_dict(), safe=False)
+    
+    except Order.DoesNotExist:
+        return JsonResponse(f"Order with ID: {id} does not exist.", safe=False)
+    
 
 """PAYMENT INTEGRATION"""
 @require_http_methods(["POST"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
-def process_payment(request):
-    # http://127.0.0.1:8000/eridosolutions/payment/charge/
-    return JsonResponse("Process payment for an order.", safe=False)
+def process_payment(request, orderId):
+    try:
+        order_to_pay_for = Order.objects.get(order_id=orderId)
+        return JsonResponse(f"Process payment for order: {order_to_pay_for.to_dict()}.", safe=False)
+    
+    except Order.DoesNotExist:
+        return JsonResponse(f"Order with ID: {orderId} does not exist.", safe=False)
 
 @require_http_methods(["POST"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def refund_payment(request, orderId):
-    # http://127.0.0.1:8000/eridosolutions/payment/refund/<orderId>/
-    return JsonResponse("Refund a payment for a specific order.", safe=False)
+    try:
+        order_to_refund = Order.objects.get(order_id=orderId)
+        return JsonResponse(f"Process refund for order: {order_to_refund.to_dict()}.", safe=False)
+    
+    except Order.DoesNotExist:
+        return JsonResponse(f"Order with ID: {orderId} does not exist.", safe=False)
+
 
 """CATEGORY MANAGEMENT"""
 @require_http_methods(["GET"])
