@@ -52,7 +52,7 @@ urlpatterns = [
 
     # Reviews and Ratings
     path('products/<int:id>/reviews/', views.get_reviews_for_product_with_product_id, name='get-product-reviews'),
-    path('products/<int:id>/reviews/create/', views.creat_review_for_product_with_product_id, name='create-product-review'),
+    path('users/<str:userId>/products/<int:id>/reviews/create/', views.creat_review_for_product_with_product_id, name='create-product-review'),
 
     # Search and Filters
     path('search/', views.search_products, name='search-products'),
@@ -60,8 +60,8 @@ urlpatterns = [
 
     # Shipping and Address
     path('shipping-options/', views.get_available_shipping_options, name='get-shipping-options'),
-    path('addresses/', views.get_user_saved_addresses, name='get-user-addresses'),
-    path('addresses/create/', views.add_address_to_user_profile, name='add-address-to-profile'),
-    path('addresses/<int:id>/update/', views.update_details_of_address_with_address_id, name='update-address-details'),
-    path('addresses/<int:id>/delete/', views.delete_address_with_address_id, name='delete-address'),
+    path('users/<str:userId>/addresses/', views.get_user_saved_addresses, name='get-user-addresses'),
+    path('users/<str:userId>/addresses/create/', views.add_address_to_user_profile, name='add-address-to-profile'),
+    path('users/<str:userId>/addresses/<int:id>/update/', views.update_details_of_address_with_address_id, name='update-address-details'),
+    path('users/<str:userId>/addresses/<int:id>/delete/', views.delete_address_with_address_id, name='delete-address'),
 ]

@@ -11,7 +11,7 @@ import json
 import requests
 from django.http import JsonResponse
 from django.http import HttpResponseNotFound, HttpResponseServerError, Http404
-from .models import Product, Category, User, Order, ShoppingCart, CartItem
+from .models import Product, Category, User, Order, ShoppingCart, CartItem, Review, Address
 from django.utils.datastructures import MultiValueDictKeyError
 from django.core.exceptions import ValidationError
 from django.http import QueryDict
@@ -409,43 +409,108 @@ def refund_payment(request, orderId):
 @require_http_methods(["GET"])
 def get_list_of_all_product_categories(request):
     # http://127.0.0.1:8000/eridosolutions/categories/
-    return JsonResponse("Get list of all product categories.", safe=False)
+    list_of_all_categories = Category.objects.all()
+
+    if list_of_all_categories.exists():
+        return JsonResponse([category.to_dict() for category in list_of_all_categories], safe=False)
+    else:
+        return JsonResponse(f"No category found, add one and try again.", safe=False)
 
 @require_http_methods(["POST"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def create_new_product_category(request):
     # http://127.0.0.1:8000/eridosolutions/categories/create/
-    return JsonResponse("Add a new product category.", safe=False)
+    try:
+        name = request.POST["name"]
+
+        new_category = Category(name=name)
+
+    except MultiValueDictKeyError as e:
+        return JsonResponse(f"The form value fo attribute {e} is missing.", safe=False)
+    
+    new_category.save()
+
+    return JsonResponse(new_category.to_dict(), safe=False)
 
 @require_http_methods(["PUT"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def update_details_of_category_with_category_id(request, id):
     # http://127.0.0.1:8000/eridosolutions/categories/<id>/update/
-    return JsonResponse("Update details of a specific product category.", safe=False)
+    try:
+        category_to_update = Category.objects.get(category_id=id)
+
+        name = QueryDict(request.body)['name']
+
+        category_to_update.name = name
+    
+    except Category.DoesNotExist:
+        return JsonResponse(f"Category with ID: {id} does not exist.", safe=False)
+
+    except MultiValueDictKeyError as e:
+        return JsonResponse(f"The form value for attribute {str(e)} is missing.", safe=False)
+    
+    category_to_update.save()
+
+    return JsonResponse(category_to_update.to_dict(), safe=False)
 
 @require_http_methods(["DELETE"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def remove_product_category_with_category_id(request, id):
     # http://127.0.0.1:8000/eridosolutions/categories/<id>/delete/
-    return JsonResponse("Remove a product category.", safe=False)
+    try:
+        category_to_delete = Category.objects.get(category_id=id)
+
+        category_to_delete_details = category_to_delete.to_dict()
+
+        category_to_delete.delete()
+
+    except Category.DoesNotExist:
+        return JsonResponse(f"Category with ID: {id} does not exist.", safe=False)
+    
+    return JsonResponse(f"Deleted: {category_to_delete_details}", safe=False)
 
 """REVIEWS AND RATINGS"""
 @require_http_methods(["GET"])
 def get_reviews_for_product_with_product_id(request, id):
     # http://127.0.0.1:8000/eridosolutions/products/<id>/reviews/
-    return JsonResponse("Get reviews for a specific product.", safe=False)
+    reviews = Review.objects.filter(product=id)
+
+    if reviews.exists():
+        return JsonResponse([review.to_dict() for review in reviews], safe=False)
+    else:
+        return JsonResponse(f"Product with ID: {id} does not have reviews.", safe=False)
+
 
 @require_http_methods(["POST"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
-def creat_review_for_product_with_product_id(request, id):
-    # http://127.0.0.1:8000/eridosolutions/products/<id>/reviews/create/
-    return JsonResponse("Add a new review for a product.", safe=False)
+def creat_review_for_product_with_product_id(request, userId, id):
+    try:
+        user_leaving_review = User.objects.get(auth0_user_id=userId)
+        product_to_review = Product.objects.get(product_id=id)
+
+        rating = request.POST['rating']
+        comment = request.POST['comment']
+
+        new_review = Review(product=product_to_review, user=user_leaving_review, rating=rating, comment=comment)
+
+        new_review.save()
+
+        return JsonResponse(new_review.to_dict(), safe=False)
+
+    except User.DoesNotExist:
+        return JsonResponse(f"User with ID: {userId} does not exist.", safe=False)
+    
+    except Product.DoesNotExist:
+        return JsonResponse(f"Product with ID: {id} does not exist.", safe=False)
+
+    except MultiValueDictKeyError as e:
+        return JsonResponse(f"The form value for attribute {str(e)} is missing.", safe=False)
 
 """SEARCH AND FILTERS"""
 @require_http_methods(["GET"])
 def search_products(request):
     # http://127.0.0.1:8000/eridosolutions/search/
-    return JsonResponse("Search for products based no specified criteria.", safe=False)
+    return JsonResponse("Search for products based on specified criteria.", safe=False)
 
 @require_http_methods(["GET"])
 def turn_on_filters(request):
@@ -459,27 +524,77 @@ def get_available_shipping_options(request):
     return JsonResponse("Get available shipping options.", safe=False)
 
 @require_http_methods(["GET"])
-def get_user_saved_addresses(request):
-    # http://127.0.0.1:8000/eridosolutions/addresses/
-    return JsonResponse("Get user's saved addresses.", safe=False)
+def get_user_saved_addresses(request, userId):
+    user_saved_addresses = Address.objects.filter(user=userId)
+
+    if user_saved_addresses.exists():
+        return JsonResponse([address.to_dict() for address in user_saved_addresses], safe=False)
+    else:
+        return JsonResponse(f"User with ID: {userId} has no addresses.", safe=False)
 
 @require_http_methods(["POST"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
-def add_address_to_user_profile(request):
-    # http://127.0.0.1:8000/eridosolutions/addresses/create/
-    return JsonResponse("Add a new address to the user's profile.", safe=False)
+def add_address_to_user_profile(request, userId):
+    try:
+        data = request.POST
+        street_address, city, state, zipcode, country = [data['street_address'], data['city'], data['state'], data['zipcode'], data['country']]
+
+        user = User.objects.get(auth0_user_id=userId)
+
+        new_address = Address(street_address=street_address, city=city, state=state, zipcode=zipcode, country=country, user=user)
+
+        new_address.save()
+
+        return JsonResponse(new_address.to_dict(), safe=False)
+    
+    except User.DoesNotExist:
+        return JsonResponse(f"User with ID: {userId} does not exist.", safe=False)
+    
+    except MultiValueDictKeyError as e:
+        return JsonResponse(f"The form value for attribute {str(e)} is missing.", safe=False)
 
 @require_http_methods(["PUT"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
-def update_details_of_address_with_address_id(request, id):
-    # http://127.0.0.1:8000/eridosolutions/addresses/<id>/update/
-    return JsonResponse("Update details of a specific address", safe=False)
+def update_details_of_address_with_address_id(request, userId, id):
+    try:
+        address_to_update = Address.objects.get(address_id=id)
+
+        user = User.objects.get(auth0_user_id=userId)
+
+        data = QueryDict(request.body)
+
+        for field, value in data.items():
+            
+            if (hasattr(address_to_update, field)):
+                setattr(address_to_update, field, value)
+            
+            else:
+                return JsonResponse(f"There is no field named {field} in address table.", safe=False)
+
+        address_to_update.save()
+
+        return JsonResponse(address_to_update.to_dict(), safe=False)
+
+    except Address.DoesNotExist:
+        return JsonResponse(f"Address with ID: {id} does not exist.", safe=False)
+    
+    except User.DoesNotExist:
+        return JsonResponse(f"User with ID: {userId} does not exist.", safe=False)
 
 @require_http_methods(["DELETE"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
-def delete_address_with_address_id(request, id):
-    # http://127.0.0.1:8000/eridosolutions/addresses/<id>/delete/
-    return JsonResponse("Remove an address from the user's profile.", safe=False)
+def delete_address_with_address_id(request, userId, id):
+    try:
+        address_to_delete = Address.objects.get(address_id=id, user=userId)
+
+        address_to_delete_details = address_to_delete.to_dict()
+
+        address_to_delete.delete()
+
+        return JsonResponse(f"Deleted: {address_to_delete_details}", safe=False)
+    
+    except Address.DoesNotExist:
+        return JsonResponse(f"Address with ID: {id} does not exist.", safe=False)
 
 """ERROR HANDLING"""
 
