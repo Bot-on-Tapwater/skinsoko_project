@@ -1,9 +1,9 @@
 from django.contrib import admin
-from .models import UserProfile, Category, Product, ShoppingCart, CartItem, Order, OrderItem, Review, Address, Payment
+from .models import User, Category, Product, ShoppingCart, CartItem, Order, OrderItem, Review, Address, Payment
 
-@admin.register(UserProfile)
-class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'email',)
+@admin.register(User)
+class UserAdmin(admin.ModelAdmin):
+    list_display = ('username', 'email', 'auth0_user_id')
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):

@@ -1,18 +1,19 @@
 from django.db import models
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
 
-class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    # Other user-related information fields
-    email = models.EmailField()
+class User(models.Model):
+    auth0_user_id = models.CharField(max_length=255, unique=True, primary_key=True)
+    email = models.EmailField(unique=True)
+    username = models.CharField(max_length=255)
 
     def __str__(self):
-        return f'{self.user.username} - {self.email}'
+        return f'{self.username} - {self.email} - {self.auth0_user_id}'
 
     def to_dict(self):
         return {
-            'user': self.user.username,
+            'username': self.username,
             'email': self.email,
+            'auth0_user_id': self.auth0_user_id,
             # Add other fields as needed
         }
 
@@ -56,12 +57,12 @@ class ShoppingCart(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'Cart ID: {self.cart_id} - User: {self.user.username}'
+        return f'Cart ID: {self.cart_id} - User: {self.user}'
 
     def to_dict(self):
         return {
             'cart_id': self.cart_id,
-            'user': self.user.username,
+            'user': self.user,
             'created_at': str(self.created_at),
         }
 
