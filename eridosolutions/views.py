@@ -11,7 +11,7 @@ import json
 import requests
 from django.http import JsonResponse
 from django.http import HttpResponseNotFound, HttpResponseServerError, Http404
-from .models import Product, Category, User, Order, ShoppingCart, CartItem, Review, Address
+from .models import Product, Category, User, Order, ShoppingCart, CartItem, Review, Address, OrderItem
 from django.utils.datastructures import MultiValueDictKeyError
 from django.core.exceptions import ValidationError, MultipleObjectsReturned
 from django.http import QueryDict
@@ -85,7 +85,7 @@ def register(request):
 
         user_cart.save()        
 
-        return JsonResponse(f"{str(user)}", safe=False)
+        return JsonResponse({'id': user.id, 'username': user.username, 'email': user.email, 'first_name': user.first_name, 'last_name': user.last_name}, safe=False)
     
     except IntegrityError:
         return JsonResponse(f"User with the same username or email already exists.", safe=False)
@@ -118,7 +118,7 @@ def login_view(request):
 
     if user is not None:
         login(request, user)
-        return JsonResponse(f"Welcome {user.id}: {user.username}", safe=False)
+        return JsonResponse({'id': user.id, 'username': user.username, 'email': user.email, 'first_name': user.first_name, 'last_name': user.last_name}, safe=False)
     
     else:
         return JsonResponse(f"Either the email/username or the password is incorrect", safe=False)
@@ -178,7 +178,6 @@ def create_new_product(request):
         return JsonResponse(f"{str(e)}", safe=False)    
 
     return JsonResponse(new_product.to_dict(), safe=False)
-    # return JsonResponse(f"Add a new product to the catalog.", safe=False)
 
 @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["PUT"])
@@ -207,7 +206,7 @@ def update_product_with_product_id_details(request, id):
     except Product.DoesNotExist as e:
         return JsonResponse(f"Product with ID: {id} was not found.", safe=False)
 
-    return JsonResponse(f"{product_to_update.to_dict()}", safe=False)
+    return JsonResponse(product_to_update.to_dict(), safe=False)
         
 
 @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
@@ -225,7 +224,7 @@ def delete_product_with_product_id(request, id):
     except Product.DoesNotExist as e:
         return JsonResponse(f"Product with ID: {id} was not found.", safe=False)
     
-    return JsonResponse(f"Deleted successfully {product_to_delete_details}", safe=False)
+    return JsonResponse(product_to_delete_details, safe=False)
 
 """USER PROFILE"""
 @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
@@ -236,7 +235,7 @@ def get_user_with_user_id_profile_details(request, id):
 
     try:
         specific_user = User.objects.get(id=id)
-        return JsonResponse(specific_user.to_dict(), safe=False)
+        return JsonResponse({'id': specific_user.id, 'username': specific_user.username, 'email': specific_user.email, 'first_name': specific_user.first_name, 'last_name': specific_user.last_name}, safe=False)
     except User.DoesNotExist:
         return JsonResponse(f"User with ID: {id} does not exist.", safe=False)
 
@@ -248,19 +247,26 @@ def update_user_with_user_id_profile_details(request, id):
     try:
         user_to_update = User.objects.get(id=id)
 
-        username = QueryDict(request.body)['username']
+        for field, value in QueryDict(request.body).items():
+            # print(f"FIELD: {field} VALUE: {value}")
+            if (hasattr(user_to_update, field) and field == "password"):                
+                try:
+                    user_to_update.set_password(value)
+                except (ValueError, ValidationError, Category.DoesNotExist) as e:
+                    return JsonResponse(f"{str(e)}", safe=False)
+            
+            elif (hasattr(user_to_update, field)):
+                setattr(user_to_update, field, value)
+            
+            else:
+                return JsonResponse(f"There is no field named {field} in users table.", safe=False)
 
-        setattr(user_to_update, "username", username)
-
-        user_to_update.save()
-
-        return JsonResponse(user_to_update.to_dict(), safe=False)
+        user_to_update.save()      
     
     except User.DoesNotExist as e:
-        return JsonResponse(f"User with id {id} does not exist.", safe=False)
-    
-    except MultiValueDictKeyError as e:
-        return JsonResponse(f"The form value for attribute {str(e)} is missing.", safe=False)
+        return JsonResponse(f"user with ID: {id} was not found.", safe=False)
+
+    return JsonResponse({'id': user_to_update.id, 'username': user_to_update.username, 'email': user_to_update.email, 'first_name': user_to_update.first_name, 'last_name': user_to_update.last_name}, safe=False)
 
 @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["GET"])
@@ -268,7 +274,7 @@ def list_orders_placed_by_user_with_user_id(request, id):
     # http://127.0.0.1:8000/eridosolutions/users/<id>/orders/
     try:
         orders_placed_by_user = Order.objects.get(user=id)
-        return JsonResponse(f"{[order.to_dict() for order in orders_placed_by_user]}", safe=False)
+        return JsonResponse([order_item.to_dict() for order_item in OrderItem.objects.filter(order=orders_placed_by_user)], safe=False)
     except Order.DoesNotExist:
         return JsonResponse(f"User with ID: {id} hasn't placed any orders.", safe=False)
 
@@ -279,11 +285,11 @@ def get_contents_of_shopping_cart_of_user(request, id):
     try:
         cart_contents_of_user = ShoppingCart.objects.get(user=id)
 
-        return JsonResponse(f"{[item.to_dict() for item in CartItem.objects.filter(cart=cart_contents_of_user.cart_id)]}", safe=False)
+        return JsonResponse([item.to_dict() for item in CartItem.objects.filter(cart=cart_contents_of_user.cart_id)], safe=False)
     except ShoppingCart.DoesNotExist:
         return JsonResponse(f"Current user hasn't placed any items in cart.", safe=False)
     except TypeError:
-        return JsonResponse(f"No active cart found for current user.", safe=False)
+        return JsonResponse(f"No active cart found for current user or A TypeError occured.", safe=False)
 
 @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["POST"])
@@ -353,13 +359,13 @@ def clear_entire_shopping_cart(request, id):
     try:
         cart_to_clear = ShoppingCart.objects.get(user=id)
 
-        cart_to_clear_details = cart_to_clear.to_dict()
+        cart_to_clear_items = CartItem.objects.filter(cart=cart_to_clear)
 
-        cart_to_clear.delete()
+        _ = list(map(lambda x: x.delete(), cart_to_clear_items))
 
     except ShoppingCart.DoesNotExist:
         return JsonResponse(f"User with ID: {id} does not have a cart.", safe=False)
-    return JsonResponse(str(cart_to_clear_details), safe=False)
+    return JsonResponse(f"Cart cleared.", safe=False)
 
 """ORDER MANAGEMENT"""
 @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
@@ -397,12 +403,16 @@ def create_new_order(request, userId):
 
         new_order = Order(user=User.objects.get(id=userId), total_amount=total_cost, order_status='ACTIVE')
 
-    except ShoppingCart.DoesNotExist:
-        return JsonResponse(f"User with ID: {userId} has no items in cart.", safe=False)
-    
-    new_order.save()
+        new_order.save()
 
-    return JsonResponse(new_order.to_dict(), safe=False)
+        new_order_items = list(map(lambda item: OrderItem(order=new_order, product=item.product, quantity=item.quantity, unit_price=item.product.price), [item for item in CartItem.objects.filter(cart=user_cart)]))
+
+        OrderItem.objects.bulk_create(new_order_items)
+
+    except ShoppingCart.DoesNotExist:
+        return JsonResponse(f"User with ID: {userId} has no items in cart.", safe=False)    
+
+    return JsonResponse([order_item.to_dict() for order_item in OrderItem.objects.filter(order=new_order)], safe=False)
 
 @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["PUT"])

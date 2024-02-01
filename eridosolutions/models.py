@@ -46,7 +46,7 @@ class ShoppingCart(models.Model):
     def to_dict(self):
         return {
             'cart_id': self.cart_id,
-            'user': self.user,
+            'user': self.user.username,
             'created_at': str(self.created_at),
         }
 

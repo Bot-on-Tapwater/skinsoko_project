@@ -24,20 +24,20 @@ urlpatterns = [
     path('products/<int:id>/delete/', views.delete_product_with_product_id, name='delete-product'),
 
     # User Profile
-    path('users/<str:id>/', views.get_user_with_user_id_profile_details, name='get-user-profile-details'),
-    path('users/<str:id>/update/', views.update_user_with_user_id_profile_details, name='update-user-profile-details'),
-    path('users/<str:id>/orders/', views.list_orders_placed_by_user_with_user_id, name='list-user-orders'),
+    path('users/<int:id>/', views.get_user_with_user_id_profile_details, name='get-user-profile-details'),
+    path('users/<int:id>/update/', views.update_user_with_user_id_profile_details, name='update-user-profile-details'),
+    path('users/<int:id>/orders/', views.list_orders_placed_by_user_with_user_id, name='list-user-orders'),
 
     # Shopping Cart
-    path('users/<str:id>/cart/', views.get_contents_of_shopping_cart_of_user, name='get-cart-contents'),
-    path('users/<str:id>/cart/add/<int:productId>', views.add_product_to_user_cart, name='add-product-to-cart'),
-    path('users/<str:id>/cart/remove/<int:productId>/', views.remove_product_from_user_cart, name='remove-product-from-cart'),
-    path('users/<str:id>/cart/clear/', views.clear_entire_shopping_cart, name='clear-cart'),
+    path('users/<int:id>/cart/', views.get_contents_of_shopping_cart_of_user, name='get-cart-contents'),
+    path('users/<int:id>/cart/add/<int:productId>/', views.add_product_to_user_cart, name='add-product-to-cart'),
+    path('users/<int:id>/cart/remove/<int:productId>/', views.remove_product_from_user_cart, name='remove-product-from-cart'),
+    path('users/<int:id>/cart/clear/', views.clear_entire_shopping_cart, name='clear-cart'),
 
     # Order Management
     path('orders/', views.get_list_of_all_orders, name='list-all-orders'),
     path('orders/<int:id>/', views.get_details_of_order_with_order_id, name='get-order-details'),
-    path('users/<str:userId>/orders/create/', views.create_new_order, name='create-new-order'),
+    path('users/<int:userId>/orders/create/', views.create_new_order, name='create-new-order'),
     path('orders/<int:id>/cancel/', views.cancel_order_with_order_id, name='cancel-order'),
 
     # Payment Integration
@@ -52,7 +52,7 @@ urlpatterns = [
 
     # Reviews and Ratings
     path('products/<int:id>/reviews/', views.get_reviews_for_product_with_product_id, name='get-product-reviews'),
-    path('users/<str:userId>/products/<int:id>/reviews/create/', views.creat_review_for_product_with_product_id, name='create-product-review'),
+    path('users/<int:userId>/products/<int:id>/reviews/create/', views.creat_review_for_product_with_product_id, name='create-product-review'),
 
     # Search and Filters
     path('search/', views.search_products, name='search-products'),
