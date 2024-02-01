@@ -306,7 +306,7 @@ def add_product_to_user_cart(request, id, productId):
 
                 existing_cart_item.save()
 
-                return JsonResponse(str(existing_cart_item.to_dict()), safe=False)
+                return JsonResponse(existing_cart_item.to_dict(), safe=False)
             except CartItem.DoesNotExist:
                 new_cart_item = CartItem(cart=ShoppingCart.objects.get(user=id), product=Product.objects.get(product_id=productId), quantity=quantity)
             
@@ -329,7 +329,7 @@ def add_product_to_user_cart(request, id, productId):
     
     new_cart_item.save()    
 
-    return JsonResponse(str(new_cart_item.to_dict()), safe=False)
+    return JsonResponse(new_cart_item.to_dict(), safe=False)
 
 @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["DELETE"])
@@ -349,7 +349,7 @@ def remove_product_from_user_cart(request, id, productId):
     except CartItem.DoesNotExist:
         return JsonResponse(f"CartItem does not exist.", safe=False)
     
-    return JsonResponse(str(cart_item_to_delete_details), safe=False)
+    return JsonResponse(cart_item_to_delete_details, safe=False)
 
 @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["DELETE"])
@@ -439,7 +439,9 @@ def cancel_order_with_order_id(request, id):
 def process_payment(request, orderId):
     try:
         order_to_pay_for = Order.objects.get(order_id=orderId)
-        return JsonResponse(f"Process payment for order: {order_to_pay_for.to_dict()}.", safe=False)
+
+        return JsonResponse(order_to_pay_for.to_dict(), safe=False) if (order_to_pay_for.order_status == "ACTIVE") else JsonResponse(f"Can't process payment for a CANCELLED/COMPLETED order.", safe=False)
+        # return JsonResponse(f"Process payment for order: {order_to_pay_for.to_dict()}.", safe=False)
     
     except Order.DoesNotExist:
         return JsonResponse(f"Order with ID: {orderId} does not exist.", safe=False)
@@ -450,7 +452,7 @@ def process_payment(request, orderId):
 def refund_payment(request, orderId):
     try:
         order_to_refund = Order.objects.get(order_id=orderId)
-        return JsonResponse(f"Process refund for order: {order_to_refund.to_dict()}.", safe=False)
+        return JsonResponse(order_to_refund.to_dict(), safe=False)
     
     except Order.DoesNotExist:
         return JsonResponse(f"Order with ID: {orderId} does not exist.", safe=False)
@@ -522,7 +524,7 @@ def remove_product_category_with_category_id(request, id):
     except Category.DoesNotExist:
         return JsonResponse(f"Category with ID: {id} does not exist.", safe=False)
     
-    return JsonResponse(f"Deleted: {category_to_delete_details}", safe=False)
+    return JsonResponse(category_to_delete_details, safe=False)
 
 """REVIEWS AND RATINGS"""
 @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
@@ -654,7 +656,7 @@ def delete_address_with_address_id(request, userId, id):
 
         address_to_delete.delete()
 
-        return JsonResponse(f"Deleted: {address_to_delete_details}", safe=False)
+        return JsonResponse(address_to_delete_details, safe=False)
     
     except Address.DoesNotExist:
         return JsonResponse(f"Address with ID: {id} does not exist.", safe=False)
