@@ -63,7 +63,8 @@ from django.contrib.auth.decorators import login_required
 @require_http_methods(["GET"])
 def index(request):
     # http://127.0.0.1:8000/eridosolutions/
-    return JsonResponse("Welcome to our beautiful LaNdInG pAgE!", safe=False)
+    # return JsonResponse("Welcome to our beautiful LaNdInG pAgE!", safe=False)
+    return render(request, 'eridosolutions/index.html')
 
 """AUTHENTICATION"""
 
@@ -168,11 +169,12 @@ def create_new_product(request):
         price = request.POST['price']
         quantity_in_stock = request.POST['quantity_in_stock']
         category = request.POST['category']
+        image = request.FILES['image']
     except MultiValueDictKeyError as e:
         return JsonResponse(f"The form value for attribute {str(e)} is missing.", safe=False)
 
     try:
-        new_product = Product(name=name, description=description, price=float(price), quantity_in_stock=quantity_in_stock, category=Category.objects.get(name=category))
+        new_product = Product(name=name, description=description, price=float(price), quantity_in_stock=quantity_in_stock, category=Category.objects.get(name=category), image=image)
         new_product.save()
     except (ValueError, ValidationError) as e:
         return JsonResponse(f"{str(e)}", safe=False)    
