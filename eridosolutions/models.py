@@ -1,21 +1,5 @@
 from django.db import models
-# from django.contrib.auth.models import User
-
-class User(models.Model):
-    auth0_user_id = models.CharField(max_length=255, unique=True, primary_key=True)
-    email = models.EmailField(unique=True)
-    username = models.CharField(max_length=255)
-
-    def __str__(self):
-        return f'{self.username} - {self.email} - {self.auth0_user_id}'
-
-    def to_dict(self):
-        return {
-            'username': self.username,
-            'email': self.email,
-            'auth0_user_id': self.auth0_user_id,
-            # Add other fields as needed
-        }
+from django.contrib.auth.models import User
 
 class Category(models.Model):
     category_id = models.AutoField(primary_key=True)

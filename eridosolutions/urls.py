@@ -4,17 +4,17 @@ from . import views
 app_name = "eridosolutions"
 urlpatterns = [
     # Auth0
-    path("login", views.login, name="login"),
-    path("logout", views.logout, name="logout"),
-    path("callback", views.callback, name="callback"),
+    # path("login", views.login, name="login"),
+    # path("logout", views.logout, name="logout"),
+    # path("callback", views.callback, name="callback"),
 
     # Landing Page
     path('', views.index, name='index'),
 
     # Authentication
-    # path('register/', views.register, name='register'),
-    # path('login/', views.login, name='login'),
-    # path('logout/', views.logout, name='logout'),
+    path('register/', views.register, name='register'),
+    path('login/', views.login, name='login'),
+    path('logout/', views.logout, name='logout'),
 
     # Product Management
     path('products/', views.list_all_products, name='list-all-products'),

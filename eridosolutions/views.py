@@ -16,95 +16,86 @@ from django.utils.datastructures import MultiValueDictKeyError
 from django.core.exceptions import ValidationError
 from django.http import QueryDict
 from django.db.models import F, ExpressionWrapper, fields, Sum
+from django.db import IntegrityError
 
 
 """AUTHO"""
-oauth = OAuth()
+# oauth = OAuth()
 
-oauth.register(
-    "auth0",
-    client_id=settings.AUTH0_CLIENT_ID,
-    client_secret=settings.AUTH0_CLIENT_SECRET,
-    client_kwargs={
-        "scope": "openid profile email",
-    },
-    server_metadata_url=f"https://{settings.AUTH0_DOMAIN}/.well-known/openid-configuration",
-)
+# oauth.register(
+#     "auth0",
+#     client_id=settings.AUTH0_CLIENT_ID,
+#     client_secret=settings.AUTH0_CLIENT_SECRET,
+#     client_kwargs={
+#         "scope": "openid profile email",
+#     },
+#     server_metadata_url=f"https://{settings.AUTH0_DOMAIN}/.well-known/openid-configuration",
+# )
 
 
-def login(request):
-    return oauth.auth0.authorize_redirect(
-        request, request.build_absolute_uri(reverse("eridosolutions:callback"))
-    )
+# def login(request):
+#     return oauth.auth0.authorize_redirect(
+#         request, request.build_absolute_uri(reverse("eridosolutions:callback"))
+#     )
 
-def callback(request):
-    token = oauth.auth0.authorize_access_token(request)
-    request.session["user"] = token
-    return redirect(request.build_absolute_uri(reverse("eridosolutions:index")))
+# def callback(request):
+#     token = oauth.auth0.authorize_access_token(request)
+#     request.session["user"] = token
+#     return redirect(request.build_absolute_uri(reverse("eridosolutions:index")))
 
-def logout(request):
-    request.session.clear()
+# def logout(request):
+    # request.session.clear()
 
-    return redirect(
-        f"https://{settings.AUTH0_DOMAIN}/v2/logout?"
-        + urlencode(
-            {
-                "returnTo": request.build_absolute_uri(reverse("eridosolutions:index")),
-                "client_id": settings.AUTH0_CLIENT_ID,
-            },
-            quote_via=quote_plus,
-        ),
-    )
+    # return redirect(
+    #     f"https://{settings.AUTH0_DOMAIN}/v2/logout?"
+    #     + urlencode(
+    #         {
+    #             "returnTo": request.build_absolute_uri(reverse("eridosolutions:index")),
+    #             "client_id": settings.AUTH0_CLIENT_ID,
+    #         },
+    #         quote_via=quote_plus,
+    #     ),
+    # )
 
 """LANDING PAGE"""
 @require_http_methods(["GET"])
 def index(request):
     # http://127.0.0.1:8000/eridosolutions/
-    try:
-        # return JsonResponse(f"ID: {request.session.get('user')['userinfo']['sub']} USERNAME: {request.session.get('user')['userinfo']['nickname']} EMAIL: {request.session.get('user')['userinfo']['name']}", safe=False)
-        username = request.session.get('user')['userinfo']['nickname']
-        email = request.session.get('user')['userinfo']['name']
-        auth0_user_id = request.session.get('user')['userinfo']['sub']
-
-        try:
-            current_user = User.objects.get(auth0_user_id=auth0_user_id)
-        
-        except User.DoesNotExist:
-            new_user = User(username=username, email=email, auth0_user_id=auth0_user_id)
-            new_user.save()
-
-    except TypeError:
-        # return JsonResponse(f"Sign in to use the platform.", safe=False)
-        pass       
-
-    return render(
-        request,
-        "eridosolutions/index.html",
-        context={
-            "session": request.session.get("user"),
-            "pretty": json.dumps(request.session.get("user"), indent=4),
-        },
-    )
-    
+    return JsonResponse("Welcome to our beautiful LaNdInG pAgE!", safe=False)
 
 """AUTHENTICATION"""
-# @require_http_methods(["POST"])
-# @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
-# def register(request):
-#     # http://127.0.0.1:8000/eridosolutions/register/
-#     return JsonResponse("Create a new user account.", safe=False)
+@require_http_methods(["POST"])
+@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
+def register(request):
+    # http://127.0.0.1:8000/eridosolutions/register/
+    try:
+        data = request.POST
 
-# @require_http_methods(["POST"])
-# @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
-# def login(request):
-#     # http://127.0.0.1:8000/eridosolutions/login/
-#     return JsonResponse("Authenticate a user and generate an access token.", safe=False)
+        username, password, email, first_name, last_name = [data['username'], data['password'], data['email'], data['first_name'], data['last_name']]
 
-# @require_http_methods(["POST"])
-# @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
-# def logout(request):
-#     # http://127.0.0.1:8000/eridosolutions/logout/
-#     return JsonResponse("Invalidate the user's access token and log them out.", safe=False)
+        user = User.objects.create_user(username=username, password=password, email=email, first_name=first_name, last_name=last_name)
+
+        user.save()
+
+        return JsonResponse(f"{str(user)}", safe=False)
+    
+    except IntegrityError:
+        return JsonResponse(f"User with the same username or email already exists.", safe=False)
+
+    except MultiValueDictKeyError as e:
+        return JsonResponse(f"The form value for attribute {str(e)} is missing.", safe=False)
+
+@require_http_methods(["POST"])
+@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
+def login(request):
+    # http://127.0.0.1:8000/eridosolutions/login/
+    return JsonResponse("Authenticate a user and generate an access token.", safe=False)
+
+@require_http_methods(["POST"])
+@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
+def logout(request):
+    # http://127.0.0.1:8000/eridosolutions/logout/
+    return JsonResponse("Invalidate the user's access token and log them out.", safe=False)
 
 """PRODUCT MANAGEMENT"""
 @require_http_methods(["GET"])
