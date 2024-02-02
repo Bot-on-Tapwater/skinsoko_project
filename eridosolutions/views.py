@@ -19,6 +19,7 @@ from django.db.models import F, ExpressionWrapper, fields, Sum
 from django.db import IntegrityError
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 
 
 """AUTHO"""
@@ -189,21 +190,46 @@ def update_product_with_product_id_details(request, id):
     try:
         product_to_update = Product.objects.get(product_id=id)
 
-        for field, value in QueryDict(request.body).items():
-            # print(f"FIELD: {field} VALUE: {value}")
-            if (hasattr(product_to_update, field) and field == "category"):                
-                try:
-                    setattr(product_to_update, field, Category.objects.get(name=value))
-                except (ValueError, ValidationError, Category.DoesNotExist) as e:
-                    return JsonResponse(f"{str(e)}", safe=False)
+        if request.method == 'PUT':
+            for field, value in QueryDict(request.body).items():
+                # print(f"FIELD: {field} VALUE: {value}")
+                if (hasattr(product_to_update, field) and field == "category"):                
+                    try:
+                        setattr(product_to_update, field, Category.objects.get(name=value))
+                    except (ValueError, ValidationError, Category.DoesNotExist) as e:
+                        return JsonResponse(f"{str(e)}", safe=False)
+                
+                elif (hasattr(product_to_update, field) and field == "image"):
+                    return JsonResponse('Use POST request to update image', safe=False)
+                
+                elif (hasattr(product_to_update, field)):
+                    setattr(product_to_update, field, value)
+                
+                else:
+                    return JsonResponse(f"There is no field named {field} in products table.", safe=False)
+                
+        if request.method == 'POST':
+            data = request.POST
+            image = request.FILES['image']
             
-            elif (hasattr(product_to_update, field)):
-                setattr(product_to_update, field, value)
-            
-            else:
-                return JsonResponse(f"There is no field named {field} in products table.", safe=False)
+            for field, value in data.items():
+                # print(f"FIELD: {field} VALUE: {value}")
+                if (hasattr(product_to_update, field) and field == "category"):                
+                    try:
+                        setattr(product_to_update, field, Category.objects.get(name=value))
+                    except (ValueError, ValidationError, Category.DoesNotExist) as e:
+                        return JsonResponse(f"{str(e)}", safe=False)
+                    
+                elif (hasattr(product_to_update, 'image')):
+                    product_to_update.image = image
+                
+                elif (hasattr(product_to_update, field)):
+                    setattr(product_to_update, field, value)               
+                
+                else:
+                    return JsonResponse(f"There is no field named {field} in products table.", safe=False)
 
-        product_to_update.save()      
+        product_to_update.save()
     
     except Product.DoesNotExist as e:
         return JsonResponse(f"Product with ID: {id} was not found.", safe=False)
