@@ -12,5 +12,16 @@
     <h1>Welcome Guest</h1>
     <p><a href="{% url 'eridosolutions:login' %}">Login</a></p>
     {% endif %}
+
+    <form action="{% url 'eridosolutions:create-new-product' %}" method="post">
+      {% csrf_token %}
+      <input type="text" name="name" placeholder="name"> <br><br>
+      <input type="text" name="price" placeholder="price"> <br><br>
+      <input type="text" name="category" placeholder="category"> <br><br>
+      <input type="number" name="quantity_in_stock" placeholder="quantity"> <br><br>
+      <textarea name="description" id="" placeholder="description" cols="30" rows="10"></textarea> <br><br>
+      <button type="submit">create new product</button>
+  </form>
+
   </body>
 </html>
