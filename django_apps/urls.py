@@ -23,6 +23,7 @@ from django.urls import include
 # handler400 = 'eridosolutions.views.handler400'
 # handler401 = 'eridosolutions.views.handler401'
 
+
 urlpatterns = [
     path('eridosolutions/', include("eridosolutions.urls")),
     path('admin/', admin.site.urls),
