@@ -1,21 +1,6 @@
 from django.db import models
-# from django.contrib.auth.models import User
-
-class User(models.Model):
-    auth0_user_id = models.CharField(max_length=255, unique=True, primary_key=True)
-    email = models.EmailField(unique=True)
-    username = models.CharField(max_length=255)
-
-    def __str__(self):
-        return f'{self.username} - {self.email} - {self.auth0_user_id}'
-
-    def to_dict(self):
-        return {
-            'username': self.username,
-            'email': self.email,
-            'auth0_user_id': self.auth0_user_id,
-            # Add other fields as needed
-        }
+from django.contrib.auth.models import User
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 class Category(models.Model):
     category_id = models.AutoField(primary_key=True)
@@ -37,6 +22,7 @@ class Product(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     quantity_in_stock = models.PositiveIntegerField()
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='images', null=True, blank=True)
 
     def __str__(self):
         return f'{self.name} - {self.price}'
@@ -49,6 +35,7 @@ class Product(models.Model):
             'price': str(self.price),
             'quantity_in_stock': self.quantity_in_stock,
             'category': self.category.to_dict() if self.category else None,
+            'image': self.image.url
         }
 
 class ShoppingCart(models.Model):
@@ -62,7 +49,7 @@ class ShoppingCart(models.Model):
     def to_dict(self):
         return {
             'cart_id': self.cart_id,
-            'user': self.user,
+            'user': self.user.username,
             'created_at': str(self.created_at),
         }
 
@@ -125,7 +112,7 @@ class Review(models.Model):
     review_id = models.AutoField(primary_key=True)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    rating = models.PositiveIntegerField()
+    rating = models.PositiveIntegerField(validators=[MinValueValidator(0), MaxValueValidator(5)])
     comment = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 

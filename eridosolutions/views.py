@@ -11,102 +11,129 @@ import json
 import requests
 from django.http import JsonResponse
 from django.http import HttpResponseNotFound, HttpResponseServerError, Http404
-from .models import Product, Category, User, Order, ShoppingCart, CartItem, Review, Address
+from .models import Product, Category, User, Order, ShoppingCart, CartItem, Review, Address, OrderItem
 from django.utils.datastructures import MultiValueDictKeyError
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ValidationError, MultipleObjectsReturned
 from django.http import QueryDict
 from django.db.models import F, ExpressionWrapper, fields, Sum
+from django.db import IntegrityError
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator, EmptyPage
 
 
 """AUTHO"""
-oauth = OAuth()
+# oauth = OAuth()
 
-oauth.register(
-    "auth0",
-    client_id=settings.AUTH0_CLIENT_ID,
-    client_secret=settings.AUTH0_CLIENT_SECRET,
-    client_kwargs={
-        "scope": "openid profile email",
-    },
-    server_metadata_url=f"https://{settings.AUTH0_DOMAIN}/.well-known/openid-configuration",
-)
+# oauth.register(
+#     "auth0",
+#     client_id=settings.AUTH0_CLIENT_ID,
+#     client_secret=settings.AUTH0_CLIENT_SECRET,
+#     client_kwargs={
+#         "scope": "openid profile email",
+#     },
+#     server_metadata_url=f"https://{settings.AUTH0_DOMAIN}/.well-known/openid-configuration",
+# )
 
 
-def login(request):
-    return oauth.auth0.authorize_redirect(
-        request, request.build_absolute_uri(reverse("eridosolutions:callback"))
-    )
+# def login(request):
+#     return oauth.auth0.authorize_redirect(
+#         request, request.build_absolute_uri(reverse("eridosolutions:callback"))
+#     )
 
-def callback(request):
-    token = oauth.auth0.authorize_access_token(request)
-    request.session["user"] = token
-    return redirect(request.build_absolute_uri(reverse("eridosolutions:index")))
+# def callback(request):
+#     token = oauth.auth0.authorize_access_token(request)
+#     request.session["user"] = token
+#     return redirect(request.build_absolute_uri(reverse("eridosolutions:index")))
 
-def logout(request):
-    request.session.clear()
+# def logout(request):
+    # request.session.clear()
 
-    return redirect(
-        f"https://{settings.AUTH0_DOMAIN}/v2/logout?"
-        + urlencode(
-            {
-                "returnTo": request.build_absolute_uri(reverse("eridosolutions:index")),
-                "client_id": settings.AUTH0_CLIENT_ID,
-            },
-            quote_via=quote_plus,
-        ),
-    )
+    # return redirect(
+    #     f"https://{settings.AUTH0_DOMAIN}/v2/logout?"
+    #     + urlencode(
+    #         {
+    #             "returnTo": request.build_absolute_uri(reverse("eridosolutions:index")),
+    #             "client_id": settings.AUTH0_CLIENT_ID,
+    #         },
+    #         quote_via=quote_plus,
+    #     ),
+    # )
 
 """LANDING PAGE"""
 @require_http_methods(["GET"])
 def index(request):
     # http://127.0.0.1:8000/eridosolutions/
-    try:
-        # return JsonResponse(f"ID: {request.session.get('user')['userinfo']['sub']} USERNAME: {request.session.get('user')['userinfo']['nickname']} EMAIL: {request.session.get('user')['userinfo']['name']}", safe=False)
-        username = request.session.get('user')['userinfo']['nickname']
-        email = request.session.get('user')['userinfo']['name']
-        auth0_user_id = request.session.get('user')['userinfo']['sub']
-
-        try:
-            current_user = User.objects.get(auth0_user_id=auth0_user_id)
-        
-        except User.DoesNotExist:
-            new_user = User(username=username, email=email, auth0_user_id=auth0_user_id)
-            new_user.save()
-
-    except TypeError:
-        # return JsonResponse(f"Sign in to use the platform.", safe=False)
-        pass       
-
-    return render(
-        request,
-        "eridosolutions/index.html",
-        context={
-            "session": request.session.get("user"),
-            "pretty": json.dumps(request.session.get("user"), indent=4),
-        },
-    )
-    
+    # return JsonResponse("Welcome to our beautiful LaNdInG pAgE!", safe=False)
+    return render(request, 'eridosolutions/index.html')
 
 """AUTHENTICATION"""
-# @require_http_methods(["POST"])
-# @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
-# def register(request):
-#     # http://127.0.0.1:8000/eridosolutions/register/
-#     return JsonResponse("Create a new user account.", safe=False)
+
+redirect_url_for_paths_that_fail_login_requirements = "eridosolutions/"
+@require_http_methods(["POST"])
+@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
+def register(request):
+    # http://127.0.0.1:8000/eridosolutions/register/
+    try:
+        data = request.POST
+
+        username, password, email, first_name, last_name = [data['username'], data['password'], data['email'], data['first_name'], data['last_name']]
+
+        user = User.objects.create_user(username=username, password=password, email=email, first_name=first_name, last_name=last_name)
+
+        user.save()
+
+        user_cart = ShoppingCart(user=user)
+
+        user_cart.save()        
+
+        return JsonResponse({'id': user.id, 'username': user.username, 'email': user.email, 'first_name': user.first_name, 'last_name': user.last_name}, safe=False)
+    
+    except IntegrityError:
+        return JsonResponse(f"User with the same username or email already exists.", safe=False)
+
+    except MultiValueDictKeyError as e:
+        return JsonResponse(f"The form value for attribute {str(e)} is missing.", safe=False)
+
+@require_http_methods(["POST"])
+@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
+def login_view(request):
+    # http://127.0.0.1:8000/eridosolutions/login/
+    try:
+        username, password = [request.POST['username'], request.POST['password']]
+
+    except MultiValueDictKeyError as e:
+        return JsonResponse(f"The form value for attribute {str(e)} is missing.", safe=False)
+    
+    try:
+        user_email_passed_instead = User.objects.get(email=username)
+
+        username = user_email_passed_instead.username
+
+    except User.DoesNotExist:
+        pass
+
+    except MultipleObjectsReturned:
+        return JsonResponse(f"You are using the same email for Django Admin Dashboard and your newly created user, change one of them.", safe=False)
+    
+    user = authenticate(username=username, password=password)
+
+    if user is not None:
+        login(request, user)
+        return JsonResponse({'id': user.id, 'username': user.username, 'email': user.email, 'first_name': user.first_name, 'last_name': user.last_name}, safe=False)
+    
+    else:
+        return JsonResponse(f"Either the email/username or the password is incorrect", safe=False)
 
 # @require_http_methods(["POST"])
-# @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
-# def login(request):
-#     # http://127.0.0.1:8000/eridosolutions/login/
-#     return JsonResponse("Authenticate a user and generate an access token.", safe=False)
-
-# @require_http_methods(["POST"])
-# @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
-# def logout(request):
-#     # http://127.0.0.1:8000/eridosolutions/logout/
-#     return JsonResponse("Invalidate the user's access token and log them out.", safe=False)
+@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
+def logout_view(request):
+    # http://127.0.0.1:8000/eridosolutions/logout/
+    logout(request)
+    return redirect('eridosolutions:index')
 
 """PRODUCT MANAGEMENT"""
+@login_required(login_url="/eridosolutions/")
 @require_http_methods(["GET"])
 def list_all_products(request):
     # http://127.0.0.1:8000/eridosolutions/products/
@@ -114,11 +141,40 @@ def list_all_products(request):
     all_products = Product.objects.all()
 
     if all_products.exists():
-        return JsonResponse([product.to_dict() for product in all_products], safe=False)
+        items_per_page = 2
+
+        page_number = request.GET.get('page', 1)
+
+        paginator = Paginator(all_products, items_per_page)
+        
+        try:
+            page_obj = paginator.get_page(page_number)
+        
+        except EmptyPage:
+            return JsonResponse({"error": "Page not found"}, safe=False)
+
+        items_on_current_page = page_obj.object_list
+
+        json_data = {
+            'current_page': page_obj.number,
+            'total_pages': paginator.num_pages,
+            'items': [item.to_dict() for item in items_on_current_page],
+        }
+
+        if page_obj.has_previous():
+            json_data['previous_page'] = f"http://127.0.0.1:8000/eridosolutions/products/?page={page_obj.previous_page_number()}"
+
+        if page_obj.has_next():
+            json_data['next_page'] = f"http://127.0.0.1:8000/eridosolutions/products/?page={page_obj.next_page_number()}"
+        
+        return JsonResponse(json_data, safe=False)
+        
+
+        # return JsonResponse([product.to_dict() for product in paginator.get_page(1)], safe=False)
     else:
         return JsonResponse("No products found, add a product and try again.", safe=False)
-    # return JsonResponse("Get a list of all products.", safe=False)
 
+@login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["GET"])
 def get_product_with_product_id(request, id):
     # http://127.0.0.1:8000/eridosolutions/products/<id>/
@@ -131,7 +187,7 @@ def get_product_with_product_id(request, id):
         return JsonResponse(f"Product with ID: {id} was not found.", safe=False)
     # return JsonResponse("Get details of a specific product.", safe=False)
 
-
+@login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["POST"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def create_new_product(request):
@@ -142,47 +198,74 @@ def create_new_product(request):
         price = request.POST['price']
         quantity_in_stock = request.POST['quantity_in_stock']
         category = request.POST['category']
+        image = request.FILES['image']
     except MultiValueDictKeyError as e:
         return JsonResponse(f"The form value for attribute {str(e)} is missing.", safe=False)
 
     try:
-        new_product = Product(name=name, description=description, price=float(price), quantity_in_stock=quantity_in_stock, category=Category.objects.get(name=category))
+        new_product = Product(name=name, description=description, price=float(price), quantity_in_stock=quantity_in_stock, category=Category.objects.get(name=category), image=image)
         new_product.save()
     except (ValueError, ValidationError) as e:
         return JsonResponse(f"{str(e)}", safe=False)    
 
     return JsonResponse(new_product.to_dict(), safe=False)
-    # return JsonResponse(f"Add a new product to the catalog.", safe=False)
 
-@require_http_methods(["PUT"])
+@login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
+@require_http_methods(["PUT", "POST"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def update_product_with_product_id_details(request, id):
     # http://127.0.0.1:8000/eridosolutions/products/<id>/update/
     try:
         product_to_update = Product.objects.get(product_id=id)
 
-        for field, value in QueryDict(request.body).items():
-            # print(f"FIELD: {field} VALUE: {value}")
-            if (hasattr(product_to_update, field) and field == "category"):                
-                try:
-                    setattr(product_to_update, field, Category.objects.get(name=value))
-                except (ValueError, ValidationError, Category.DoesNotExist) as e:
-                    return JsonResponse(f"{str(e)}", safe=False)
+        if request.method == 'PUT':
+            for field, value in QueryDict(request.body).items():
+                # print(f"FIELD: {field} VALUE: {value}")
+                if (hasattr(product_to_update, field) and field == "category"):                
+                    try:
+                        setattr(product_to_update, field, Category.objects.get(name=value))
+                    except (ValueError, ValidationError, Category.DoesNotExist) as e:
+                        return JsonResponse(f"{str(e)}", safe=False)
+                
+                elif (hasattr(product_to_update, field) and field == "image"):
+                    return JsonResponse('Use POST request to update image', safe=False)
+                
+                elif (hasattr(product_to_update, field)):
+                    setattr(product_to_update, field, value)
+                
+                else:
+                    return JsonResponse(f"There is no field named {field} in products table.", safe=False)
+                
+        if request.method == 'POST':
+            data = request.POST
+            image = request.FILES['image']
             
-            elif (hasattr(product_to_update, field)):
-                setattr(product_to_update, field, value)
-            
-            else:
-                return JsonResponse(f"There is no field named {field} in products table.", safe=False)
+            for field, value in data.items():
+                # print(f"FIELD: {field} VALUE: {value}")
+                if (hasattr(product_to_update, field) and field == "category"):                
+                    try:
+                        setattr(product_to_update, field, Category.objects.get(name=value))
+                    except (ValueError, ValidationError, Category.DoesNotExist) as e:
+                        return JsonResponse(f"{str(e)}", safe=False)
+                    
+                elif (hasattr(product_to_update, 'image')):
+                    product_to_update.image = image
+                
+                elif (hasattr(product_to_update, field)):
+                    setattr(product_to_update, field, value)               
+                
+                else:
+                    return JsonResponse(f"There is no field named {field} in products table.", safe=False)
 
-        product_to_update.save()      
+        product_to_update.save()
     
     except Product.DoesNotExist as e:
         return JsonResponse(f"Product with ID: {id} was not found.", safe=False)
 
-    return JsonResponse(f"{product_to_update.to_dict()}", safe=False)
+    return JsonResponse(product_to_update.to_dict(), safe=False)
         
 
+@login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["DELETE"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def delete_product_with_product_id(request, id):
@@ -197,67 +280,82 @@ def delete_product_with_product_id(request, id):
     except Product.DoesNotExist as e:
         return JsonResponse(f"Product with ID: {id} was not found.", safe=False)
     
-    return JsonResponse(f"Deleted successfully {product_to_delete_details}", safe=False)
+    return JsonResponse(product_to_delete_details, safe=False)
 
 """USER PROFILE"""
+@login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["GET"])
 def get_user_with_user_id_profile_details(request, id):
     # http://127.0.0.1:8000/eridosolutions/users/<id>/
     # auth0|65aad24e45bc7f710f2a381a
 
     try:
-        specific_user = User.objects.get(auth0_user_id=id)
-        return JsonResponse(specific_user.to_dict(), safe=False)
+        specific_user = User.objects.get(id=id)
+        return JsonResponse({'id': specific_user.id, 'username': specific_user.username, 'email': specific_user.email, 'first_name': specific_user.first_name, 'last_name': specific_user.last_name}, safe=False)
     except User.DoesNotExist:
         return JsonResponse(f"User with ID: {id} does not exist.", safe=False)
 
+@login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["PUT"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def update_user_with_user_id_profile_details(request, id):
     # http://127.0.0.1:8000/eridosolutions/users/<id>/update/
     try:
-        user_to_update = User.objects.get(auth0_user_id=id)
+        user_to_update = User.objects.get(id=id)
 
-        username = QueryDict(request.body)['username']
+        for field, value in QueryDict(request.body).items():
+            # print(f"FIELD: {field} VALUE: {value}")
+            if (hasattr(user_to_update, field) and field == "password"):                
+                try:
+                    user_to_update.set_password(value)
+                except (ValueError, ValidationError, Category.DoesNotExist) as e:
+                    return JsonResponse(f"{str(e)}", safe=False)
+            
+            elif (hasattr(user_to_update, field)):
+                setattr(user_to_update, field, value)
+            
+            else:
+                return JsonResponse(f"There is no field named {field} in users table.", safe=False)
 
-        setattr(user_to_update, "username", username)
-
-        user_to_update.save()
-
-        return JsonResponse(user_to_update.to_dict(), safe=False)
+        user_to_update.save()      
     
     except User.DoesNotExist as e:
-        return JsonResponse(f"User with id {id} does not exist.", safe=False)
-    
-    except MultiValueDictKeyError as e:
-        return JsonResponse(f"The form value for attribute {str(e)} is missing.", safe=False)
+        return JsonResponse(f"user with ID: {id} was not found.", safe=False)
 
+    return JsonResponse({'id': user_to_update.id, 'username': user_to_update.username, 'email': user_to_update.email, 'first_name': user_to_update.first_name, 'last_name': user_to_update.last_name}, safe=False)
+
+@login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["GET"])
 def list_orders_placed_by_user_with_user_id(request, id):
     # http://127.0.0.1:8000/eridosolutions/users/<id>/orders/
     try:
         orders_placed_by_user = Order.objects.get(user=id)
-        return JsonResponse(f"{[order.to_dict() for order in orders_placed_by_user]}", safe=False)
+        return JsonResponse([order_item.to_dict() for order_item in OrderItem.objects.filter(order=orders_placed_by_user)], safe=False)
     except Order.DoesNotExist:
         return JsonResponse(f"User with ID: {id} hasn't placed any orders.", safe=False)
 
 """SHOPPING CART"""
+@login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["GET"])
 def get_contents_of_shopping_cart_of_user(request, id):
     try:
         cart_contents_of_user = ShoppingCart.objects.get(user=id)
 
-        return JsonResponse(f"{[item.to_dict() for item in CartItem.objects.filter(cart=cart_contents_of_user.cart_id)]}", safe=False)
+        return JsonResponse([item.to_dict() for item in CartItem.objects.filter(cart=cart_contents_of_user.cart_id)], safe=False)
     except ShoppingCart.DoesNotExist:
         return JsonResponse(f"Current user hasn't placed any items in cart.", safe=False)
     except TypeError:
-        return JsonResponse(f"No active cart found for current user.", safe=False)
+        return JsonResponse(f"No active cart found for current user or A TypeError occured.", safe=False)
 
+@login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["POST"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def add_product_to_user_cart(request, id, productId):
     try:
         quantity = request.POST['quantity']
+
+        if (int(quantity) > Product.objects.get(product_id=productId).quantity_in_stock):
+            return JsonResponse(f"Quantity in stock is {Product.objects.get(product_id=productId).quantity_in_stock}, reduce your current quantity of ({quantity}) items.", safe=False)
 
         try:
             try:
@@ -267,14 +365,14 @@ def add_product_to_user_cart(request, id, productId):
 
                 existing_cart_item.save()
 
-                return JsonResponse(str(existing_cart_item.to_dict()), safe=False)
+                return JsonResponse(existing_cart_item.to_dict(), safe=False)
             except CartItem.DoesNotExist:
                 new_cart_item = CartItem(cart=ShoppingCart.objects.get(user=id), product=Product.objects.get(product_id=productId), quantity=quantity)
             
 
         except ShoppingCart.DoesNotExist:
             try:
-                new_shopping_cart = ShoppingCart(user=User.objects.get(auth0_user_id=id))
+                new_shopping_cart = ShoppingCart(user=User.objects.get(id=id))
 
                 new_shopping_cart.save()
 
@@ -290,8 +388,9 @@ def add_product_to_user_cart(request, id, productId):
     
     new_cart_item.save()    
 
-    return JsonResponse(str(new_cart_item.to_dict()), safe=False)
+    return JsonResponse(new_cart_item.to_dict(), safe=False)
 
+@login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["DELETE"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def remove_product_from_user_cart(request, id, productId):
@@ -309,24 +408,26 @@ def remove_product_from_user_cart(request, id, productId):
     except CartItem.DoesNotExist:
         return JsonResponse(f"CartItem does not exist.", safe=False)
     
-    return JsonResponse(str(cart_item_to_delete_details), safe=False)
+    return JsonResponse(cart_item_to_delete_details, safe=False)
 
-@require_http_methods(["DELETE"])
+@login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
+@require_http_methods(["DELETE", "POST"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def clear_entire_shopping_cart(request, id):
     # http://127.0.0.1:8000/eridosolutions/cart/clear/
     try:
         cart_to_clear = ShoppingCart.objects.get(user=id)
 
-        cart_to_clear_details = cart_to_clear.to_dict()
+        cart_to_clear_items = CartItem.objects.filter(cart=cart_to_clear)
 
-        cart_to_clear.delete()
+        _ = list(map(lambda x: x.delete(), cart_to_clear_items))
 
     except ShoppingCart.DoesNotExist:
         return JsonResponse(f"User with ID: {id} does not have a cart.", safe=False)
-    return JsonResponse(str(cart_to_clear_details), safe=False)
+    return JsonResponse(f"Cart cleared.", safe=False)
 
 """ORDER MANAGEMENT"""
+@login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["GET"])
 def get_list_of_all_orders(request):
     # http://127.0.0.1:8000/eridosolutions/orders/
@@ -337,6 +438,7 @@ def get_list_of_all_orders(request):
     else:
         return JsonResponse(f"No orders found, add an order and try again.", safe=False)
 
+@login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["GET"])
 def get_details_of_order_with_order_id(request, id):
     # http://127.0.0.1:8000/eridosolutions/orders/<id>/
@@ -348,6 +450,7 @@ def get_details_of_order_with_order_id(request, id):
     
     return JsonResponse(specific_order_details.to_dict(), safe=False)
 
+@login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["POST"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def create_new_order(request, userId):
@@ -357,15 +460,30 @@ def create_new_order(request, userId):
         total_cost_of_cart_items = CartItem.objects.filter(cart=user_cart).aggregate(total_cost=Sum(ExpressionWrapper(F('quantity') * F('product__price'), output_field=fields.FloatField())))
         total_cost = total_cost_of_cart_items.get('total_cost', 0) or 0
 
-        new_order = Order(user=User.objects.get(auth0_user_id=userId), total_amount=total_cost, order_status='ACTIVE')
+        new_order = Order(user=User.objects.get(id=userId), total_amount=total_cost, order_status='ACTIVE')
+
+        new_order.save()
+
+        new_order_items = list(map(lambda item: OrderItem(order=new_order, product=item.product, quantity=item.quantity, unit_price=item.product.price), [item for item in CartItem.objects.filter(cart=user_cart)]))
+
+        for item in CartItem.objects.filter(cart=user_cart):
+            product_to_update_quantity = Product.objects.get(product_id=item.product.product_id)
+
+            product_to_update_quantity.quantity_in_stock -= item.quantity
+
+            product_to_update_quantity.save()
+
+        OrderItem.objects.bulk_create(new_order_items)
+
+        clear_entire_shopping_cart(request, userId)
 
     except ShoppingCart.DoesNotExist:
-        return JsonResponse(f"User with ID: {userId} has no items in cart.", safe=False)
-    
-    new_order.save()
+        return JsonResponse(f"User with ID: {userId} has no items in cart.", safe=False)    
 
-    return JsonResponse(new_order.to_dict(), safe=False)
+    return JsonResponse([order_item.to_dict() for order_item in OrderItem.objects.filter(order=new_order)], safe=False)
+    # return clear_entire_shopping_cart(request, userId)
 
+@login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["PUT"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def cancel_order_with_order_id(request, id):
@@ -384,28 +502,33 @@ def cancel_order_with_order_id(request, id):
     
 
 """PAYMENT INTEGRATION"""
+@login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["POST"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def process_payment(request, orderId):
     try:
         order_to_pay_for = Order.objects.get(order_id=orderId)
-        return JsonResponse(f"Process payment for order: {order_to_pay_for.to_dict()}.", safe=False)
+
+        return JsonResponse(order_to_pay_for.to_dict(), safe=False) if (order_to_pay_for.order_status == "ACTIVE") else JsonResponse(f"Can't process payment for a CANCELLED/COMPLETED order.", safe=False)
+        # return JsonResponse(f"Process payment for order: {order_to_pay_for.to_dict()}.", safe=False)
     
     except Order.DoesNotExist:
         return JsonResponse(f"Order with ID: {orderId} does not exist.", safe=False)
 
+@login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["POST"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def refund_payment(request, orderId):
     try:
         order_to_refund = Order.objects.get(order_id=orderId)
-        return JsonResponse(f"Process refund for order: {order_to_refund.to_dict()}.", safe=False)
+        return JsonResponse(order_to_refund.to_dict(), safe=False)
     
     except Order.DoesNotExist:
         return JsonResponse(f"Order with ID: {orderId} does not exist.", safe=False)
 
 
 """CATEGORY MANAGEMENT"""
+@login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["GET"])
 def get_list_of_all_product_categories(request):
     # http://127.0.0.1:8000/eridosolutions/categories/
@@ -415,7 +538,15 @@ def get_list_of_all_product_categories(request):
         return JsonResponse([category.to_dict() for category in list_of_all_categories], safe=False)
     else:
         return JsonResponse(f"No category found, add one and try again.", safe=False)
+    
 
+@login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
+@require_http_methods(["GET"])
+def get_list_of_all_products_in_category(request, id):
+    return JsonResponse([product.to_dict() for product in Product.objects.filter(category=id)], safe=False)
+
+
+@login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["POST"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def create_new_product_category(request):
@@ -432,6 +563,7 @@ def create_new_product_category(request):
 
     return JsonResponse(new_category.to_dict(), safe=False)
 
+@login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["PUT"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def update_details_of_category_with_category_id(request, id):
@@ -453,6 +585,7 @@ def update_details_of_category_with_category_id(request, id):
 
     return JsonResponse(category_to_update.to_dict(), safe=False)
 
+@login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["DELETE"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def remove_product_category_with_category_id(request, id):
@@ -467,9 +600,10 @@ def remove_product_category_with_category_id(request, id):
     except Category.DoesNotExist:
         return JsonResponse(f"Category with ID: {id} does not exist.", safe=False)
     
-    return JsonResponse(f"Deleted: {category_to_delete_details}", safe=False)
+    return JsonResponse(category_to_delete_details, safe=False)
 
 """REVIEWS AND RATINGS"""
+@login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["GET"])
 def get_reviews_for_product_with_product_id(request, id):
     # http://127.0.0.1:8000/eridosolutions/products/<id>/reviews/
@@ -480,12 +614,12 @@ def get_reviews_for_product_with_product_id(request, id):
     else:
         return JsonResponse(f"Product with ID: {id} does not have reviews.", safe=False)
 
-
+@login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["POST"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def creat_review_for_product_with_product_id(request, userId, id):
     try:
-        user_leaving_review = User.objects.get(auth0_user_id=userId)
+        user_leaving_review = User.objects.get(id=userId)
         product_to_review = Product.objects.get(product_id=id)
 
         rating = request.POST['rating']
@@ -493,9 +627,13 @@ def creat_review_for_product_with_product_id(request, userId, id):
 
         new_review = Review(product=product_to_review, user=user_leaving_review, rating=rating, comment=comment)
 
+        new_review.full_clean()
         new_review.save()
 
         return JsonResponse(new_review.to_dict(), safe=False)
+    
+    except ValidationError as e:
+        return JsonResponse(str(e), safe=False)
 
     except User.DoesNotExist:
         return JsonResponse(f"User with ID: {userId} does not exist.", safe=False)
@@ -507,22 +645,26 @@ def creat_review_for_product_with_product_id(request, userId, id):
         return JsonResponse(f"The form value for attribute {str(e)} is missing.", safe=False)
 
 """SEARCH AND FILTERS"""
+@login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["GET"])
 def search_products(request):
     # http://127.0.0.1:8000/eridosolutions/search/
     return JsonResponse("Search for products based on specified criteria.", safe=False)
 
+@login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["GET"])
 def turn_on_filters(request):
     # http://127.0.0.1:8000/eridosolutions/filters/
     return JsonResponse("Get filter options for product search.", safe=False)
 
 """SHIPPING AND ADDRESS"""
+@login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["GET"])
 def get_available_shipping_options(request):
     # http://127.0.0.1:8000/eridosolutions/shipping-options/
     return JsonResponse("Get available shipping options.", safe=False)
 
+@login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["GET"])
 def get_user_saved_addresses(request, userId):
     user_saved_addresses = Address.objects.filter(user=userId)
@@ -532,6 +674,7 @@ def get_user_saved_addresses(request, userId):
     else:
         return JsonResponse(f"User with ID: {userId} has no addresses.", safe=False)
 
+@login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["POST"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def add_address_to_user_profile(request, userId):
@@ -539,7 +682,7 @@ def add_address_to_user_profile(request, userId):
         data = request.POST
         street_address, city, state, zipcode, country = [data['street_address'], data['city'], data['state'], data['zipcode'], data['country']]
 
-        user = User.objects.get(auth0_user_id=userId)
+        user = User.objects.get(id=userId)
 
         new_address = Address(street_address=street_address, city=city, state=state, zipcode=zipcode, country=country, user=user)
 
@@ -553,13 +696,14 @@ def add_address_to_user_profile(request, userId):
     except MultiValueDictKeyError as e:
         return JsonResponse(f"The form value for attribute {str(e)} is missing.", safe=False)
 
+@login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["PUT"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def update_details_of_address_with_address_id(request, userId, id):
     try:
         address_to_update = Address.objects.get(address_id=id)
 
-        user = User.objects.get(auth0_user_id=userId)
+        user = User.objects.get(id=userId)
 
         data = QueryDict(request.body)
 
@@ -581,6 +725,7 @@ def update_details_of_address_with_address_id(request, userId, id):
     except User.DoesNotExist:
         return JsonResponse(f"User with ID: {userId} does not exist.", safe=False)
 
+@login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["DELETE"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def delete_address_with_address_id(request, userId, id):
@@ -591,7 +736,7 @@ def delete_address_with_address_id(request, userId, id):
 
         address_to_delete.delete()
 
-        return JsonResponse(f"Deleted: {address_to_delete_details}", safe=False)
+        return JsonResponse(address_to_delete_details, safe=False)
     
     except Address.DoesNotExist:
         return JsonResponse(f"Address with ID: {id} does not exist.", safe=False)
