@@ -182,7 +182,7 @@ def create_new_product(request):
     return JsonResponse(new_product.to_dict(), safe=False)
 
 @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
-@require_http_methods(["PUT"])
+@require_http_methods(["PUT", "POST"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def update_product_with_product_id_details(request, id):
     # http://127.0.0.1:8000/eridosolutions/products/<id>/update/
@@ -409,6 +409,13 @@ def create_new_order(request, userId):
 
         new_order_items = list(map(lambda item: OrderItem(order=new_order, product=item.product, quantity=item.quantity, unit_price=item.product.price), [item for item in CartItem.objects.filter(cart=user_cart)]))
 
+        for item in CartItem.objects.filter(cart=user_cart):
+            product_to_update_quantity = Product.objects.get(product_id=item.product.product_id)
+
+            product_to_update_quantity.quantity_in_stock -= item.quantity
+
+            product_to_update_quantity.save()
+
         OrderItem.objects.bulk_create(new_order_items)
 
         clear_entire_shopping_cart(request, userId)
@@ -474,6 +481,13 @@ def get_list_of_all_product_categories(request):
         return JsonResponse([category.to_dict() for category in list_of_all_categories], safe=False)
     else:
         return JsonResponse(f"No category found, add one and try again.", safe=False)
+    
+
+@login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
+@require_http_methods(["GET"])
+def get_list_of_all_products_in_category(request, id):
+    return JsonResponse([product.to_dict() for product in Product.objects.filter(category=id)], safe=False)
+
 
 @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["POST"])

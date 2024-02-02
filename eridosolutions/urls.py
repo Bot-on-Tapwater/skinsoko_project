@@ -46,6 +46,7 @@ urlpatterns = [
 
     # Category Management
     path('categories/', views.get_list_of_all_product_categories, name='list-all-categories'),
+    path('categories/<int:id>/', views.get_list_of_all_products_in_category, name='list-all-products-in-category'),
     path('categories/create/', views.create_new_product_category, name='create-new-category'),
     path('categories/<int:id>/update/', views.update_details_of_category_with_category_id, name='update-category-details'),
     path('categories/<int:id>/delete/', views.remove_product_category_with_category_id, name='delete-category'),
