@@ -19,7 +19,7 @@ from django.db.models import F, ExpressionWrapper, fields, Sum
 from django.db import IntegrityError
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.core.paginator import Paginator
+from django.core.paginator import Paginator, EmptyPage
 
 
 """AUTHO"""
@@ -141,10 +141,38 @@ def list_all_products(request):
     all_products = Product.objects.all()
 
     if all_products.exists():
-        return JsonResponse([product.to_dict() for product in all_products], safe=False)
+        items_per_page = 2
+
+        page_number = request.GET.get('page', 1)
+
+        paginator = Paginator(all_products, items_per_page)
+        
+        try:
+            page_obj = paginator.get_page(page_number)
+        
+        except EmptyPage:
+            return JsonResponse({"error": "Page not found"}, safe=False)
+
+        items_on_current_page = page_obj.object_list
+
+        json_data = {
+            'current_page': page_obj.number,
+            'total_pages': paginator.num_pages,
+            'items': [item.to_dict() for item in items_on_current_page],
+        }
+
+        if page_obj.has_previous():
+            json_data['previous_page'] = f"http://127.0.0.1:8000/eridosolutions/products/?page={page_obj.previous_page_number()}"
+
+        if page_obj.has_next():
+            json_data['next_page'] = f"http://127.0.0.1:8000/eridosolutions/products/?page={page_obj.next_page_number()}"
+        
+        return JsonResponse(json_data, safe=False)
+        
+
+        # return JsonResponse([product.to_dict() for product in paginator.get_page(1)], safe=False)
     else:
         return JsonResponse("No products found, add a product and try again.", safe=False)
-    # return JsonResponse("Get a list of all products.", safe=False)
 
 @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["GET"])
