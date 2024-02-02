@@ -354,7 +354,7 @@ def remove_product_from_user_cart(request, id, productId):
     return JsonResponse(cart_item_to_delete_details, safe=False)
 
 @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
-@require_http_methods(["DELETE"])
+@require_http_methods(["DELETE", "POST"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def clear_entire_shopping_cart(request, id):
     # http://127.0.0.1:8000/eridosolutions/cart/clear/
@@ -411,10 +411,13 @@ def create_new_order(request, userId):
 
         OrderItem.objects.bulk_create(new_order_items)
 
+        clear_entire_shopping_cart(request, userId)
+
     except ShoppingCart.DoesNotExist:
         return JsonResponse(f"User with ID: {userId} has no items in cart.", safe=False)    
 
     return JsonResponse([order_item.to_dict() for order_item in OrderItem.objects.filter(order=new_order)], safe=False)
+    # return clear_entire_shopping_cart(request, userId)
 
 @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["PUT"])
