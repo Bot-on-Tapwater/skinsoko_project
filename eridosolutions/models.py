@@ -34,7 +34,7 @@ class Product(models.Model):
             'price': str(self.price),
             'quantity_in_stock': self.quantity_in_stock,
             'category': self.category.to_dict() if self.category else None,
-            'image': str(self.image)
+            'image': self.image.url
         }
 
 class ShoppingCart(models.Model):
