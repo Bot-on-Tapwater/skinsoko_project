@@ -573,9 +573,13 @@ def creat_review_for_product_with_product_id(request, userId, id):
 
         new_review = Review(product=product_to_review, user=user_leaving_review, rating=rating, comment=comment)
 
+        new_review.full_clean()
         new_review.save()
 
         return JsonResponse(new_review.to_dict(), safe=False)
+    
+    except ValidationError as e:
+        return JsonResponse(str(e), safe=False)
 
     except User.DoesNotExist:
         return JsonResponse(f"User with ID: {userId} does not exist.", safe=False)
