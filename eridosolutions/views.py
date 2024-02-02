@@ -300,6 +300,9 @@ def add_product_to_user_cart(request, id, productId):
     try:
         quantity = request.POST['quantity']
 
+        if (int(quantity) > Product.objects.get(product_id=productId).quantity_in_stock):
+            return JsonResponse(f"Quantity in stock is {Product.objects.get(product_id=productId).quantity_in_stock}, reduce your current quantity of ({quantity}) items.", safe=False)
+
         try:
             try:
                 existing_cart_item = CartItem.objects.get(cart=ShoppingCart.objects.get(user=id), product=Product.objects.get(product_id=productId))
