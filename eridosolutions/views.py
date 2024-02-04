@@ -20,7 +20,8 @@ from django.db import IntegrityError
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage
-
+from django.core.serializers import serialize
+from django.forms.models import model_to_dict
 
 """AUTHO"""
 # oauth = OAuth()
@@ -679,18 +680,40 @@ def search_products(request):
 
         search_results = Product.objects.raw("SELECT * FROM eridosolutions_product WHERE MATCH (name, description) AGAINST (%s IN NATURAL LANGUAGE MODE)", [search])
 
-        return JsonResponse(paginate_results(request, search_results, view_url))
+        request.session['search_results'] = serialize('python', search_results)
+
+        # print([result for result in search_results])
+
+        return JsonResponse(paginate_results(request, search_results, view_url), safe=False)
     
     except MultiValueDictKeyError as e:
         return JsonResponse(f"The form value for attribute {str(e)} is missing.", safe=False)
 
 @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
-@require_http_methods(["GET"])
+@require_http_methods(["GET", "POST"])
+@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def turn_on_filters(request):
     # http://127.0.0.1:8000/eridosolutions/filters/
     view_url = request.build_absolute_uri()
 
-    return JsonResponse("Get filter options for product search.", safe=False)
+    search_results = request.session.get('search_results')
+
+    search_results = [Product.objects.get(product_id=product['pk']) for product in search_results]
+
+    min_price = int(request.POST.get('min_price', 0))
+
+    max_price = int(request.POST.get('max_price', 1_000_000_000))
+
+    category = request.POST.get('category', None)
+
+    if category:
+        search_results = [product for product in search_results if (category == product.category.name and product.price > min_price and product.price < max_price)]
+    
+    else:
+        search_results = [product for product in search_results if (product.price > min_price and product.price < max_price)]
+
+    # return JsonResponse("Get filter options for product search.", safe=False)
+    return JsonResponse(paginate_results(request, search_results, view_url), safe=False)
 
 """SHIPPING AND ADDRESS"""
 @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
