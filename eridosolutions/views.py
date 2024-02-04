@@ -158,7 +158,7 @@ def list_all_products(request):
         json_data = {
             'current_page': page_obj.number,
             'total_pages': paginator.num_pages,
-            'items': [item.to_dict() for item in items_on_current_page],
+            'items': [item.to_dict(request) for item in items_on_current_page],
         }
 
         if page_obj.has_previous():
@@ -181,7 +181,7 @@ def get_product_with_product_id(request, id):
 
     try:
         specific_product = Product.objects.get(product_id=id)
-        return JsonResponse(specific_product.to_dict(), safe=False)
+        return JsonResponse(specific_product.to_dict(request), safe=False)
 
     except Product.DoesNotExist:
         return JsonResponse(f"Product with ID: {id} was not found.", safe=False)
@@ -208,7 +208,7 @@ def create_new_product(request):
     except (ValueError, ValidationError) as e:
         return JsonResponse(f"{str(e)}", safe=False)    
 
-    return JsonResponse(new_product.to_dict(), safe=False)
+    return JsonResponse(new_product.to_dict(request), safe=False)
 
 @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["PUT", "POST"])
@@ -262,7 +262,7 @@ def update_product_with_product_id_details(request, id):
     except Product.DoesNotExist as e:
         return JsonResponse(f"Product with ID: {id} was not found.", safe=False)
 
-    return JsonResponse(product_to_update.to_dict(), safe=False)
+    return JsonResponse(product_to_update.to_dict(request), safe=False)
         
 
 @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
@@ -273,7 +273,7 @@ def delete_product_with_product_id(request, id):
     try:
         product_to_delete = Product.objects.get(product_id=id)
 
-        product_to_delete_details = product_to_delete.to_dict()
+        product_to_delete_details = product_to_delete.to_dict(request)
 
         product_to_delete.delete()
 
@@ -543,7 +543,7 @@ def get_list_of_all_product_categories(request):
 @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["GET"])
 def get_list_of_all_products_in_category(request, id):
-    return JsonResponse([product.to_dict() for product in Product.objects.filter(category=id)], safe=False)
+    return JsonResponse([product.to_dict(request) for product in Product.objects.filter(category=id)], safe=False)
 
 
 @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)

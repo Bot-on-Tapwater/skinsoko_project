@@ -22,12 +22,17 @@ class Product(models.Model):
     price = models.PositiveIntegerField(null=False)
     quantity_in_stock = models.PositiveIntegerField(null=False)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=False)
-    image = models.ImageField(upload_to='images', null=True, blank=True)
+    image = models.ImageField(upload_to='images', null=False, blank=True)
 
     def __str__(self):
         return f'{self.name} - {self.price}'
 
-    def to_dict(self):
+    def to_dict(self, request=None):
+        image_url = self.image.url
+
+        if request and image_url:
+            image_url = request.build_absolute_uri(image_url)
+
         return {
             'product_id': self.product_id,
             'name': self.name,
@@ -35,7 +40,7 @@ class Product(models.Model):
             'price': str(self.price),
             'quantity_in_stock': self.quantity_in_stock,
             'category': self.category.to_dict() if self.category else None,
-            'image': self.image.url
+            'image': image_url
         }
 
 class ShoppingCart(models.Model):
