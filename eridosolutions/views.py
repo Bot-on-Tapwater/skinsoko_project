@@ -668,12 +668,21 @@ def creat_review_for_product_with_product_id(request, userId, id):
 
 """SEARCH AND FILTERS"""
 @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
-@require_http_methods(["GET"])
+@require_http_methods(["POST", "GET"])
+@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def search_products(request):
     # http://127.0.0.1:8000/eridosolutions/search/
     view_url = request.build_absolute_uri()
 
-    return JsonResponse("Search for products based on specified criteria.", safe=False)
+    try:
+        search = request.POST['search']
+
+        search_results = Product.objects.raw("SELECT * FROM eridosolutions_product WHERE MATCH (name, description) AGAINST (%s IN NATURAL LANGUAGE MODE)", [search])
+
+        return JsonResponse(paginate_results(request, search_results, view_url))
+    
+    except MultiValueDictKeyError as e:
+        return JsonResponse(f"The form value for attribute {str(e)} is missing.", safe=False)
 
 @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["GET"])
