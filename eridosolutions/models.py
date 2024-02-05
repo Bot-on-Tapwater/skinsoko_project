@@ -9,7 +9,7 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
-    def to_dict(self):
+    def to_dict(self, request=None):
         return {
             'category_id': self.category_id,
             'name': self.name,
@@ -17,17 +17,22 @@ class Category(models.Model):
 
 class Product(models.Model):
     product_id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=255)
-    description = models.TextField()
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    quantity_in_stock = models.PositiveIntegerField()
-    category = models.ForeignKey(Category, on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='images', null=True, blank=True)
+    name = models.CharField(max_length=255, null=False)
+    description = models.TextField(null=False)
+    price = models.PositiveIntegerField(null=False)
+    quantity_in_stock = models.PositiveIntegerField(null=False)
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, null=False)
+    image = models.ImageField(upload_to='images', null=False, blank=True)
 
     def __str__(self):
         return f'{self.name} - {self.price}'
 
-    def to_dict(self):
+    def to_dict(self, request=None):
+        image_url = self.image.url
+
+        if request and image_url:
+            image_url = request.build_absolute_uri(image_url)
+
         return {
             'product_id': self.product_id,
             'name': self.name,
@@ -35,7 +40,7 @@ class Product(models.Model):
             'price': str(self.price),
             'quantity_in_stock': self.quantity_in_stock,
             'category': self.category.to_dict() if self.category else None,
-            'image': self.image.url
+            'image': image_url
         }
 
 class ShoppingCart(models.Model):
@@ -46,7 +51,7 @@ class ShoppingCart(models.Model):
     def __str__(self):
         return f'Cart ID: {self.cart_id} - User: {self.user}'
 
-    def to_dict(self):
+    def to_dict(self, request=None):
         return {
             'cart_id': self.cart_id,
             'user': self.user.username,
@@ -62,7 +67,7 @@ class CartItem(models.Model):
     def __str__(self):
         return f'Item ID: {self.item_id} - Product: {self.product.name} - Quantity: {self.quantity}'
 
-    def to_dict(self):
+    def to_dict(self, request=None):
         return {
             'item_id': self.item_id,
             'cart': self.cart.to_dict() if self.cart else None,
@@ -73,14 +78,14 @@ class CartItem(models.Model):
 class Order(models.Model):
     order_id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    total_amount = models.PositiveIntegerField()
     order_status = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f'Order ID: {self.order_id} - User: {self.user.username} - Status: {self.order_status}'
 
-    def to_dict(self):
+    def to_dict(self, request=None):
         return {
             'order_id': self.order_id,
             'user': self.user.username,
@@ -94,12 +99,12 @@ class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
-    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    unit_price = models.PositiveIntegerField()
 
     def __str__(self):
         return f'Item ID: {self.item_id} - Order: {self.order.order_id} - Product: {self.product.name}'
 
-    def to_dict(self):
+    def to_dict(self, request=None):
         return {
             'item_id': self.item_id,
             'order': self.order.to_dict() if self.order else None,
@@ -119,7 +124,7 @@ class Review(models.Model):
     def __str__(self):
         return f'Review ID: {self.review_id} - Product: {self.product.name} - User: {self.user.username}'
 
-    def to_dict(self):
+    def to_dict(self, request=None):
         return {
             'review_id': self.review_id,
             'product': self.product.to_dict() if self.product else None,
@@ -141,7 +146,7 @@ class Address(models.Model):
     def __str__(self):
         return f'Address ID: {self.address_id} - User: {self.user.username}'
 
-    def to_dict(self):
+    def to_dict(self, request=None):
         return {
             'address_id': self.address_id,
             'user': self.user.username,
@@ -164,7 +169,7 @@ class Payment(models.Model):
     def __str__(self):
         return f'Payment ID: {self.payment_id} - Order: {self.order.order_id} - Status: {self.payment_status}'
 
-    def to_dict(self):
+    def to_dict(self, request=None):
         return {
             'payment_id': self.payment_id,
             'order': self.order.to_dict() if self.order else None,

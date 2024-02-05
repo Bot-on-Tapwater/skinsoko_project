@@ -18,9 +18,10 @@ from django.http import QueryDict
 from django.db.models import F, ExpressionWrapper, fields, Sum
 from django.db import IntegrityError
 from django.contrib.auth import authenticate, login, logout
-# from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, EmptyPage
-
+from django.core.serializers import serialize
+from django.forms.models import model_to_dict
 
 """AUTHO"""
 # oauth = OAuth()
@@ -159,45 +160,56 @@ def logout_view(request):
     logout(request)
     return redirect('eridosolutions:index')
 
+"""PAGINATION"""
+
+def paginate_results(request, query_results, view_url, items_per_page=5):
+    items_per_page = items_per_page
+
+    page_number = request.GET.get('page', 1)
+
+    paginator = Paginator(query_results, items_per_page)
+
+    try:
+        page_obj = paginator.get_page(page_number)
+    
+    except EmptyPage:
+        return JsonResponse({"error": "Page not found"}, safe=False)
+    
+    items_on_current_page = page_obj.object_list
+    
+    json_data = {
+        'current_page': page_obj.number,
+        'total_pages': paginator.num_pages,
+        'query_results': [item.to_dict(request) for item in items_on_current_page],
+    }
+    
+    if page_obj.has_previous():
+        if "page=" in view_url:
+            json_data['previous_page'] = f"{view_url[:view_url.rfind('page=')]}page={page_obj.previous_page_number()}"
+        else:
+            json_data['previous_page'] = f"{view_url}?page={page_obj.previous_page_number()}"
+
+    if page_obj.has_next():
+        if "page=" in view_url:
+            json_data['next_page'] = f"{view_url[:view_url.rfind('page=')]}page={page_obj.next_page_number()}"
+        else:
+            json_data['next_page'] = f"{view_url}?page={page_obj.next_page_number()}"
+    
+    return json_data
+    
+
 """PRODUCT MANAGEMENT"""
 # @login_required(login_url="/eridosolutions/")
 @require_http_methods(["GET"])
 def list_all_products(request):
     # http://127.0.0.1:8000/eridosolutions/products/
+    view_url = request.build_absolute_uri()
 
     all_products = Product.objects.all()
 
     if all_products.exists():
-        items_per_page = 2
-
-        page_number = request.GET.get('page', 1)
-
-        paginator = Paginator(all_products, items_per_page)
         
-        try:
-            page_obj = paginator.get_page(page_number)
-        
-        except EmptyPage:
-            return JsonResponse({"error": "Page not found"}, safe=False)
-
-        items_on_current_page = page_obj.object_list
-
-        json_data = {
-            'current_page': page_obj.number,
-            'total_pages': paginator.num_pages,
-            'items': [item.to_dict() for item in items_on_current_page],
-        }
-
-        if page_obj.has_previous():
-            json_data['previous_page'] = f"http://127.0.0.1:8000/eridosolutions/products/?page={page_obj.previous_page_number()}"
-
-        if page_obj.has_next():
-            json_data['next_page'] = f"http://127.0.0.1:8000/eridosolutions/products/?page={page_obj.next_page_number()}"
-        
-        return JsonResponse(json_data, safe=False)
-        
-
-        # return JsonResponse([product.to_dict() for product in paginator.get_page(1)], safe=False)
+        return JsonResponse(paginate_results(request, all_products, view_url), safe=False)
     else:
         return JsonResponse("No products found, add a product and try again.", safe=False)
 
@@ -208,7 +220,7 @@ def get_product_with_product_id(request, id):
 
     try:
         specific_product = Product.objects.get(product_id=id)
-        return JsonResponse(specific_product.to_dict(), safe=False)
+        return JsonResponse(specific_product.to_dict(request), safe=False)
 
     except Product.DoesNotExist:
         return JsonResponse(f"Product with ID: {id} was not found.", safe=False)
@@ -235,7 +247,7 @@ def create_new_product(request):
     except (ValueError, ValidationError) as e:
         return JsonResponse(f"{str(e)}", safe=False)    
 
-    return JsonResponse(new_product.to_dict(), safe=False)
+    return JsonResponse(new_product.to_dict(request), safe=False)
 
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["PUT", "POST"])
@@ -289,7 +301,7 @@ def update_product_with_product_id_details(request, id):
     except Product.DoesNotExist as e:
         return JsonResponse(f"Product with ID: {id} was not found.", safe=False)
 
-    return JsonResponse(product_to_update.to_dict(), safe=False)
+    return JsonResponse(product_to_update.to_dict(request), safe=False)
         
 
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
@@ -300,7 +312,7 @@ def delete_product_with_product_id(request, id):
     try:
         product_to_delete = Product.objects.get(product_id=id)
 
-        product_to_delete_details = product_to_delete.to_dict()
+        product_to_delete_details = product_to_delete.to_dict(request)
 
         product_to_delete.delete()
 
@@ -315,7 +327,6 @@ def delete_product_with_product_id(request, id):
 def get_user_with_user_id_profile_details(request, id):
     # http://127.0.0.1:8000/eridosolutions/users/<id>/
     # auth0|65aad24e45bc7f710f2a381a
-
     try:
         specific_user = User.objects.get(id=id)
         return JsonResponse({'id': specific_user.id, 'username': specific_user.username, 'email': specific_user.email, 'first_name': specific_user.first_name, 'last_name': specific_user.last_name}, safe=False)
@@ -355,9 +366,11 @@ def update_user_with_user_id_profile_details(request, id):
 @require_http_methods(["GET"])
 def list_orders_placed_by_user_with_user_id(request, id):
     # http://127.0.0.1:8000/eridosolutions/users/<id>/orders/
+    view_url = request.build_absolute_uri()
+
     try:
-        orders_placed_by_user = Order.objects.get(user=id)
-        return JsonResponse([order_item.to_dict() for order_item in OrderItem.objects.filter(order=orders_placed_by_user)], safe=False)
+        orders_placed_by_user = Order.objects.filter(user=id)
+        return JsonResponse(paginate_results(request, orders_placed_by_user, view_url), safe=False)
     except Order.DoesNotExist:
         return JsonResponse(f"User with ID: {id} hasn't placed any orders.", safe=False)
 
@@ -365,10 +378,12 @@ def list_orders_placed_by_user_with_user_id(request, id):
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["GET"])
 def get_contents_of_shopping_cart_of_user(request, id):
+    view_url = request.build_absolute_uri()
+
     try:
         cart_contents_of_user = ShoppingCart.objects.get(user=id)
 
-        return JsonResponse([item.to_dict() for item in CartItem.objects.filter(cart=cart_contents_of_user.cart_id)], safe=False)
+        return JsonResponse(paginate_results(request, [item for item in CartItem.objects.filter(cart=cart_contents_of_user.cart_id)], view_url), safe=False)
     except ShoppingCart.DoesNotExist:
         return JsonResponse(f"Current user hasn't placed any items in cart.", safe=False)
     except TypeError:
@@ -458,10 +473,12 @@ def clear_entire_shopping_cart(request, id):
 @require_http_methods(["GET"])
 def get_list_of_all_orders(request):
     # http://127.0.0.1:8000/eridosolutions/orders/
+    view_url = request.build_absolute_uri()
+
     all_orders = Order.objects.all()
 
     if all_orders.exists():
-        return JsonResponse([order.to_dict() for order in all_orders], safe=False)
+        return JsonResponse(paginate_results(request, [order for order in all_orders], view_url), safe=False)
     else:
         return JsonResponse(f"No orders found, add an order and try again.", safe=False)
 
@@ -559,10 +576,12 @@ def refund_payment(request, orderId):
 @require_http_methods(["GET"])
 def get_list_of_all_product_categories(request):
     # http://127.0.0.1:8000/eridosolutions/categories/
+    view_url = request.build_absolute_uri()
+
     list_of_all_categories = Category.objects.all()
 
     if list_of_all_categories.exists():
-        return JsonResponse([category.to_dict() for category in list_of_all_categories], safe=False)
+        return JsonResponse(paginate_results(request, [category for category in list_of_all_categories], view_url), safe=False)
     else:
         return JsonResponse(f"No category found, add one and try again.", safe=False)
     
@@ -570,7 +589,9 @@ def get_list_of_all_product_categories(request):
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["GET"])
 def get_list_of_all_products_in_category(request, id):
-    return JsonResponse([product.to_dict() for product in Product.objects.filter(category=id)], safe=False)
+    view_url = request.build_absolute_uri()
+
+    return JsonResponse(paginate_results(request, [product for product in Product.objects.filter(category=id)], view_url), safe=False)
 
 
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
@@ -634,10 +655,12 @@ def remove_product_category_with_category_id(request, id):
 @require_http_methods(["GET"])
 def get_reviews_for_product_with_product_id(request, id):
     # http://127.0.0.1:8000/eridosolutions/products/<id>/reviews/
+    view_url = request.build_absolute_uri()
+
     reviews = Review.objects.filter(product=id)
 
     if reviews.exists():
-        return JsonResponse([review.to_dict() for review in reviews], safe=False)
+        return JsonResponse(paginate_results(request, [review for review in reviews], view_url), safe=False)
     else:
         return JsonResponse(f"Product with ID: {id} does not have reviews.", safe=False)
 
@@ -672,32 +695,72 @@ def creat_review_for_product_with_product_id(request, userId, id):
         return JsonResponse(f"The form value for attribute {str(e)} is missing.", safe=False)
 
 """SEARCH AND FILTERS"""
-# @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
-@require_http_methods(["GET"])
+@login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
+@require_http_methods(["POST", "GET"])
+@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def search_products(request):
     # http://127.0.0.1:8000/eridosolutions/search/
-    return JsonResponse("Search for products based on specified criteria.", safe=False)
+    view_url = request.build_absolute_uri()
 
-# @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
-@require_http_methods(["GET"])
+    try:
+        search = request.POST['search']
+
+        search_results = Product.objects.raw("SELECT * FROM eridosolutions_product WHERE MATCH (name, description) AGAINST (%s IN NATURAL LANGUAGE MODE)", [search])
+
+        request.session['search_results'] = serialize('python', search_results)
+
+        # print([result for result in search_results])
+
+        return JsonResponse(paginate_results(request, search_results, view_url), safe=False)
+    
+    except MultiValueDictKeyError as e:
+        return JsonResponse(f"The form value for attribute {str(e)} is missing.", safe=False)
+
+
+@login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
+@require_http_methods(["GET", "POST"])
+@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def turn_on_filters(request):
     # http://127.0.0.1:8000/eridosolutions/filters/
-    return JsonResponse("Get filter options for product search.", safe=False)
+    view_url = request.build_absolute_uri()
+
+    search_results = request.session.get('search_results')
+
+    search_results = [Product.objects.get(product_id=product['pk']) for product in search_results]
+
+    min_price = int(request.POST.get('min_price', 0))
+
+    max_price = int(request.POST.get('max_price', 1_000_000_000))
+
+    category = request.POST.get('category', None)
+
+    if category:
+        search_results = [product for product in search_results if (category == product.category.name and product.price > min_price and product.price < max_price)]
+    
+    else:
+        search_results = [product for product in search_results if (product.price > min_price and product.price < max_price)]
+
+    # return JsonResponse("Get filter options for product search.", safe=False)
+    return JsonResponse(paginate_results(request, search_results, view_url), safe=False)
 
 """SHIPPING AND ADDRESS"""
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["GET"])
 def get_available_shipping_options(request):
     # http://127.0.0.1:8000/eridosolutions/shipping-options/
+    view_url = request.build_absolute_uri()
+
     return JsonResponse("Get available shipping options.", safe=False)
 
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["GET"])
 def get_user_saved_addresses(request, userId):
+    view_url = request.build_absolute_uri()
+
     user_saved_addresses = Address.objects.filter(user=userId)
 
     if user_saved_addresses.exists():
-        return JsonResponse([address.to_dict() for address in user_saved_addresses], safe=False)
+        return JsonResponse(paginate_results(request, [address for address in user_saved_addresses], view_url), safe=False)
     else:
         return JsonResponse(f"User with ID: {userId} has no addresses.", safe=False)
 
