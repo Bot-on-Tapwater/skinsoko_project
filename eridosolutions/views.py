@@ -112,7 +112,7 @@ def login_view(request):
     # http://127.0.0.1:8000/eridosolutions/login/
     try:
         data = json.loads(request.body)
-        print("\n\t\tdata ", data)
+        # data = request.POST
         username, password = [data['username'], data['password']]
         # username, password = [request.POST['username'], request.POST['password']]
 
@@ -159,6 +159,12 @@ def logout_view(request):
     # http://127.0.0.1:8000/eridosolutions/logout/
     logout(request)
     return redirect('eridosolutions:index')
+
+@login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
+@csrf_exempt
+def show_logged_in_user_id(request):
+    return JsonResponse({"user_id": request.session.get('_auth_user_id')}, safe=False)
+
 
 """PAGINATION"""
 
@@ -260,7 +266,7 @@ def update_product_with_product_id_details(request, id):
         if request.method == 'PUT':
             for field, value in QueryDict(request.body).items():
                 # print(f"FIELD: {field} VALUE: {value}")
-                if (hasattr(product_to_update, field) and field == "category"):                
+                if (hasattr(product_to_update, field) and field == "category"):              
                     try:
                         setattr(product_to_update, field, Category.objects.get(name=value))
                     except (ValueError, ValidationError, Category.DoesNotExist) as e:
@@ -709,8 +715,6 @@ def search_products(request):
 
         request.session['search_results'] = serialize('python', search_results)
 
-        # print([result for result in search_results])
-
         return JsonResponse(paginate_results(request, search_results, view_url), safe=False)
     
     except MultiValueDictKeyError as e:
@@ -750,7 +754,9 @@ def get_available_shipping_options(request):
     # http://127.0.0.1:8000/eridosolutions/shipping-options/
     view_url = request.build_absolute_uri()
 
-    return JsonResponse("Get available shipping options.", safe=False)
+    return JsonResponse(dict(request.session), safe=False)
+
+    # return JsonResponse("Get available shipping options.", safe=False)
 
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["GET"])

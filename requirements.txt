@@ -5,10 +5,12 @@ cffi==1.16.0
 charset-normalizer==3.3.2
 cryptography==41.0.7
 Django==5.0.1
+django-cors-headers==4.3.1
 django-filter==1.1.0
+django-haystack==3.2.1
 django-mysql==4.12.0
 djangorestframework==3.10.3
-# drf-auto-endpoint==0.9.9
+drf-auto-endpoint==0.9.9
 idna==3.6
 Inflector==3.1.1
 jsonify==0.5
