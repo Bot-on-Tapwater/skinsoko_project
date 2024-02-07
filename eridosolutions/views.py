@@ -142,8 +142,10 @@ def login_view(request):
 
     if user is not None:
         login(request, user)
+        request.session.save()
         return JsonResponse({
-            "message": "User logged in successfully"
+            "message": "User logged in successfully",
+            "user_id": request.session.get('_auth_user_id')
         })
         # return JsonResponse({'id': user.id, 'username': user.username, 'email': user.email, 'first_name': user.first_name, 'last_name': user.last_name}, safe=False)
     
@@ -160,15 +162,16 @@ def logout_view(request):
     logout(request)
     return redirect('eridosolutions:index')
 
-@login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
+# @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @csrf_exempt
 def show_logged_in_user_id(request):
+    print("\n\n\t\t req session ", request.session.keys())
     return JsonResponse({"user_id": request.session.get('_auth_user_id')}, safe=False)
 
 
 """PAGINATION"""
 
-def paginate_results(request, query_results, view_url, items_per_page=5):
+def paginate_results(request, query_results, view_url, items_per_page=12):
     items_per_page = items_per_page
 
     page_number = request.GET.get('page', 1)
@@ -391,6 +394,7 @@ def get_contents_of_shopping_cart_of_user(request, id):
 
         return JsonResponse(paginate_results(request, [item for item in CartItem.objects.filter(cart=cart_contents_of_user.cart_id)], view_url), safe=False)
     except ShoppingCart.DoesNotExist:
+        return JsonResponse(None)  # added this
         return JsonResponse(f"Current user hasn't placed any items in cart.", safe=False)
     except TypeError:
         return JsonResponse(f"No active cart found for current user or A TypeError occured.", safe=False)
@@ -400,7 +404,9 @@ def get_contents_of_shopping_cart_of_user(request, id):
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def add_product_to_user_cart(request, id, productId):
     try:
-        quantity = request.POST['quantity']
+        data = json.loads(request.body)
+        quantity = data["quantity"]
+        # quantity = request.POST['quantity']
 
         if (int(quantity) > Product.objects.get(product_id=productId).quantity_in_stock):
             return JsonResponse(f"Quantity in stock is {Product.objects.get(product_id=productId).quantity_in_stock}, reduce your current quantity of ({quantity}) items.", safe=False)
@@ -678,8 +684,12 @@ def creat_review_for_product_with_product_id(request, userId, id):
         user_leaving_review = User.objects.get(id=userId)
         product_to_review = Product.objects.get(product_id=id)
 
-        rating = request.POST['rating']
-        comment = request.POST['comment']
+        data = json.loads(request.body)
+        rating = data['rating']
+        comment = data['comment']
+
+        # rating = request.POST['rating']
+        # comment = request.POST['comment']
 
         new_review = Review(product=product_to_review, user=user_leaving_review, rating=rating, comment=comment)
 
@@ -701,7 +711,7 @@ def creat_review_for_product_with_product_id(request, userId, id):
         return JsonResponse(f"The form value for attribute {str(e)} is missing.", safe=False)
 
 """SEARCH AND FILTERS"""
-@login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
+# @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["POST", "GET"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def search_products(request):
@@ -709,7 +719,9 @@ def search_products(request):
     view_url = request.build_absolute_uri()
 
     try:
-        search = request.POST['search']
+        search = json.loads(request.body)['search']
+        # search = request.POST['search']
+        print("\n\n\t\tsearch ", search)
 
         search_results = Product.objects.raw("SELECT * FROM eridosolutions_product WHERE MATCH (name, description) AGAINST (%s IN NATURAL LANGUAGE MODE)", [search])
 
@@ -768,6 +780,7 @@ def get_user_saved_addresses(request, userId):
     if user_saved_addresses.exists():
         return JsonResponse(paginate_results(request, [address for address in user_saved_addresses], view_url), safe=False)
     else:
+        return JsonResponse({"query_results": []})
         return JsonResponse(f"User with ID: {userId} has no addresses.", safe=False)
 
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
@@ -775,7 +788,8 @@ def get_user_saved_addresses(request, userId):
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def add_address_to_user_profile(request, userId):
     try:
-        data = request.POST
+        # data = request.POST
+        data = json.loads(request.body)
         street_address, city, state, zipcode, country = [data['street_address'], data['city'], data['state'], data['zipcode'], data['country']]
 
         user = User.objects.get(id=userId)
