@@ -111,8 +111,8 @@ def login_view(request):
 
     # http://127.0.0.1:8000/eridosolutions/login/
     try:
-        data = json.loads(request.body)
-        # data = request.POST
+        # data = json.loads(request.body)
+        data = request.POST
         username, password = [data['username'], data['password']]
         # username, password = [request.POST['username'], request.POST['password']]
 
