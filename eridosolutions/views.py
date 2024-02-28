@@ -394,7 +394,7 @@ def get_contents_of_shopping_cart_of_user(request, id):
 
         return JsonResponse(paginate_results(request, [item for item in CartItem.objects.filter(cart=cart_contents_of_user.cart_id)], view_url), safe=False)
     except ShoppingCart.DoesNotExist:
-        return JsonResponse(None)  # added this
+        # return JsonResponse(None)  # added this
         return JsonResponse(f"Current user hasn't placed any items in cart.", safe=False)
     except TypeError:
         return JsonResponse(f"No active cart found for current user or A TypeError occured.", safe=False)
