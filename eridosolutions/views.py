@@ -110,9 +110,10 @@ def register(request):
 def login_view(request):
 
     # http://127.0.0.1:8000/eridosolutions/login/
+
     try:
-        # data = json.loads(request.body)
-        data = request.POST
+        data = json.loads(request.body)
+        # data = request.POST
         username, password = [data['username'], data['password']]
         # username, password = [request.POST['username'], request.POST['password']]
 
@@ -143,6 +144,10 @@ def login_view(request):
     if user is not None:
         login(request, user)
         request.session.save()
+
+        print("\n\n\tgot this ", request)
+        print("\n\n\tgot this ", list(request.session.items()))
+
         return JsonResponse({
             "message": "User logged in successfully",
             "user_id": request.session.get('_auth_user_id')
@@ -153,7 +158,6 @@ def login_view(request):
         return JsonResponse({"message": "Failed to login user",
                             "error":"Either the email/username or the password is incorrect"
                             })
-        # return JsonResponse(f"Either the email/username or the password is incorrect", safe=False)
 
 # @require_http_methods(["POST"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
@@ -166,7 +170,9 @@ def logout_view(request):
 @csrf_exempt
 def show_logged_in_user_id(request):
     print("\n\n\t\t req session ", request.session.keys())
-    return JsonResponse({"user_id": request.session.get('_auth_user_id')}, safe=False)
+    # return JsonResponse({"user_id": request.session.get('_auth_user_id')}, safe=False)
+    # return JsonResponse({"session_cookie": dict(request.session.items())}, safe=False)
+    return JsonResponse(request.COOKIES, safe=False)
 
 
 """PAGINATION"""
@@ -208,7 +214,7 @@ def paginate_results(request, query_results, view_url, items_per_page=12):
     
 
 """PRODUCT MANAGEMENT"""
-# @login_required(login_url="/eridosolutions/")
+@login_required(login_url="/eridosolutions/")
 @require_http_methods(["GET"])
 def list_all_products(request):
     # http://127.0.0.1:8000/eridosolutions/products/
@@ -394,7 +400,7 @@ def get_contents_of_shopping_cart_of_user(request, id):
 
         return JsonResponse(paginate_results(request, [item for item in CartItem.objects.filter(cart=cart_contents_of_user.cart_id)], view_url), safe=False)
     except ShoppingCart.DoesNotExist:
-        return JsonResponse(None)  # added this
+        return JsonResponse(None, safe=False)  # added this
         return JsonResponse(f"Current user hasn't placed any items in cart.", safe=False)
     except TypeError:
         return JsonResponse(f"No active cart found for current user or A TypeError occured.", safe=False)
