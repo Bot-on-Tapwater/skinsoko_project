@@ -67,8 +67,10 @@ MIDDLEWARE = [
 
 # CORS_ORIGIN_ALLOW_ALL = True
 # ADDED THIS
+CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_WHITELIST = (
-    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://localhost:3000'
 )
 
 ROOT_URLCONF = 'django_apps.urls'
@@ -157,3 +159,10 @@ AUTH0_CLIENT_SECRET = os.environ.get("AUTH0_CLIENT_SECRET")
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_SAMESITE = 'None'
+
+CSRF_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_SECURE = True
+
