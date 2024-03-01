@@ -76,8 +76,7 @@ redirect_url_for_paths_that_fail_login_requirements = "eridosolutions/"
 def register(request):
     # http://127.0.0.1:8000/eridosolutions/register/
     try:
-        # data = request.POST
-        data = json.loads(request.body)
+        data = request.POST
 
         username, password, email, first_name, last_name = [data['username'], data['password'], data['email'], data['first_name'], data['last_name']]
 
@@ -112,8 +111,8 @@ def login_view(request):
     # http://127.0.0.1:8000/eridosolutions/login/
 
     try:
-        data = json.loads(request.body)
-        # data = request.POST
+        # data = json.loads(request.body)
+        data = request.POST
         username, password = [data['username'], data['password']]
         # username, password = [request.POST['username'], request.POST['password']]
 
@@ -145,8 +144,8 @@ def login_view(request):
         login(request, user)
         request.session.save()
 
-        print("\n\n\tgot this ", request)
-        print("\n\n\tgot this ", list(request.session.items()))
+        # print("\n\n\tgot this ", request)
+        # print("\n\n\tgot this ", list(request.session.items()))
 
         return JsonResponse({
             "message": "User logged in successfully",
@@ -164,14 +163,15 @@ def login_view(request):
 def logout_view(request):
     # http://127.0.0.1:8000/eridosolutions/logout/
     logout(request)
+    return JsonResponse({"message": "success"})
     return redirect('eridosolutions:index')
 
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @csrf_exempt
 def show_logged_in_user_id(request):
-    print("\n\n\t\t req session ", request.session.keys())
     # return JsonResponse({"user_id": request.session.get('_auth_user_id')}, safe=False)
     # return JsonResponse({"session_cookie": dict(request.session.items())}, safe=False)
+    return JsonResponse({"user_id": request.session.get("_auth_user_id")})
     return JsonResponse(request.COOKIES, safe=False)
 
 
@@ -214,7 +214,7 @@ def paginate_results(request, query_results, view_url, items_per_page=12):
     
 
 """PRODUCT MANAGEMENT"""
-@login_required(login_url="/eridosolutions/")
+# @login_required(login_url="/eridosolutions/")
 @require_http_methods(["GET"])
 def list_all_products(request):
     # http://127.0.0.1:8000/eridosolutions/products/
