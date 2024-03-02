@@ -106,7 +106,7 @@ def register(request):
         return JsonResponse(f"The form value for attribute {str(e)} is missing.", safe=False)
 
 @require_http_methods(["POST"])
-# @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
+@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def login_view(request):
 
     # http://127.0.0.1:8000/eridosolutions/login/
@@ -411,7 +411,7 @@ def get_contents_of_shopping_cart_of_user(request, id):
 def add_product_to_user_cart(request, id, productId):
     try:
         # data = json.loads(request.body)
-        quantity = data["quantity"]
+        # quantity = data["quantity"]
         quantity = request.POST['quantity']
 
         if (int(quantity) > Product.objects.get(product_id=productId).quantity_in_stock):
@@ -791,16 +791,16 @@ def get_user_saved_addresses(request, userId):
 
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["POST"])
-# @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
+@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def add_address_to_user_profile(request, userId):
     try:
         data = request.POST
         # data = json.loads(request.body)
-        street_address, city, state, zipcode, country = [data['street_address'], data['city'], data['state'], data['zipcode'], data['country']]
+        street_address, town, zipcode, county, phone_number_1, phone_number_2, additional_details = [data['street_address'], data['town'], data['zipcode'], data['county'], data['phone_number_1'], data['phone_number_2'], data['additional_details']]
 
         user = User.objects.get(id=userId)
 
-        new_address = Address(street_address=street_address, city=city, state=state, zipcode=zipcode, country=country, user=user)
+        new_address = Address(street_address=street_address, town=town,  zipcode=zipcode, county=county, phone_number_1=phone_number_1, phone_number_2=phone_number_2, additional_details=additional_details, user=user)
 
         new_address.save()
 

@@ -88,7 +88,7 @@ class Order(models.Model):
     def to_dict(self, request=None):
         return {
             'order_id': self.order_id,
-            'user': self.user.username,
+            'user': self.user.id,
             'total_amount': str(self.total_amount),
             'order_status': self.order_status,
             'created_at': str(self.created_at),
@@ -137,11 +137,14 @@ class Review(models.Model):
 class Address(models.Model):
     address_id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    street_address = models.CharField(max_length=255)
-    city = models.CharField(max_length=255)
-    state = models.CharField(max_length=255)
-    zipcode = models.CharField(max_length=20)
-    country = models.CharField(max_length=255)
+    street_address = models.CharField(max_length=255, null=True)
+    town = models.CharField(max_length=255, null=True)
+    zipcode = models.CharField(max_length=20, null=True)
+    county = models.CharField(max_length=255, null=True)
+    phone_number_1 = models.CharField(max_length=255, null=True)
+    phone_number_2 = models.CharField(max_length=255, null=True)
+    additional_details = models.TextField(null=True)
+
 
     def __str__(self):
         return f'Address ID: {self.address_id} - User: {self.user.username}'
@@ -149,12 +152,13 @@ class Address(models.Model):
     def to_dict(self, request=None):
         return {
             'address_id': self.address_id,
-            'user': self.user.username,
+            'user': self.user.id,
             'street_address': self.street_address,
-            'city': self.city,
-            'state': self.state,
+            'town': self.town,
             'zipcode': self.zipcode,
-            'country': self.country,
+            'county': self.county,
+            'phone_number_1': self.phone_number_1,
+            'phone_number_2': self.phone_number_2,
         }
 
 class Payment(models.Model):
