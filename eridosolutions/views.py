@@ -72,7 +72,7 @@ def index(request):
 
 redirect_url_for_paths_that_fail_login_requirements = "eridosolutions/"
 @require_http_methods(["POST"])
-@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
+# @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def register(request):
     # http://127.0.0.1:8000/eridosolutions/register/
     try:
@@ -159,7 +159,7 @@ def login_view(request):
                             })
 
 # @require_http_methods(["POST"])
-@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
+# @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def logout_view(request):
     # http://127.0.0.1:8000/eridosolutions/logout/
     logout(request)
@@ -167,7 +167,7 @@ def logout_view(request):
     return redirect('eridosolutions:index')
 
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
-@csrf_exempt
+# @csrf_exempt
 def show_logged_in_user_id(request):
     # return JsonResponse({"user_id": request.session.get('_auth_user_id')}, safe=False)
     # return JsonResponse({"session_cookie": dict(request.session.items())}, safe=False)
@@ -243,7 +243,7 @@ def get_product_with_product_id(request, id):
 
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["POST"])
-@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
+# @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def create_new_product(request):
     # http://127.0.0.1:8000/eridosolutions/products/create/
     try:
@@ -266,7 +266,7 @@ def create_new_product(request):
 
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["PUT", "POST"])
-@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
+# @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def update_product_with_product_id_details(request, id):
     # http://127.0.0.1:8000/eridosolutions/products/<id>/update/
     try:
@@ -321,7 +321,7 @@ def update_product_with_product_id_details(request, id):
 
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["DELETE"])
-@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
+# @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def delete_product_with_product_id(request, id):
     # http://127.0.0.1:8000/eridosolutions/products/<id>/delete/
     try:
@@ -350,7 +350,7 @@ def get_user_with_user_id_profile_details(request, id):
 
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["PUT"])
-@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
+# @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def update_user_with_user_id_profile_details(request, id):
     # http://127.0.0.1:8000/eridosolutions/users/<id>/update/
     try:
@@ -406,12 +406,12 @@ def get_contents_of_shopping_cart_of_user(request, id):
 
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["POST"])
-@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
+# @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def add_product_to_user_cart(request, id, productId):
     try:
-        data = json.loads(request.body)
-        quantity = data["quantity"]
-        # quantity = request.POST['quantity']
+        # data = json.loads(request.body)
+        # quantity = data["quantity"]
+        quantity = request.POST['quantity']
 
         if (int(quantity) > Product.objects.get(product_id=productId).quantity_in_stock):
             return JsonResponse(f"Quantity in stock is {Product.objects.get(product_id=productId).quantity_in_stock}, reduce your current quantity of ({quantity}) items.", safe=False)
@@ -451,7 +451,7 @@ def add_product_to_user_cart(request, id, productId):
 
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["DELETE"])
-@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
+# @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def remove_product_from_user_cart(request, id, productId):
     try:
         cart_item_to_delete = CartItem.objects.get(cart=ShoppingCart.objects.get(user=id), product=Product.objects.get(product_id=productId))
@@ -471,7 +471,7 @@ def remove_product_from_user_cart(request, id, productId):
 
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["DELETE", "POST"])
-@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
+# @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def clear_entire_shopping_cart(request, id):
     # http://127.0.0.1:8000/eridosolutions/cart/clear/
     try:
@@ -513,7 +513,7 @@ def get_details_of_order_with_order_id(request, id):
 
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["POST"])
-@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
+# @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def create_new_order(request, userId):
     try:
         user_cart = ShoppingCart.objects.get(user=userId)
@@ -546,7 +546,7 @@ def create_new_order(request, userId):
 
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["PUT"])
-@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
+# @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def cancel_order_with_order_id(request, id):
     # http://127.0.0.1:8000/eridosolutions/orders/<id>/cancel/
     try:
@@ -565,7 +565,7 @@ def cancel_order_with_order_id(request, id):
 """PAYMENT INTEGRATION"""
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["POST"])
-@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
+# @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def process_payment(request, orderId):
     try:
         order_to_pay_for = Order.objects.get(order_id=orderId)
@@ -578,7 +578,7 @@ def process_payment(request, orderId):
 
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["POST"])
-@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
+# @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def refund_payment(request, orderId):
     try:
         order_to_refund = Order.objects.get(order_id=orderId)
@@ -613,7 +613,7 @@ def get_list_of_all_products_in_category(request, id):
 
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["POST"])
-@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
+# @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def create_new_product_category(request):
     # http://127.0.0.1:8000/eridosolutions/categories/create/
     try:
@@ -630,7 +630,7 @@ def create_new_product_category(request):
 
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["PUT"])
-@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
+# @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def update_details_of_category_with_category_id(request, id):
     # http://127.0.0.1:8000/eridosolutions/categories/<id>/update/
     try:
@@ -652,7 +652,7 @@ def update_details_of_category_with_category_id(request, id):
 
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["DELETE"])
-@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
+# @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def remove_product_category_with_category_id(request, id):
     # http://127.0.0.1:8000/eridosolutions/categories/<id>/delete/
     try:
@@ -689,12 +689,12 @@ def creat_review_for_product_with_product_id(request, userId, id):
         user_leaving_review = User.objects.get(id=userId)
         product_to_review = Product.objects.get(product_id=id)
 
-        data = json.loads(request.body)
-        rating = data['rating']
-        comment = data['comment']
+        # data = json.loads(request.body)
+        # rating = data['rating']
+        # comment = data['comment']
 
-        # rating = request.POST['rating']
-        # comment = request.POST['comment']
+        rating = request.POST['rating']
+        comment = request.POST['comment']
 
         new_review = Review(product=product_to_review, user=user_leaving_review, rating=rating, comment=comment)
 
@@ -718,14 +718,14 @@ def creat_review_for_product_with_product_id(request, userId, id):
 """SEARCH AND FILTERS"""
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["POST", "GET"])
-@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
+# @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def search_products(request):
     # http://127.0.0.1:8000/eridosolutions/search/
     view_url = request.build_absolute_uri()
 
     try:
-        search = json.loads(request.body)['search']
-        # search = request.POST['search']
+        # search = json.loads(request.body)['search']
+        search = request.POST['search']
         print("\n\n\t\tsearch ", search)
 
         search_results = Product.objects.raw("SELECT * FROM eridosolutions_product WHERE MATCH (name, description) AGAINST (%s IN NATURAL LANGUAGE MODE)", [search])
@@ -740,7 +740,7 @@ def search_products(request):
 
 @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["GET", "POST"])
-@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
+# @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def turn_on_filters(request):
     # http://127.0.0.1:8000/eridosolutions/filters/
     view_url = request.build_absolute_uri()
@@ -793,13 +793,13 @@ def get_user_saved_addresses(request, userId):
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def add_address_to_user_profile(request, userId):
     try:
-        # data = request.POST
-        data = json.loads(request.body)
-        street_address, city, state, zipcode, country = [data['street_address'], data['city'], data['state'], data['zipcode'], data['country']]
+        data = request.POST
+        # data = json.loads(request.body)
+        street_address, town, zipcode, county, phone_number_1, phone_number_2, additional_details = [data['street_address'], data['town'], data['zipcode'], data['county'], data['phone_number_1'], data['phone_number_2'], data['additional_details']]
 
         user = User.objects.get(id=userId)
 
-        new_address = Address(street_address=street_address, city=city, state=state, zipcode=zipcode, country=country, user=user)
+        new_address = Address(street_address=street_address, town=town,  zipcode=zipcode, county=county, phone_number_1=phone_number_1, phone_number_2=phone_number_2, additional_details=additional_details, user=user)
 
         new_address.save()
 
@@ -813,7 +813,7 @@ def add_address_to_user_profile(request, userId):
 
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["PUT"])
-@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
+# @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def update_details_of_address_with_address_id(request, userId, id):
     try:
         address_to_update = Address.objects.get(address_id=id)
@@ -842,7 +842,7 @@ def update_details_of_address_with_address_id(request, userId, id):
 
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["DELETE"])
-@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
+# @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def delete_address_with_address_id(request, userId, id):
     try:
         address_to_delete = Address.objects.get(address_id=id, user=userId)
