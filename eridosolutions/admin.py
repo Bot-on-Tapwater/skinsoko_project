@@ -35,7 +35,7 @@ class ReviewAdmin(admin.ModelAdmin):
 
 @admin.register(Address)
 class AddressAdmin(admin.ModelAdmin):
-    list_display = ('address_id', 'user', 'street_address', 'city', 'state', 'zipcode', 'country',)
+    list_display = ('address_id', 'user', 'street_address', 'town', 'zipcode', 'county', 'phone_number_1', 'phone_number_2',)
 
 @admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):
