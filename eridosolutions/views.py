@@ -684,18 +684,18 @@ def get_reviews_for_product_with_product_id(request, id):
 
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["POST"])
-# @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
+@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def creat_review_for_product_with_product_id(request, userId, id):
     try:
         user_leaving_review = User.objects.get(id=userId)
         product_to_review = Product.objects.get(product_id=id)
 
-        data = json.loads(request.body)
-        rating = data['rating']
-        comment = data['comment']
+        # data = json.loads(request.body)
+        # rating = data['rating']
+        # comment = data['comment']
 
-        # rating = request.POST['rating']
-        # comment = request.POST['comment']
+        rating = request.POST['rating']
+        comment = request.POST['comment']
 
         new_review = Review(product=product_to_review, user=user_leaving_review, rating=rating, comment=comment)
 

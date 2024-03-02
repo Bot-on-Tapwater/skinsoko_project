@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.utils import timezone
 
 class Category(models.Model):
     category_id = models.AutoField(primary_key=True)
@@ -102,15 +103,16 @@ class OrderItem(models.Model):
     unit_price = models.PositiveIntegerField()
 
     def __str__(self):
-        return f'Item ID: {self.item_id} - Order: {self.order.order_id} - Product: {self.product.name}'
+        return f'Review ID: {self.review_id} - Product: {self.product.name} - User: {self.user.username}'
 
     def to_dict(self, request=None):
         return {
-            'item_id': self.item_id,
-            'order': self.order.to_dict() if self.order else None,
+            'review_id': self.review_id,
             'product': self.product.to_dict() if self.product else None,
-            'quantity': self.quantity,
-            'unit_price': str(self.unit_price),
+            'user': self.user.username,
+            'rating': self.rating,
+            'comment': self.comment,
+            'created_at': str(self.created_at),
         }
 
 class Review(models.Model):
@@ -131,7 +133,7 @@ class Review(models.Model):
             'user': self.user.username,
             'rating': self.rating,
             'comment': self.comment,
-            'created_at': str(self.created_at),
+            'created_at': self.created_at.strftime('%Y-%m-%d'),
         }
 
 class Address(models.Model):
