@@ -95,17 +95,13 @@ def register(request):
             "message": "user created successfully"
         }, status=200)
     
-        # return JsonResponse({'id': user.id, 'username': user.username, 'email': user.email, 'first_name': user.first_name, 'last_name': user.last_name}, safe=False)
-    
     except IntegrityError:
         return JsonResponse({
-            "message": "failed to create user",
             "error": "Username or email already exists"
-        })
-        # return JsonResponse(f"User with the same username or email already exists.", safe=False)
+        }, status=400)
 
     except MultiValueDictKeyError as e:
-        return JsonResponse(f"The form value for attribute {str(e)} is missing.", safe=False)
+        return JsonResponse({"error": f"The form value for attribute {str(e)} is missing"}, status=400)
 
 @require_http_methods(["POST"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
@@ -114,17 +110,12 @@ def login_view(request):
     # http://127.0.0.1:8000/eridosolutions/login/
 
     try:
-        # data = json.loads(request.body)
         data = request.POST
         username, password = [data['username'], data['password']]
-        # username, password = [request.POST['username'], request.POST['password']]
 
     except MultiValueDictKeyError as e:
-        return JsonResponse({
-            "message": "Failed to login user",
-            "error":f"The form value for attribute {str(e)} is missing"
-            })
-        # return JsonResponse(f"The form value for attribute {str(e)} is missing.", safe=False)
+        return JsonResponse({"error":f"The form value for attribute {str(e)} is missing"
+            }, status=401)
     
     try:
         user_email_passed_instead = User.objects.get(email=username)
@@ -134,12 +125,10 @@ def login_view(request):
     except User.DoesNotExist:
         pass
 
-    except MultipleObjectsReturned:
+    except MultipleObjectsReturned as e:
         return JsonResponse({
-            "message": "Failed to login user",
             "error":"You are using the same email for Django Admin Dashboard and your newly created user, change one of them."
-            })
-        # return JsonResponse(f"You are using the same email for Django Admin Dashboard and your newly created user, change one of them.", safe=False)
+            }, status=400)
     
     user = authenticate(username=username, password=password)
 
@@ -157,9 +146,8 @@ def login_view(request):
         # return JsonResponse({'id': user.id, 'username': user.username, 'email': user.email, 'first_name': user.first_name, 'last_name': user.last_name}, safe=False)
     
     else:
-        return JsonResponse({"message": "Failed to login user",
-                            "error":"Either the email/username or the password is incorrect"
-                            })
+        return JsonResponse({"error":"Either the email/username or the password is incorrect"
+                            }, status=401)
 
 # @require_http_methods(["POST"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
@@ -172,11 +160,7 @@ def logout_view(request):
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 # @csrf_exempt
 def show_logged_in_user_id(request):
-    # return JsonResponse({"user_id": request.session.get('_auth_user_id')}, safe=False)
-    # return JsonResponse({"session_cookie": dict(request.session.items())}, safe=False)
     return JsonResponse({"user_id": request.session.get("_auth_user_id")})
-    return JsonResponse(request.COOKIES, safe=False)
-
 
 """PAGINATION"""
 
@@ -191,7 +175,7 @@ def paginate_results(request, query_results, view_url, items_per_page=12):
         page_obj = paginator.get_page(page_number)
     
     except EmptyPage:
-        return JsonResponse({"error": "Page not found"}, safe=False)
+        return JsonResponse({"error": "Page not found"}, status=404)
     
     items_on_current_page = page_obj.object_list
 
@@ -232,7 +216,7 @@ def list_all_products(request):
         
         return JsonResponse(paginate_results(request, all_products, view_url), safe=False)
     else:
-        return JsonResponse("No products found, add a product and try again.", safe=False)
+        return JsonResponse({"error": "No products found, add a product and try again."}, status=404)
 
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["GET"])
@@ -244,8 +228,7 @@ def get_product_with_product_id(request, id):
         return JsonResponse(specific_product.to_dict(request), safe=False)
 
     except Product.DoesNotExist:
-        return JsonResponse(f"Product with ID: {id} was not found.", safe=False)
-    # return JsonResponse("Get details of a specific product.", safe=False)
+        return JsonResponse({"error":f"Product with ID: {id} was not found."}, status=404)
 
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["POST"])
@@ -259,14 +242,16 @@ def create_new_product(request):
         quantity_in_stock = request.POST['quantity_in_stock']
         category = request.POST['category']
         image = request.FILES['image']
+
     except MultiValueDictKeyError as e:
-        return JsonResponse(f"The form value for attribute {str(e)} is missing.", safe=False)
+        return JsonResponse({"error": f"The form value for attribute {str(e)} is missing"
+            }, status=401)
 
     try:
         new_product = Product(name=name, description=description, price=float(price), quantity_in_stock=quantity_in_stock, category=Category.objects.get(name=category), image=image)
         new_product.save()
     except (ValueError, ValidationError) as e:
-        return JsonResponse(f"{str(e)}", safe=False)    
+        return JsonResponse({"error": f"{str(e)}"}, status=400)
 
     return JsonResponse(new_product.to_dict(request), safe=False)
 
@@ -280,33 +265,31 @@ def update_product_with_product_id_details(request, id):
 
         if request.method == 'PUT':
             for field, value in QueryDict(request.body).items():
-                # print(f"FIELD: {field} VALUE: {value}")
                 if (hasattr(product_to_update, field) and field == "category"):              
                     try:
                         setattr(product_to_update, field, Category.objects.get(name=value))
                     except (ValueError, ValidationError, Category.DoesNotExist) as e:
-                        return JsonResponse(f"{str(e)}", safe=False)
+                        return JsonResponse({"error": f"{str(e)}"}, status=400)
                 
                 elif (hasattr(product_to_update, field) and field == "image"):
-                    return JsonResponse('Use POST request to update image', safe=False)
+                    return JsonResponse({"error": 'Use POST request to update image'}, status=405)
                 
                 elif (hasattr(product_to_update, field)):
                     setattr(product_to_update, field, value)
                 
                 else:
-                    return JsonResponse(f"There is no field named {field} in products table.", safe=False)
+                    return JsonResponse({"error": f"There is no field named {field} in products table."}, status=404)
                 
         if request.method == 'POST':
             data = request.POST
             image = request.FILES['image']
             
             for field, value in data.items():
-                # print(f"FIELD: {field} VALUE: {value}")
                 if (hasattr(product_to_update, field) and field == "category"):                
                     try:
                         setattr(product_to_update, field, Category.objects.get(name=value))
                     except (ValueError, ValidationError, Category.DoesNotExist) as e:
-                        return JsonResponse(f"{str(e)}", safe=False)
+                        return JsonResponse({"error":f"{str(e)}"}, status=400)
                     
                 elif (hasattr(product_to_update, 'image')):
                     product_to_update.image = image
@@ -315,12 +298,12 @@ def update_product_with_product_id_details(request, id):
                     setattr(product_to_update, field, value)               
                 
                 else:
-                    return JsonResponse(f"There is no field named {field} in products table.", safe=False)
+                    return JsonResponse({"error": f"There is no field named {field} in products table."}, status=404)
 
         product_to_update.save()
     
     except Product.DoesNotExist as e:
-        return JsonResponse(f"Product with ID: {id} was not found.", safe=False)
+        return JsonResponse({"error": f"Product with ID: {id} was not found."}, status=404)
 
     return JsonResponse(product_to_update.to_dict(request), safe=False)
         
@@ -338,7 +321,7 @@ def delete_product_with_product_id(request, id):
         product_to_delete.delete()
 
     except Product.DoesNotExist as e:
-        return JsonResponse(f"Product with ID: {id} was not found.", safe=False)
+        return JsonResponse({"error": f"Product with ID: {id} was not found."}, status=404)
     
     return JsonResponse(product_to_delete_details, safe=False)
 
@@ -352,7 +335,7 @@ def get_user_with_user_id_profile_details(request, id):
         specific_user = User.objects.get(id=id)
         return JsonResponse({'id': specific_user.id, 'username': specific_user.username, 'email': specific_user.email, 'first_name': specific_user.first_name, 'last_name': specific_user.last_name}, safe=False)
     except User.DoesNotExist:
-        return JsonResponse(f"User with ID: {id} does not exist.", safe=False)
+        return JsonResponse({"error": f"User with ID: {id} does not exist."}, status=404)
 
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["PUT"])
@@ -363,7 +346,6 @@ def update_user_with_user_id_profile_details(request, id):
         user_to_update = User.objects.get(id=id)
 
         for field, value in QueryDict(request.body).items():
-            # print(f"FIELD: {field} VALUE: {value}")
             if (hasattr(user_to_update, field) and field == "password"):                
                 try:
                     user_to_update.set_password(value)
@@ -374,12 +356,12 @@ def update_user_with_user_id_profile_details(request, id):
                 setattr(user_to_update, field, value)
             
             else:
-                return JsonResponse(f"There is no field named {field} in users table.", safe=False)
+                return JsonResponse({"error": f"There is no field named {field} in users table."}, status=404)
 
         user_to_update.save()      
     
     except User.DoesNotExist as e:
-        return JsonResponse(f"user with ID: {id} was not found.", safe=False)
+        return JsonResponse({"error": f"user with ID: {id} was not found."}, status=404)
 
     return JsonResponse({'id': user_to_update.id, 'username': user_to_update.username, 'email': user_to_update.email, 'first_name': user_to_update.first_name, 'last_name': user_to_update.last_name}, safe=False)
 
@@ -393,7 +375,7 @@ def list_orders_placed_by_user_with_user_id(request, id):
         orders_placed_by_user = Order.objects.filter(user=id)
         return JsonResponse(paginate_results(request, orders_placed_by_user, view_url), safe=False)
     except Order.DoesNotExist:
-        return JsonResponse(f"User with ID: {id} hasn't placed any orders.", safe=False)
+        return JsonResponse({"error": f"User with ID: {id} hasn't placed any orders."}, status=404)
 
 """SHOPPING CART"""
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
@@ -405,10 +387,11 @@ def get_contents_of_shopping_cart_of_user(request, id):
         cart_contents_of_user = ShoppingCart.objects.get(user=id)
 
         return JsonResponse(paginate_results(request, [item for item in CartItem.objects.filter(cart=cart_contents_of_user.cart_id)], view_url), safe=False)
+
     except ShoppingCart.DoesNotExist:
-        return JsonResponse(f"Current user hasn't placed any items in cart.", safe=False)
+        return JsonResponse({"error": f"Current user hasn't placed any items in cart."}, status=404)
     except TypeError:
-        return JsonResponse(f"No active cart found for current user or A TypeError occured.", safe=False)
+        return JsonResponse({"error": f"No active cart found for current user or A TypeError occured."}, status=404)
 
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["POST"])
@@ -449,9 +432,8 @@ def add_product_to_user_cart(request, id, productId):
             return JsonResponse(f"Product with ID: {productId} not found.", safe=False)
     
     except MultiValueDictKeyError as e:
-        raise ValueError("quantity is missing")
-        return JsonResponse(f"The form value for attribute {str(e)} is missing.", safe=False)
-        return JsonResponse({"error": f"The form value for attribute {str(e)} is missing."})
+        return JsonResponse({"error": f"The form value for attribute {str(e)} is missing"
+            }, status=401)
     
     new_cart_item.save()    
 
@@ -469,11 +451,13 @@ def remove_product_from_user_cart(request, id, productId):
         cart_item_to_delete.delete()
     
     except ShoppingCart.DoesNotExist:
-        return JsonResponse(f"User with ID: {id} does not have an active cart.", safe=False)
+        return JsonResponse({"error": f"User with ID: {id} does not have an active cart."}, status=404)
+
     except Product.DoesNotExist:
-        return JsonResponse(f"Product with ID: {productId} not found in cart.", safe=False)
+        return JsonResponse({"error": f"Product with ID: {productId} not found in cart."}, status=404)
+
     except CartItem.DoesNotExist:
-        return JsonResponse(f"CartItem does not exist.", safe=False)
+        return JsonResponse({"error": f"CartItem does not exist."}, status=404)
     
     return JsonResponse(cart_item_to_delete_details, safe=False)
 
@@ -490,7 +474,8 @@ def clear_entire_shopping_cart(request, id):
         _ = list(map(lambda x: x.delete(), cart_to_clear_items))
 
     except ShoppingCart.DoesNotExist:
-        return JsonResponse(f"User with ID: {id} does not have a cart.", safe=False)
+        return JsonResponse({"error": f"User with ID: {id} does not have a cart."}, status=404)
+
     return JsonResponse(f"Cart cleared.", safe=False)
 
 """ORDER MANAGEMENT"""
@@ -505,7 +490,7 @@ def get_list_of_all_orders(request):
     if all_orders.exists():
         return JsonResponse(paginate_results(request, [order for order in all_orders], view_url), safe=False)
     else:
-        return JsonResponse(f"No orders found, add an order and try again.", safe=False)
+        return JsonResponse({"error": f"No orders found, add an order and try again."}, status=404)
 
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["GET"])
@@ -515,7 +500,7 @@ def get_details_of_order_with_order_id(request, id):
         specific_order_details = Order.objects.get(order_id=id)
 
     except Order.DoesNotExist:
-        return JsonResponse(f"Order with ID: {id} does not exist.", safe=False)
+        return JsonResponse({"error": f"Order with ID: {id} does not exist."}, status=404)
     
     return JsonResponse(specific_order_details.to_dict(), safe=False)
 
@@ -547,10 +532,9 @@ def create_new_order(request, userId):
         clear_entire_shopping_cart(request, userId)
 
     except ShoppingCart.DoesNotExist:
-        return JsonResponse(f"User with ID: {userId} has no items in cart.", safe=False)    
+        return JsonResponse({"error": f"User with ID: {userId} has no items in cart."}, status=404)
 
     return JsonResponse([order_item.to_dict() for order_item in OrderItem.objects.filter(order=new_order)], safe=False)
-    # return clear_entire_shopping_cart(request, userId)
 
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["PUT"])
@@ -567,7 +551,7 @@ def cancel_order_with_order_id(request, id):
         return JsonResponse(order_to_cancel.to_dict(), safe=False)
     
     except Order.DoesNotExist:
-        return JsonResponse(f"Order with ID: {id} does not exist.", safe=False)
+        return JsonResponse({"error": f"Order with ID: {id} does not exist."}, status=404)
     
 
 """PAYMENT INTEGRATION"""
@@ -579,10 +563,9 @@ def process_payment(request, orderId):
         order_to_pay_for = Order.objects.get(order_id=orderId)
 
         return JsonResponse(order_to_pay_for.to_dict(), safe=False) if (order_to_pay_for.order_status == "ACTIVE") else JsonResponse(f"Can't process payment for a CANCELLED/COMPLETED order.", safe=False)
-        # return JsonResponse(f"Process payment for order: {order_to_pay_for.to_dict()}.", safe=False)
     
     except Order.DoesNotExist:
-        return JsonResponse(f"Order with ID: {orderId} does not exist.", safe=False)
+        return JsonResponse({"error": f"Order with ID: {orderId} does not exist."}, status=404)
 
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["POST"])
@@ -593,7 +576,7 @@ def refund_payment(request, orderId):
         return JsonResponse(order_to_refund.to_dict(), safe=False)
     
     except Order.DoesNotExist:
-        return JsonResponse(f"Order with ID: {orderId} does not exist.", safe=False)
+        return JsonResponse({"error": f"Order with ID: {orderId} does not exist."}, status=404)
 
 
 """CATEGORY MANAGEMENT"""
@@ -608,7 +591,7 @@ def get_list_of_all_product_categories(request):
     if list_of_all_categories.exists():
         return JsonResponse(paginate_results(request, [category for category in list_of_all_categories], view_url), safe=False)
     else:
-        return JsonResponse(f"No category found, add one and try again.", safe=False)
+        return JsonResponse({"error": f"No category found, add one and try again."}, status=404)
     
 
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
@@ -630,7 +613,7 @@ def create_new_product_category(request):
         new_category = Category(name=name)
 
     except MultiValueDictKeyError as e:
-        return JsonResponse(f"The form value fo attribute {e} is missing.", safe=False)
+        return JsonResponse({"error": f"The form value fo attribute {e} is missing."}, status=400)
     
     new_category.save()
 
@@ -649,10 +632,10 @@ def update_details_of_category_with_category_id(request, id):
         category_to_update.name = name
     
     except Category.DoesNotExist:
-        return JsonResponse(f"Category with ID: {id} does not exist.", safe=False)
+        return JsonResponse({"error": f"Category with ID: {id} does not exist."}, status=404)
 
     except MultiValueDictKeyError as e:
-        return JsonResponse(f"The form value for attribute {str(e)} is missing.", safe=False)
+        return JsonResponse({"error": f"The form value for attribute {str(e)} is missing."}, status=400)
     
     category_to_update.save()
 
@@ -671,7 +654,7 @@ def remove_product_category_with_category_id(request, id):
         category_to_delete.delete()
 
     except Category.DoesNotExist:
-        return JsonResponse(f"Category with ID: {id} does not exist.", safe=False)
+        return JsonResponse({"error": f"Category with ID: {id} does not exist."}, status=404)
     
     return JsonResponse(category_to_delete_details, safe=False)
 
@@ -687,7 +670,7 @@ def get_reviews_for_product_with_product_id(request, id):
     if reviews.exists():
         return JsonResponse(paginate_results(request, [review for review in reviews], view_url), safe=False)
     else:
-        return JsonResponse(f"Product with ID: {id} does not have reviews.", safe=False)
+        return JsonResponse({"error": f"Product with ID: {id} does not have reviews."}, status=404)
 
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["POST"])
@@ -696,10 +679,6 @@ def creat_review_for_product_with_product_id(request, userId, id):
     try:
         user_leaving_review = User.objects.get(id=userId)
         product_to_review = Product.objects.get(product_id=id)
-
-        # data = json.loads(request.body)
-        # rating = data['rating']
-        # comment = data['comment']
 
         rating = request.POST['rating']
         comment = request.POST['comment']
@@ -715,13 +694,13 @@ def creat_review_for_product_with_product_id(request, userId, id):
         return JsonResponse(str(e), safe=False)
 
     except User.DoesNotExist:
-        return JsonResponse(f"User with ID: {userId} does not exist.", safe=False)
+        return JsonResponse({"error": f"User with ID: {userId} does not exist."}, status=404)
     
     except Product.DoesNotExist:
-        return JsonResponse(f"Product with ID: {id} does not exist.", safe=False)
+        return JsonResponse({"error": f"Product with ID: {id} does not exist."}, status=404)
 
     except MultiValueDictKeyError as e:
-        return JsonResponse(f"The form value for attribute {str(e)} is missing.", safe=False)
+        return JsonResponse({"error": f"The form value for attribute {str(e)} is missing."}, status=404)
 
 """SEARCH AND FILTERS"""
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
@@ -732,9 +711,7 @@ def search_products(request):
     view_url = request.build_absolute_uri()
 
     try:
-        # search = json.loads(request.body)['search']
         search = request.POST['search']
-        print("\n\n\t\tsearch ", search)
 
         search_results = Product.objects.raw("SELECT * FROM eridosolutions_product WHERE MATCH (name, description) AGAINST (%s IN NATURAL LANGUAGE MODE)", [search])
 
@@ -743,7 +720,7 @@ def search_products(request):
         return JsonResponse(paginate_results(request, search_results, view_url), safe=False)
     
     except MultiValueDictKeyError as e:
-        return JsonResponse(f"The form value for attribute {str(e)} is missing.", safe=False)
+        return JsonResponse({"error": f"The form value for attribute {str(e)} is missing."}, status=400)
 
 
 @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
@@ -794,9 +771,8 @@ def get_user_saved_addresses(request, userId):
         print("\n\n\treturning")
         return JsonResponse(paginate_results(request, [address for address in user_saved_addresses], view_url), safe=False)
     else:
-        print('\n\n\telse')
-        return JsonResponse({"query_results": []})
-        return JsonResponse(f"User with ID: {userId} has no addresses.", safe=False)
+        return JsonResponse({"error": f"User with ID: {userId} has no addresses."}, status=404)
+
 
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["POST"])
@@ -816,10 +792,10 @@ def add_address_to_user_profile(request, userId):
         return JsonResponse(new_address.to_dict(), safe=False)
     
     except User.DoesNotExist:
-        return JsonResponse(f"User with ID: {userId} does not exist.", safe=False)
+        return JsonResponse({"error": f"User with ID: {userId} does not exist."}, status=404)
     
     except MultiValueDictKeyError as e:
-        return JsonResponse(f"The form value for attribute {str(e)} is missing.", safe=False)
+        return JsonResponse({"error": f"The form value for attribute {str(e)} is missing."}, status=400)
 
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["PUT"])
@@ -845,10 +821,10 @@ def update_details_of_address_with_address_id(request, userId, id):
         return JsonResponse(address_to_update.to_dict(), safe=False)
 
     except Address.DoesNotExist:
-        return JsonResponse(f"Address with ID: {id} does not exist.", safe=False)
+        return JsonResponse({"error": f"Address with ID: {id} does not exist."}, status=404)
     
     except User.DoesNotExist:
-        return JsonResponse(f"User with ID: {userId} does not exist.", safe=False)
+        return JsonResponse({"error": f"User with ID: {userId} does not exist."}, status=404)
 
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["DELETE"])
@@ -864,12 +840,18 @@ def delete_address_with_address_id(request, userId, id):
         return JsonResponse(address_to_delete_details, safe=False)
     
     except Address.DoesNotExist:
-        return JsonResponse(f"Address with ID: {id} does not exist.", safe=False)
+        return JsonResponse({"error": f"Address with ID: {id} does not exist."}, status=404)
 
 """ERROR HANDLING"""
 
 def handler404(request, exception):
     return render(request, '404.html', status=400)
+
+def error(request):
+    try:
+        raise Http404("Great example of an error")
+    except Http404 as e:
+        return JsonResponse({'error':str(e)}, status=400)
 
 # def handler500(request):
 #     return render(request, '404.html', status=500)
