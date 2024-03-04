@@ -98,7 +98,7 @@ def register(request):
     except IntegrityError:
         return JsonResponse({
             "error": "Username or email already exists"
-        }, status=400)
+        }, status=409)
 
     except MultiValueDictKeyError as e:
         return JsonResponse({"error": f"The form value for attribute {str(e)} is missing"}, status=400)
@@ -179,9 +179,6 @@ def paginate_results(request, query_results, view_url, items_per_page=12):
     
     items_on_current_page = page_obj.object_list
 
-    print("\n\n\t\titems on page ", items_on_current_page)
-    for item in items_on_current_page:
-        print("\n\t\titem => ", item)
     json_data = {
         'current_page': page_obj.number,
         'total_pages': paginator.num_pages,
@@ -426,14 +423,16 @@ def add_product_to_user_cart(request, id, productId):
 
                 new_cart_item = CartItem(cart=ShoppingCart.objects.get(user=id), product=Product.objects.get(product_id=productId), quantity=quantity)
             except User.DoesNotExist:
-                return JsonResponse(f"User with ID: {id} does not exist.", safe=False)
+                return JsonResponse({"error": f"User with ID: {id} does not exist."}, status=400)
         
         except Product.DoesNotExist:
-            return JsonResponse(f"Product with ID: {productId} not found.", safe=False)
+            return JsonResponse({"error": f"Product with ID: {productId} not found."
+            }, status=400)
+            # return JsonResponse(f"Product with ID: {productId} not found.", safe=False)
     
     except MultiValueDictKeyError as e:
         return JsonResponse({"error": f"The form value for attribute {str(e)} is missing"
-            }, status=401)
+            }, status=400)
     
     new_cart_item.save()    
 
@@ -670,7 +669,7 @@ def get_reviews_for_product_with_product_id(request, id):
     if reviews.exists():
         return JsonResponse(paginate_results(request, [review for review in reviews], view_url), safe=False)
     else:
-        return JsonResponse({"error": f"Product with ID: {id} does not have reviews."}, status=404)
+        return JsonResponse({"current_page": 0, "total_pages": 0, "query_results": []})
 
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["POST"])
@@ -688,6 +687,7 @@ def creat_review_for_product_with_product_id(request, userId, id):
         new_review.full_clean()
         new_review.save()
 
+        return JsonResponse({"success": True})  # Added this
         return JsonResponse(new_review.to_dict(), safe=False)
     
     except ValidationError as e:
@@ -700,7 +700,7 @@ def creat_review_for_product_with_product_id(request, userId, id):
         return JsonResponse({"error": f"Product with ID: {id} does not exist."}, status=404)
 
     except MultiValueDictKeyError as e:
-        return JsonResponse({"error": f"The form value for attribute {str(e)} is missing."}, status=404)
+        return JsonResponse({"error": f"The form value for attribute {str(e)} is missing."}, status=400)
 
 """SEARCH AND FILTERS"""
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
