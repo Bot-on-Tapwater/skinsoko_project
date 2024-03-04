@@ -72,6 +72,7 @@ MIDDLEWARE = [
 # ADDED THIS
 CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_WHITELIST = (
+    'https://exceed-shop.netlify.app',
     'http://127.0.0.1:3000',
     'http://localhost:3000'
 )
