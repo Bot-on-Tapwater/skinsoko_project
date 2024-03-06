@@ -66,4 +66,7 @@ urlpatterns = [
     path('users/<str:userId>/addresses/create/', views.add_address_to_user_profile, name='add-address-to-profile'),
     path('users/<str:userId>/addresses/<int:id>/update/', views.update_details_of_address_with_address_id, name='update-address-details'),
     path('users/<str:userId>/addresses/<int:id>/delete/', views.delete_address_with_address_id, name='delete-address'),
+
+    # Error handling
+    path('error/', views.error),
 ]
