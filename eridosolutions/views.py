@@ -568,7 +568,7 @@ def create_new_order(request):
 
         OrderItem.objects.bulk_create(new_order_items)
 
-        clear_entire_shopping_cart(request, userId)
+        clear_entire_shopping_cart(request)
 
     except ShoppingCart.DoesNotExist:
         return JsonResponse({"error": f"User with ID: {userId} has no items in cart."}, status=404)
