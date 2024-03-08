@@ -387,9 +387,9 @@ def get_contents_of_shopping_cart_of_user(request):
 
     if not request.user.id:
         print("\n\n\tnot auth")
+        return redirect(to="http://localhost:3000/account/login", permanent=True)
         return HttpResponse("Unauthorized", status=401)
     
-        return redirect(to="http://localhost:3000/account/login", permanent=True)
     
     id = request.user.id
 
