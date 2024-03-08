@@ -32,8 +32,11 @@ SECRET_KEY = 'django-insecure-j0ob=w%zc5h7(fo(bbkk@3=thmbu&ek9rlepjj=##y^hjllrtc
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+# DEBUG = False
+
 
 ALLOWED_HOSTS = []
+# ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -69,6 +72,7 @@ MIDDLEWARE = [
 # ADDED THIS
 CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_WHITELIST = (
+    'https://exceed-shop.netlify.app',
     'http://127.0.0.1:3000',
     'http://localhost:3000'
 )
@@ -166,3 +170,5 @@ SESSION_COOKIE_SAMESITE = 'None'
 CSRF_COOKIE_SAMESITE = 'None'
 CSRF_COOKIE_SECURE = True
 
+# CSRF_TRUSTED_ORIGINS = ["http://localhost:3000"]
+# LOGIN_REDIRECT_URL = ''
