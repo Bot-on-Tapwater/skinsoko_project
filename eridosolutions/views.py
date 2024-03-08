@@ -456,7 +456,7 @@ def create_new_order(request):
         cartitems = CartItem.objects.filter(cart=user_cart).all()
 
         if not cartitems:
-            return JsonResponse({"error": f"User with ID: {userId} has no items in cart."}, status=404)
+            return JsonResponse({"error": f"User has no items in cart."}, status=404)
         
         else:
             total_cost_of_cart_items = CartItem.objects.filter(cart=user_cart).aggregate(total_cost=Sum(ExpressionWrapper(F('quantity') * F('product__price'), output_field=fields.FloatField())))
