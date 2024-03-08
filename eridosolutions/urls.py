@@ -30,8 +30,10 @@ urlpatterns = [
     path('users/<int:id>/orders/', views.list_orders_placed_by_user_with_user_id, name='list-user-orders'),
 
     # Shopping Cart
-    path('users/<int:id>/cart/', views.get_contents_of_shopping_cart_of_user, name='get-cart-contents'),
-    path('users/<int:id>/cart/add/<int:productId>/', views.add_product_to_user_cart, name='add-product-to-cart'),
+    path('user/cart/', views.get_contents_of_shopping_cart_of_user, name='get-cart-contents'),
+    # path('users/<int:id>/cart/', views.get_contents_of_shopping_cart_of_user, name='get-cart-contents'),
+    path('user/cart/add/<int:productId>/', views.add_product_to_user_cart, name='add-product-to-cart'),
+    # path('users/<int:id>/cart/add/<int:productId>/', views.add_product_to_user_cart, name='add-product-to-cart'),
     path('users/<int:id>/cart/remove/<int:productId>/', views.remove_product_from_user_cart, name='remove-product-from-cart'),
     path('users/<int:id>/cart/clear/', views.clear_entire_shopping_cart, name='clear-cart'),
 
