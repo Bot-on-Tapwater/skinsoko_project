@@ -23,6 +23,40 @@ from django.core.paginator import Paginator, EmptyPage
 from django.core.serializers import serialize
 from django.forms.models import model_to_dict
 
+"""DECORATORS"""
+# def get_contents_of_shopping_cart_of_user(request):
+#     view_url = request.build_absolute_uri()
+#     # users/cart/8
+#     print("\n\n\t\t\data cart ", request.user.id)
+
+#     if not request.user.id:
+#         print("\n\n\tnot auth")
+#         return redirect(to="http://localhost:3000/account/login", permanent=True)
+#         return HttpResponse("Unauthorized", status=401)
+    
+    
+#     id = request.user.id
+
+#     try:
+#         cart_contents_of_user = ShoppingCart.objects.get(user=id)
+
+#         return JsonResponse(paginate_results(request, [item for item in CartItem.objects.filter(cart=cart_contents_of_user.cart_id)], view_url), safe=False)
+
+#     except ShoppingCart.DoesNotExist:
+#         return JsonResponse(None, safe=False)
+#         # return JsonResponse({"error": f"Current user hasn't placed any items in cart."}, status=404)
+#     except TypeError:
+#         return JsonResponse(None, safe=False)
+#         # return JsonResponse({"error": f"No active cart found for current user or A TypeError occured."}, status=404)
+
+def check_user_id(view_func):
+    def wrapper(request, *args, **kwargs):
+        if not request.user.id:
+            print(str(request))
+            # return HttpResponse("Unauthorized", status=401)
+            return redirect("http://localhost:3000/")
+        return view_func(request, *args, **kwargs)
+    return wrapper
 
 """AUTHO"""
 # oauth = OAuth()
@@ -379,17 +413,12 @@ def list_orders_placed_by_user_with_user_id(request, id):
 """SHOPPING CART"""
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 # @login_required
+@check_user_id
 @require_http_methods(["GET"])
 def get_contents_of_shopping_cart_of_user(request):
     view_url = request.build_absolute_uri()
     # users/cart/8
-    print("\n\n\t\t\data cart ", request.user.id)
-
-    if not request.user.id:
-        print("\n\n\tnot auth")
-        return redirect(to="http://localhost:3000/account/login", permanent=True)
-        return HttpResponse("Unauthorized", status=401)
-    
+    print("\n\n\t\t\data cart ", request.user.id)    
     
     id = request.user.id
 
