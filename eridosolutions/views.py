@@ -168,9 +168,11 @@ def logout_view(request):
 
 # @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 # @csrf_exempt
-@check_user_id
+# @check_user_id
 def show_logged_in_user_id(request):
-    return JsonResponse({"user_id": True})
+    if request.user.id:
+        return JsonResponse({"user": True})
+    return JsonResponse({"user": False})
 
 """PAGINATION"""
 
