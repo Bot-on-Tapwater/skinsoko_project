@@ -107,12 +107,11 @@ class OrderItem(models.Model):
 
     def to_dict(self, request=None):
         return {
-            'review_id': self.review_id,
+            'order_item_id': self.item_id,
+            'order': self.order.order_id, # Assuming you want to include the order ID
             'product': self.product.to_dict() if self.product else None,
-            'user': self.user.username,
-            'rating': self.rating,
-            'comment': self.comment,
-            'created_at': str(self.created_at),
+            'quantity': self.quantity,
+            'unit_price': self.unit_price
         }
 
 class Review(models.Model):
