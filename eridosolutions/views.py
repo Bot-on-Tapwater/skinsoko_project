@@ -195,7 +195,7 @@ def create_new_product(request):
     except (ValueError, ValidationError) as e:
         return JsonResponse({"error": f"{str(e)}"}, status=400)
 
-    return JsonResponse(new_product.to_dict(request), safe=False)
+    return JsonResponse({"success": True}, safe=False)
 
 @require_http_methods(["PUT", "POST"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
@@ -245,7 +245,7 @@ def update_product_with_product_id_details(request, id):
     except Product.DoesNotExist as e:
         return JsonResponse({"error": f"Product with ID: {id} was not found."}, status=404)
 
-    return JsonResponse(product_to_update.to_dict(request), safe=False)
+    return JsonResponse({"success": True}, safe=False)
         
 @require_http_methods(["DELETE"])
 def delete_product_with_product_id(request, id):
@@ -259,7 +259,7 @@ def delete_product_with_product_id(request, id):
     except Product.DoesNotExist as e:
         return JsonResponse({"error": f"Product with ID: {id} was not found."}, status=404)
     
-    return JsonResponse(product_to_delete_details, safe=False)
+    return JsonResponse({"success": True}, safe=False)
 
 """USER PROFILE"""
 @check_user_id
@@ -270,7 +270,7 @@ def get_user_with_user_id_profile_details(request):
         specific_user = User.objects.get(id=id)
         return JsonResponse({'id': specific_user.id, 'username': specific_user.username, 'email': specific_user.email, 'first_name': specific_user.first_name, 'last_name': specific_user.last_name}, safe=False)
     except User.DoesNotExist:
-        return JsonResponse({"error": f"User with ID: {id} does not exist."}, status=404)
+        return JsonResponse({"error": f"User does not exist."}, status=404)
 
 @require_http_methods(["PUT"])
 @check_user_id
@@ -298,7 +298,7 @@ def update_user_with_user_id_profile_details(request):
     except User.DoesNotExist as e:
         return JsonResponse({"error": f"user with ID: {id} was not found."}, status=404)
 
-    return JsonResponse({'id': user_to_update.id, 'username': user_to_update.username, 'email': user_to_update.email, 'first_name': user_to_update.first_name, 'last_name': user_to_update.last_name}, safe=False)
+    return JsonResponse({"success": True}, safe=False)
 
 @require_http_methods(["GET"])
 def list_orders_placed_by_user_with_user_id(request):
@@ -378,7 +378,7 @@ def add_product_to_user_cart(request, productId):
     
     new_cart_item.save()    
 
-    return JsonResponse(new_cart_item.to_dict(), safe=False)
+    return JsonResponse({"success": True}, safe=False)
 
 @require_http_methods(["DELETE"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
@@ -456,7 +456,7 @@ def create_new_order(request):
         cartitems = CartItem.objects.filter(cart=user_cart).all()
 
         if not cartitems:
-            return JsonResponse({"error": f"User with ID: {userId} has no items in cart."}, status=404)
+            return JsonResponse({"error": f"User has no items in cart."}, status=404)
         
         else:
             total_cost_of_cart_items = CartItem.objects.filter(cart=user_cart).aggregate(total_cost=Sum(ExpressionWrapper(F('quantity') * F('product__price'), output_field=fields.FloatField())))
@@ -482,7 +482,7 @@ def create_new_order(request):
     except ShoppingCart.DoesNotExist:
         return JsonResponse({"error": f"User with ID: {userId} has no items in cart."}, status=404)
 
-    return JsonResponse([order_item.to_dict() for order_item in OrderItem.objects.filter(order=new_order)], safe=False)
+    return JsonResponse({"success": True}, safe=False)
 
 @require_http_methods(["PUT"])
 def cancel_order_with_order_id(request, id):
@@ -493,7 +493,7 @@ def cancel_order_with_order_id(request, id):
 
         order_to_cancel.save()
 
-        return JsonResponse(order_to_cancel.to_dict(), safe=False)
+        return JsonResponse({"success": True}, safe=False)
     
     except Order.DoesNotExist:
         return JsonResponse({"error": f"Order with ID: {id} does not exist."}, status=404)
@@ -506,7 +506,7 @@ def process_payment(request, orderId):
     try:
         order_to_pay_for = Order.objects.get(order_id=orderId)
 
-        return JsonResponse(order_to_pay_for.to_dict(), safe=False) if (order_to_pay_for.order_status == "ACTIVE") else JsonResponse(f"Can't process payment for a CANCELLED/COMPLETED order.", safe=False)
+        return JsonResponse({"success": True}, safe=False) if (order_to_pay_for.order_status == "ACTIVE") else JsonResponse(f"Can't process payment for a CANCELLED/COMPLETED order.", safe=False)
     
     except Order.DoesNotExist:
         return JsonResponse({"error": f"Order with ID: {orderId} does not exist."}, status=404)
@@ -554,7 +554,7 @@ def create_new_product_category(request):
     
     new_category.save()
 
-    return JsonResponse(new_category.to_dict(), safe=False)
+    return JsonResponse({"success": True}, safe=False)
 
 @require_http_methods(["PUT"])
 def update_details_of_category_with_category_id(request, id):
@@ -573,7 +573,7 @@ def update_details_of_category_with_category_id(request, id):
     
     category_to_update.save()
 
-    return JsonResponse(category_to_update.to_dict(), safe=False)
+    return JsonResponse({"success": True}, safe=False)
 
 @require_http_methods(["DELETE"])
 def remove_product_category_with_category_id(request, id):
@@ -587,7 +587,7 @@ def remove_product_category_with_category_id(request, id):
     except Category.DoesNotExist:
         return JsonResponse({"error": f"Category with ID: {id} does not exist."}, status=404)
     
-    return JsonResponse(category_to_delete_details, safe=False)
+    return JsonResponse({"success": True}, safe=False)
 
 """REVIEWS AND RATINGS"""
 @require_http_methods(["GET"])
@@ -743,7 +743,7 @@ def update_details_of_address_with_address_id(request, id):
 
         address_to_update.save()
 
-        return JsonResponse(address_to_update.to_dict(), safe=False)
+        return JsonResponse({"success": True}, safe=False)
 
     except Address.DoesNotExist:
         return JsonResponse({"error": f"Address with ID: {id} does not exist."}, status=404)
@@ -763,7 +763,7 @@ def delete_address_with_address_id(request, id):
 
         address_to_delete.delete()
 
-        return JsonResponse(address_to_delete_details, safe=False)
+        return JsonResponse({"success": True}, safe=False)
     
     except Address.DoesNotExist:
         return JsonResponse({"error": f"Address with ID: {id} does not exist."}, status=404)
