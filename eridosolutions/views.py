@@ -455,7 +455,10 @@ def create_new_order(request):
 
         cartitems = CartItem.objects.filter(cart=user_cart).all()
 
-        if cartitems:
+        if not cartitems:
+            return JsonResponse({"error": f"User with ID: {userId} has no items in cart."}, status=404)
+        
+        else:
             total_cost_of_cart_items = CartItem.objects.filter(cart=user_cart).aggregate(total_cost=Sum(ExpressionWrapper(F('quantity') * F('product__price'), output_field=fields.FloatField())))
             total_cost = total_cost_of_cart_items.get('total_cost', 0) or 0
 
@@ -475,8 +478,6 @@ def create_new_order(request):
             OrderItem.objects.bulk_create(new_order_items)
 
             clear_entire_shopping_cart(request)
-        
-        return JsonResponse({"error": f"User with ID: {userId} has no items in cart."}, status=404)
 
     except ShoppingCart.DoesNotExist:
         return JsonResponse({"error": f"User with ID: {userId} has no items in cart."}, status=404)
