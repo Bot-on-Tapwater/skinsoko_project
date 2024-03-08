@@ -53,8 +53,8 @@ def check_user_id(view_func):
     def wrapper(request, *args, **kwargs):
         if not request.user.id:
             print(str(request))
-            # return HttpResponse("Unauthorized", status=401)
-            return redirect("http://localhost:3000/")
+            return HttpResponse("Unauthorized", status=401)
+            # return redirect("http://localhost:3000/account/login")
         return view_func(request, *args, **kwargs)
     return wrapper
 
