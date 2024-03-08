@@ -28,7 +28,7 @@ def check_user_id(view_func):
     def wrapper(request, *args, **kwargs):
         if not request.user.id:
             print(str(request))
-            return HttpResponse("Unauthorized", status=401)
+            return JsonResponse({"error": "Unauthorized"}, status=401)
         return view_func(request, *args, **kwargs)
     return wrapper
 
@@ -767,29 +767,3 @@ def delete_address_with_address_id(request, id):
     
     except Address.DoesNotExist:
         return JsonResponse({"error": f"Address with ID: {id} does not exist."}, status=404)
-<<<<<<< HEAD
-
-"""ERROR HANDLING"""
-
-def handler404(request, exception):
-    return render(request, '404.html', status=400)
-
-def error(request):
-    try:
-        raise Http404("Great example of an error")
-    except Http404 as e:
-        return JsonResponse({'error':str(e)}, status=400)
-
-# def handler500(request):
-#     return render(request, '404.html', status=500)
-
-# def handler403(request, exception):
-#     return render(request, '404.html', status=403)
-
-# def handler400(request, exception):
-#     return render(request, '404.html', status=400)
-
-# def handler401(request, exception):
-#     return render(request, '404.html', status=401)
-=======
->>>>>>> ca2026be215aa235c4c28a553a7b7a56240b5135
