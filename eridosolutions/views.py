@@ -62,12 +62,6 @@ from django.forms.models import model_to_dict
     #     ),
     # )
 
-def isRightUser(request, id):
-    """method to check that only the right
-    user can access their info"""
-    if request.user.id != int(id):  # user should only see their data and not others
-        raise PermissionDenied  # show 'forbidden' page
-
 """LANDING PAGE"""
 @require_http_methods(["GET"])
 def index(request):
@@ -335,8 +329,6 @@ def get_user_with_user_id_profile_details(request, id):
     # http://127.0.0.1:8000/eridosolutions/users/<id>/
     # auth0|65aad24e45bc7f710f2a381a
 
-    isRightUser(request, id) # check if user forbidden
-    
     try:
         specific_user = User.objects.get(id=id)
         return JsonResponse({'id': specific_user.id, 'username': specific_user.username, 'email': specific_user.email, 'first_name': specific_user.first_name, 'last_name': specific_user.last_name}, safe=False)
@@ -377,8 +369,6 @@ def list_orders_placed_by_user_with_user_id(request, id):
     # http://127.0.0.1:8000/eridosolutions/users/<id>/orders/
     view_url = request.build_absolute_uri()
 
-    isRightUser(request, id) # check if user forbidden
-
     try:
         orders_placed_by_user = Order.objects.filter(user=id)
         return JsonResponse(paginate_results(request, orders_placed_by_user, view_url), safe=False)
@@ -394,7 +384,7 @@ def get_contents_of_shopping_cart_of_user(request):
     view_url = request.build_absolute_uri()
     # users/cart/8
     print("\n\n\t\t\data cart ", request.user.id)
-    
+
     if not request.user.id:
         print("\n\n\tnot auth")
         return HttpResponse("Unauthorized", status=401)
@@ -402,7 +392,6 @@ def get_contents_of_shopping_cart_of_user(request):
         return redirect(to="http://localhost:3000/account/login", permanent=True)
     
     id = request.user.id
-    isRightUser(request, id)
 
     try:
         cart_contents_of_user = ShoppingCart.objects.get(user=id)
@@ -794,8 +783,6 @@ def get_available_shipping_options(request):
 @login_required(login_url=redirect_url_for_paths_that_fail_login_requirements)
 @require_http_methods(["GET"])
 def get_user_saved_addresses(request, userId):
-
-    isRightUser(request, userId)
 
     view_url = request.build_absolute_uri()
 
