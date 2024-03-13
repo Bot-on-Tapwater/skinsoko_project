@@ -35,7 +35,7 @@ SECRET_KEY = 'django-insecure-j0ob=w%zc5h7(fo(bbkk@3=thmbu&ek9rlepjj=##y^hjllrtc
 DEBUG = False
 
 
-ALLOWED_HOSTS = ["0.0.0.0"]
+ALLOWED_HOSTS = ["0.0.0.0", "exceed.botontapwater.tech"]
 # ALLOWED_HOSTS = ["*"]
 
 
