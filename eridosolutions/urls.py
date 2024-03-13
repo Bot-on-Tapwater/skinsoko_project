@@ -31,6 +31,7 @@ urlpatterns = [
     path('users/update/', views.update_user_with_user_id_profile_details, name='update-user-profile-details'),
     # path('users/<int:id>/orders/', views.list_orders_placed_by_user_with_user_id, name='list-user-orders'),
     path('users/orders/', views.list_orders_placed_by_user_with_user_id, name='list-user-orders'),
+    path('users/reviews/', views.list_reviews_created_by_user_with_user_id, name='list-user-reviews'),
 
     # Shopping Cart
     path('users/cart/', views.get_contents_of_shopping_cart_of_user, name='get-cart-contents'),
@@ -64,6 +65,7 @@ urlpatterns = [
     path('products/<int:id>/reviews/', views.get_reviews_for_product_with_product_id, name='get-product-reviews'),
     # path('users/<int:userId>/products/<int:id>/reviews/create/', views.creat_review_for_product_with_product_id, name='create-product-review'),
     path('users/products/<int:id>/reviews/create/', views.creat_review_for_product_with_product_id, name='create-product-review'),
+    path('users/reviews/<int:id>/delete/', views.user_delete_review, name='delete-user-review'),
 
     # Search and Filters
     path('search/', views.search_products, name='search-products'),
