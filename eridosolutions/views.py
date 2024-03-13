@@ -272,8 +272,8 @@ def get_user_with_user_id_profile_details(request):
     except User.DoesNotExist:
         return JsonResponse({"error": f"User does not exist."}, status=404)
 
-@require_http_methods(["PUT"])
 @check_user_id
+@require_http_methods(["PUT"])
 def update_user_with_user_id_profile_details(request):
     try:
         id = request.user.id
@@ -289,7 +289,7 @@ def update_user_with_user_id_profile_details(request):
             
             elif (hasattr(user_to_update, field)):
                 setattr(user_to_update, field, value)
-            
+
             else:
                 return JsonResponse({"error": f"There is no field named {field} in users table."}, status=404)
 
@@ -300,6 +300,8 @@ def update_user_with_user_id_profile_details(request):
 
     return JsonResponse({"success": True}, safe=False)
 
+"""LIST OF USER'S ORDERS"""
+@check_user_id
 @require_http_methods(["GET"])
 def list_orders_placed_by_user_with_user_id(request):
     view_url = request.build_absolute_uri()
@@ -601,6 +603,24 @@ def get_reviews_for_product_with_product_id(request, id):
     else:
         return JsonResponse({"current_page": 0, "total_pages": 0, "query_results": []})
 
+@check_user_id
+@require_http_methods(["GET"])
+def list_reviews_created_by_user_with_user_id(request):
+    view_url = request.build_absolute_uri()
+
+    try:
+        user_id = request.user.id
+        reviews_by_user = Review.objects.filter(user=user_id)  # Assuming you have a 'user' field in your Review model
+
+        if reviews_by_user.exists():
+            return JsonResponse(paginate_results(request, [review for review in reviews_by_user], view_url), safe=False)
+        else:
+            return JsonResponse(None, safe=False)
+            # return JsonResponse({"current_page": 0, "total_pages": 0, "query_results": []})
+    except Review.DoesNotExist:
+        return JsonResponse(None, safe=False)
+
+
 @require_http_methods(["POST"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 @check_user_id
@@ -609,6 +629,15 @@ def creat_review_for_product_with_product_id(request, id):
         userId = request.user.id
         user_leaving_review = User.objects.get(id=userId)
         product_to_review = Product.objects.get(product_id=id)
+
+        # Check if the user has already submitted a review for this product
+        existing_review = Review.objects.filter(product=product_to_review, user=user_leaving_review).first()
+
+        if existing_review:
+            # User has already submitted a review for this product
+            return JsonResponse({"error": "You can only submit one review per product.Check your profile for more actions."}, status=400)
+
+
 
         rating = request.POST['rating']
         comment = request.POST['comment']
@@ -631,6 +660,26 @@ def creat_review_for_product_with_product_id(request, id):
 
     except MultiValueDictKeyError as e:
         return JsonResponse({"error": f"The form value for attribute {str(e)} is missing."}, status=400)
+
+@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
+@require_http_methods(["DELETE"])
+@check_user_id
+def user_delete_review(request, id):
+    try:
+        userId = request.user.id
+
+        review_to_delete = Review.objects.get(review_id=id, user=userId)
+
+        review_to_delete.delete()
+
+        return JsonResponse({"success": True}, safe=False)
+    
+    except Review.DoesNotExist:
+            return JsonResponse({"error": f"Review with ID: {id} does not exist."}, status=404)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+
 
 """SEARCH AND FILTERS"""
 @require_http_methods(["POST", "GET"])
@@ -753,13 +802,12 @@ def update_details_of_address_with_address_id(request, id):
 
 @require_http_methods(["DELETE"])
 @check_user_id
+@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def delete_address_with_address_id(request, id):
     try:
         userId = request.user.id
 
         address_to_delete = Address.objects.get(address_id=id, user=userId)
-
-        address_to_delete_details = address_to_delete.to_dict()
 
         address_to_delete.delete()
 
