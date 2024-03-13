@@ -43,7 +43,6 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'eridosolutions.apps.EridosolutionsConfig',
-    'drf_auto_endpoint',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
