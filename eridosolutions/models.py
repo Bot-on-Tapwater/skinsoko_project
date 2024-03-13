@@ -73,6 +73,7 @@ class CartItem(models.Model):
             'item_id': self.item_id,
             'cart': self.cart.to_dict() if self.cart else None,
             'product': self.product.to_dict() if self.product else None,
+            'subtotal': self.product.price * self.quantity,
             'quantity': self.quantity,
         }
 
@@ -92,7 +93,7 @@ class Order(models.Model):
             'user': self.user.id,
             'total_amount': str(self.total_amount),
             'order_status': self.order_status,
-            'created_at': str(self.created_at),
+            'created_at': self.created_at.strftime("%Y-%m-%d %H:%M:%S"),
         }
 
 class OrderItem(models.Model):
