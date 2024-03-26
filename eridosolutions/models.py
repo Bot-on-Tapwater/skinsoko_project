@@ -23,7 +23,7 @@ class Product(models.Model):
     price = models.PositiveIntegerField(null=False)
     quantity_in_stock = models.PositiveIntegerField(null=False)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, null=False)
-    image = models.ImageField(upload_to='images', null=False, blank=True)
+    image = models.ImageField(upload_to='images', null=False)
 
     def __str__(self):
         return f'{self.name} - {self.price}'
