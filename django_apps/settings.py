@@ -70,14 +70,14 @@ MIDDLEWARE = [
 
 ]
 
-# CORS_ORIGIN_ALLOW_ALL = True
+CORS_ORIGIN_ALLOW_ALL = True
 # ADDED THIS
-CORS_ALLOW_CREDENTIALS = True
-CORS_ORIGIN_WHITELIST = (
-    'https://exceed-shop.netlify.app',
-    'http://127.0.0.1:3000',
-    'http://localhost:3000'
-)
+# CORS_ALLOW_CREDENTIALS = True
+# CORS_ORIGIN_WHITELIST = (
+#     'https://exceed-shop.netlify.app',
+#     'http://127.0.0.1:3000',
+#     'http://localhost:3000'
+# )
 
 ROOT_URLCONF = 'django_apps.urls'
 
@@ -167,11 +167,11 @@ AUTH0_CLIENT_SECRET = os.environ.get("AUTH0_CLIENT_SECRET")
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-SESSION_COOKIE_SECURE = True
-SESSION_COOKIE_SAMESITE = 'None'
+# SESSION_COOKIE_SECURE = True
+# SESSION_COOKIE_SAMESITE = 'None'
 
-CSRF_COOKIE_SAMESITE = 'None'
-CSRF_COOKIE_SECURE = True
+# CSRF_COOKIE_SAMESITE = 'None'
+# CSRF_COOKIE_SECURE = True
 
 # CSRF_TRUSTED_ORIGINS = ["http://localhost:3000"]
 # LOGIN_REDIRECT_URL = ''
