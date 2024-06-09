@@ -1,0 +1,265 @@
+from django.db import models
+# from django.contrib.auth.models import User
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.utils import timezone
+from django.contrib.auth.hashers import make_password
+from django.core.validators import MaxValueValidator
+import uuid
+from django.db.models import CheckConstraint, Q
+from datetime import timedelta
+
+class User(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    username = models.CharField(max_length=100, null=False, unique=True)
+    email = models.EmailField(null=False, unique=True)
+    password = models.CharField(max_length=100, null=False)
+    first_name = models.CharField(max_length=100, null=False)
+    last_name = models.CharField(max_length=100, null=False)
+    verification_token = models.UUIDField(null=True, default=uuid.uuid4, blank=True)
+    password_reset_token = models.UUIDField(null=True, blank=True)
+    is_verified = models.BooleanField(default=False)
+
+    def set_password(self, raw_password):
+        self.password = make_password(raw_password)
+
+    def __str__(self):
+        return self.username
+    
+    def to_dict(self):
+        return {
+            'id': str(self.id),
+            'username': self.username,
+            'email': self.email,
+            'first_name': self.first_name,
+            'last_name': self.last_name,
+            'verification_token': str(self.verification_token) if self.verification_token else None,
+            'password_reset_token': str(self.password_reset_token) if self.password_reset_token else None,
+            'is_verified': self.is_verified,
+        }
+
+class MainCategory(models.Model):
+
+    main_category_id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
+
+    def to_dict(self, request=None):
+        return {
+            'main_category_id': self.category_id,
+            'name': self.name,
+        }
+
+class SubCategory(models.Model):
+
+    sub_category_id = models.AutoField(primary_key=True)
+    main_category = models.ForeignKey(MainCategory, on_delete=models.CASCADE, related_name='subcategories')
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
+    
+    def to_dict(self):
+        return {
+            'sub_category_id': self.sub_category_id,
+            'main_category_id': self.main_category.id,
+            'main_category_name': self.main_category.name,  # Assuming MainCategory has a 'name' field
+            'name': self.name
+        }
+
+class Brand(models.Model):
+
+    brand_id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.name
+    
+    def to_dict(self):
+        return {
+            'brand_id': self.brand_id,
+            'name': self.name
+        }
+
+class Product(models.Model):
+
+    product_id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255, null=False)
+    description = models.TextField(null=False)
+    price = models.PositiveIntegerField(null=False)
+    discount = models.PositiveIntegerField(null=False)
+    quantity_in_stock = models.PositiveIntegerField(null=False)
+    subcategories = models.ManyToManyField(SubCategory)
+    brand = models.ForeignKey(Brand, on_delete=models.CASCADE)
+    best_seller  = models.BooleanField(default=False)
+    image = models.TextField(null=False)
+
+    def __str__(self):
+        return f'{self.name} - {self.price}'
+
+    def to_dict(self):
+        return {
+            'product_id': self.product_id,
+            'name': self.name,
+            'description': self.description,
+            'price': self.price,
+            'discount': self.discount,
+            'quantity_in_stock': self.quantity_in_stock,
+            'subcategories': [subcategory.to_dict() for subcategory in self.subcategories.all()],
+            'brand': self.brand.to_dict(),
+            'best_seller': self.best_seller,
+            'image': self.image
+        }
+
+class ShoppingCart(models.Model):
+
+    cart_id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'Cart ID: {self.cart_id} - User: {self.user}'
+
+    def to_dict(self, request=None):
+        return {
+            'cart_id': self.cart_id,
+            'user': self.user.username,
+            'created_at': str(self.created_at),
+        }
+
+class CartItem(models.Model):
+
+    item_id = models.AutoField(primary_key=True)
+    cart = models.ForeignKey(ShoppingCart, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField()
+
+    def __str__(self):
+        return f'Item ID: {self.item_id} - Product: {self.product.name} - Quantity: {self.quantity}'
+
+    def to_dict(self, request=None):
+        return {
+            'item_id': self.item_id,
+            'cart': self.cart.to_dict() if self.cart else None,
+            'product': self.product.to_dict() if self.product else None,
+            'subtotal': self.product.price * self.quantity,
+            'quantity': self.quantity,
+        }
+
+class Order(models.Model):
+
+    order_id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    total_amount = models.PositiveIntegerField()
+    order_status = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'Order ID: {self.order_id} - User: {self.user.username} - Status: {self.order_status}'
+
+    def to_dict(self, request=None):
+        return {
+            'order_id': self.order_id,
+            'user': self.user.id,
+            'total_amount': str(self.total_amount),
+            'order_status': self.order_status,
+            'created_at': self.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+        }
+
+class OrderItem(models.Model):
+
+    item_id = models.AutoField(primary_key=True)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField()
+    unit_price = models.PositiveIntegerField()
+
+    def __str__(self):
+        return f'Review ID: {self.review_id} - Product: {self.product.name} - User: {self.user.username}'
+
+    def to_dict(self, request=None):
+        return {
+            'order_item_id': self.item_id,
+            'order': self.order.order_id, # Assuming you want to include the order ID
+            'product': self.product.to_dict() if self.product else None,
+            'quantity': self.quantity,
+            'unit_price': self.unit_price
+        }
+
+class Review(models.Model):
+
+    review_id = models.AutoField(primary_key=True)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    rating = models.PositiveIntegerField()
+    comment = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'Review ID: {self.review_id} - Product: {self.product.name} - User: {self.user.username}'
+
+    def to_dict(self, request=None):
+        return {
+            'review_id': self.review_id,
+            'product': self.product.to_dict() if self.product else None,
+            'user': self.user.username,
+            'rating': self.rating,
+            'comment': self.comment,
+            'created_at': self.created_at.strftime('%Y-%m-%d'),
+        }
+
+class Address(models.Model):
+
+    address_id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    street_address = models.CharField(max_length=255, null=True)
+    town = models.CharField(max_length=255, null=True)
+    county = models.CharField(max_length=255, null=True)
+    phone_number = models.CharField(max_length=255, null=True)
+    additional_details = models.TextField(null=True)
+
+
+    def __str__(self):
+        return f'Address ID: {self.address_id} - User: {self.user.username}'
+
+    def to_dict(self, request=None):
+        return {
+            'address_id': self.address_id,
+            'user': self.user.id,
+            'street_address': self.street_address,
+            'town': self.town,
+            'county': self.county,
+            'phone_number': self.phone_number,
+        }
+
+class Towns(models.Model):
+
+    town_id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255)
+    delivery_fee = models.PositiveIntegerField()
+
+
+# class Payment(models.Model):
+
+#     payment_id = m.ForeignKey(Order, on_delete=models.CASCADE)
+#     amount = modelodels.AutoField(primary_key=True)
+#     order = modelss.DecimalField(max_digits=10, decimal_places=2)
+#     payment_status = models.CharField(max_length=255)
+#     payment_method = models.CharField(max_length=255)
+#     transaction_id = models.CharField(max_length=255)
+#     created_at = models.DateTimeField(auto_now_add=True)
+
+#     def __str__(self):
+#         return f'Payment ID: {self.payment_id} - Order: {self.order.order_id} - Status: {self.payment_status}'
+
+#     def to_dict(self, request=None):
+#         return {
+#             'payment_id': self.payment_id,
+#             'order': self.order.to_dict() if self.order else None,
+#             'amount': str(self.amount),
+#             'payment_status': self.payment_status,
+#             'payment_method': self.payment_method,
+#             'transaction_id': self.transaction_id,
+#             'created_at': str(self.created_at),
+#         }
