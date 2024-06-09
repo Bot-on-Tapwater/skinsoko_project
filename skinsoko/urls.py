@@ -32,6 +32,7 @@ urlpatterns = [
     # Category Management
     path("main-categories/", views.get_list_of_all_main_categories, name="list-all-categories"),
     path("subcategories/<str:main_category>/", views.get_list_of_all_sub_categories_in_a_main_category, name="list-all-sub-categories"),
+    path("brands/", views.get_list_of_all_brands, name="list-all-brand-categories"),
 
     # Search Features
     path("search/", views.search, name="search-products"),
