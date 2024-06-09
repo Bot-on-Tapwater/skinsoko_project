@@ -600,14 +600,12 @@ def get_list_of_all_sub_categories_in_a_main_category(request, main_category):
 
     view_url = request.build_absolute_uri()
     
-    # try:
-    print(main_category)
-    list_of_subcategories = SubCategory.objects.filter(main_category=main_category).all()
-    print(list_of_subcategories)
-    return JsonResponse(paginate_results(request, [category for category in list_of_subcategories], view_url), safe=False)
+    try:
+        list_of_subcategories = SubCategory.objects.filter(main_category=MainCategory.objects.get(name=main_category))
+        return JsonResponse(paginate_results(request, [category for category in list_of_subcategories], view_url), safe=False)
     
-    # except Exception:
-    #     return JsonResponse({"message": "Could not get subcategories"}, status=404)
+    except Exception:
+        return JsonResponse({"message": "Could not get subcategories"}, status=404)
 
 def get_list_of_all_brands(request):
     view_url = request.build_absolute_uri()
