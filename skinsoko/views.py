@@ -47,7 +47,8 @@ def send_email(subject=None, message=None, from_email=None, recipient_list=None)
 def index(request):
     return JsonResponse({"message": "skin soko is live"})
 
-"""USER AUTHENTICATION & AUTHORIZATION"""@require_http_methods(["POST", "GET"])
+"""USER AUTHENTICATION & AUTHORIZATION"""
+@require_http_methods(["POST", "GET"])
 def register_view(request):
     if request.method == 'POST':
         try:
