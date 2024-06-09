@@ -248,6 +248,15 @@ class Towns(models.Model):
     name = models.CharField(max_length=255)
     delivery_fee = models.PositiveIntegerField()
 
+    def to_dict(self):
+        return {
+            'town_id': self.town_id,
+            'name': self.name,
+            'delivery_fee': self.delivery_fee,
+        }
+
+    def __str__(self):
+        return f"Town ID: {self.town_id}, Name: {self.name}, Delivery Fee: {self.delivery_fee}"
 
 class Wishlist(models.Model):
     wishlist_id = models.AutoField(primary_key=True)
