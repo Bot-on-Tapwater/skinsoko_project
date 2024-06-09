@@ -6,6 +6,7 @@ urlpatterns = [
     # Email & SMTP
 
     # User Authentication & Authorization
+    path("login/", views.test_login_view, name="login"),
 
     # Product Management
     path("products/", views.list_all_products, name="list-all-products"),
