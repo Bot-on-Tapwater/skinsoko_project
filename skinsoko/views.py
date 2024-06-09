@@ -89,18 +89,16 @@ def register_view(request):
             send_registration_mail(new_user)
 
             # Redirect to a success page
-            return render(request, 'library/registration_successful.html', {
-                'message': f'Account created successfully, one last thing, an email has been sent to {new_user.email}, check your inbox to verify your account'
-            })
+            return JsonResponse({"message": "User registration successful"})
 
         except Exception as e:
             print(e)
             context = {
                 'error': str(e)
             }
-            return render(request, "library/error.html", context)
+            return JsonResponse({"error": "user login/registration failed"})
 
-    return render(request, 'library/register.html')
+    return JsonResponse({"message": "User registration successful"})
 
 def send_registration_mail(new_user):
     verification_link = f"http://0.0.0.0:8000/library/verify-email/?token={new_user.verification_token}"
@@ -123,14 +121,14 @@ def verify_email(request):
 
             user.save()
 
-            return render(request, 'library/verification-success.html', {'user': user, 'user_dict': user.to_dict()})
+            return JsonResponse({"message": "Email verified successfully"})
         
         except Exception as e:
             print(e)
             context = {
                 'error': str(e)
             }
-            return render(request, "library/error.html", context)
+            return JsonResponse({"error": "user login/registration failed"})
 
 @require_http_methods(["POST", "GET"])
 @csrf_exempt
@@ -156,10 +154,10 @@ def login_view(request):
                 context = {
                     'error': str(e)
                 }
-                return render(request, "library/error.html", context)
+                return JsonResponse({"error": "user login/registration failed"})
 
     else:
-        return render(request, "library/login.html",)
+        return JsonResponse({"error": "user login/registration failed"})
 
 @csrf_exempt
 @require_http_methods(["POST", "GET"])
@@ -183,13 +181,13 @@ def request_password_reset(request):
             # Send the password reset email
             send_email(subject=subject, message=message, recipient_list=[user.email])
 
-            return render(request, "library/password_reset_email_sent_successfully.html", {'message': 'Password reset email sent successfully, check your email inbox'})
+            return JsonResponse({'message': 'Password reset email sent'})
 
         except User.DoesNotExist:
             return JsonResponse({'error': 'User with this email does not exist'})
 
     else:
-        return render(request, 'library/password_reset_request.html')
+        return JsonResponse({'error': 'Invalid request'})
 
 @require_http_methods(["GET"])
 def validate_passsword_reset_token(request):
@@ -198,15 +196,16 @@ def validate_passsword_reset_token(request):
         try:
             user = User.objects.get(password_reset_token=password_reset_token)
 
-            return render(request, 'library/password_reset.html', {'user': user})
+            return JsonResponse({'message': 'Token valid'})
         
         except Exception as e:
             print(e)
             context = {
                 'error': str(e)
             }
-            return render(request, "library/error.html", context)
+            return JsonResponse({"error": "user login/registration failed"})
 
+@csrf_exempt
 def reset_password(request):
     try:
         password = request.POST['password']
@@ -219,14 +218,14 @@ def reset_password(request):
 
         user.save()
 
-        return render(request, "library/password_reset_successful.html", {'message': "Password reset successfully"})
+        return JsonResponse({'message': 'Password reset successful'})
     
     except Exception as e:
             print(e)
             context = {
                 'error': str(e)
             }
-            return render(request, "library/error.html", context)
+            return JsonResponse({"error": "user login/registration failed"})
     
 def logout_view(request):
     if 'user_id' in request.session:
