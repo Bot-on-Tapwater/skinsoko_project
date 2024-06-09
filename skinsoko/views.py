@@ -48,6 +48,7 @@ def index(request):
     return JsonResponse({"message": "skin soko is live"})
 
 """USER AUTHENTICATION & AUTHORIZATION"""
+@csrf_exempt
 @require_http_methods(["POST", "GET"])
 def register_view(request):
     if request.method == 'POST':
@@ -160,6 +161,7 @@ def login_view(request):
     else:
         return render(request, "library/login.html",)
 
+@csrf_exempt
 @require_http_methods(["POST", "GET"])
 def request_password_reset(request):
     if request.method == "POST":
@@ -327,6 +329,7 @@ def get_user_with_user_id_profile_details(request):
         return JsonResponse({"error": f"User does not exist."}, status=404)
 
 @check_user_id
+@csrf_exempt
 @require_http_methods(["PUT"])
 def update_user_with_user_id_profile_details(request):
     try:
@@ -539,6 +542,7 @@ def create_new_order(request):
 
     return JsonResponse({"success": True}, safe=False)
 
+@csrf_exempt
 @require_http_methods(["PUT"])
 def cancel_order_with_order_id(request, id):
     try:
@@ -742,6 +746,7 @@ def add_address_to_user_profile(request):
 
 @require_http_methods(["PUT"])
 @check_user_id
+@csrf_exempt
 def update_details_of_address_with_address_id(request, id):
     try:
         userId = request.user.id
