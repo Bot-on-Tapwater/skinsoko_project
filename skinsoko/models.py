@@ -47,7 +47,7 @@ class MainCategory(models.Model):
 
     def to_dict(self, request=None):
         return {
-            'main_category_id': self.category_id,
+            'main_category_id': self.main_category_id,
             'name': self.name,
         }
 
