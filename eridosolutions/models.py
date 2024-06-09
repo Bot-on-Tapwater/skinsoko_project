@@ -4,6 +4,10 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.utils import timezone
 
 class Category(models.Model):
+
+    class Meta:
+        managed = False
+
     category_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
 
@@ -17,6 +21,9 @@ class Category(models.Model):
         }
 
 class Product(models.Model):
+    class Meta:
+        managed = False
+
     product_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255, null=False)
     description = models.TextField(null=False)
@@ -41,6 +48,10 @@ class Product(models.Model):
         }
 
 class ShoppingCart(models.Model):
+
+    class Meta:
+        managed = False
+
     cart_id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -56,6 +67,10 @@ class ShoppingCart(models.Model):
         }
 
 class CartItem(models.Model):
+
+    class Meta:
+        managed = False
+
     item_id = models.AutoField(primary_key=True)
     cart = models.ForeignKey(ShoppingCart, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
@@ -74,6 +89,10 @@ class CartItem(models.Model):
         }
 
 class Order(models.Model):
+
+    class Meta:
+        managed = False
+
     order_id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     total_amount = models.PositiveIntegerField()
@@ -93,6 +112,10 @@ class Order(models.Model):
         }
 
 class OrderItem(models.Model):
+
+    class Meta:
+        managed = False
+
     item_id = models.AutoField(primary_key=True)
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
@@ -112,6 +135,10 @@ class OrderItem(models.Model):
         }
 
 class Review(models.Model):
+
+    class Meta:
+        managed = False
+
     review_id = models.AutoField(primary_key=True)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -133,6 +160,10 @@ class Review(models.Model):
         }
 
 class Address(models.Model):
+
+    class Meta:
+        managed = False
+
     address_id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     street_address = models.CharField(max_length=255, null=True)
@@ -160,6 +191,11 @@ class Address(models.Model):
         }
 
 class Payment(models.Model):
+
+    class Meta:
+        managed = False
+
+
     payment_id = models.AutoField(primary_key=True)
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
