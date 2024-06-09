@@ -25,7 +25,7 @@ class User(models.Model):
     def __str__(self):
         return self.username
     
-    def to_dict(self):
+    def to_dict(self, request=None):
         return {
             'id': str(self.id),
             'username': self.username,
@@ -60,7 +60,7 @@ class SubCategory(models.Model):
     def __str__(self):
         return self.name
     
-    def to_dict(self):
+    def to_dict(self, request=None):
         return {
             'sub_category_id': self.sub_category_id,
             'main_category_id': self.main_category.id,
@@ -76,7 +76,7 @@ class Brand(models.Model):
     def __str__(self):
         return self.name
     
-    def to_dict(self):
+    def to_dict(self, request=None):
         return {
             'brand_id': self.brand_id,
             'name': self.name
@@ -99,7 +99,7 @@ class Product(models.Model):
     def __str__(self):
         return f'{self.name} - {self.price}'
 
-    def to_dict(self):
+    def to_dict(self, request=None):
         return {
             'product_id': self.product_id,
             'name': self.name,
@@ -248,7 +248,7 @@ class Towns(models.Model):
     name = models.CharField(max_length=255)
     delivery_fee = models.PositiveIntegerField()
 
-    def to_dict(self):
+    def to_dict(self, request=None):
         return {
             'town_id': self.town_id,
             'name': self.name,
@@ -267,7 +267,7 @@ class Wishlist(models.Model):
     def __str__(self):
         return f'Wishlist ID: {self.wishlist_id} - User: {self.user.username} - Product: {self.product.name}'
 
-    def to_dict(self):
+    def to_dict(self, request=None):
         return {
             'wishlist_id': self.wishlist_id,
             'user': self.user.username,
