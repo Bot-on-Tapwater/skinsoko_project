@@ -601,7 +601,9 @@ def get_list_of_all_sub_categories_in_a_main_category(request, main_category):
     view_url = request.build_absolute_uri()
     
     try:
+        print(main_category)
         list_of_subcategories = SubCategory.objects.filter(main_category=main_category).all()
+        print(list_of_subcategories)
         return JsonResponse(paginate_results(request, [category for category in list_of_subcategories], view_url), safe=False)
     
     except Exception:
