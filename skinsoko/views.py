@@ -158,6 +158,34 @@ def login_view(request):
 
     else:
         return JsonResponse({"error": "user login/registration failed"})
+    
+@require_http_methods(["POST", "GET"])
+@csrf_exempt
+def test_login_view(request):
+    if request.method == "POST":
+        try:
+            data = request.POST
+
+            email, password = [data['email'], data['password']]
+
+            user = User.objects.get(email=email)
+
+            if password == user.password:
+                request.session['user_id'] = str(user.id)
+                request.session['user_name'] = user.username
+                request.session['user_email'] = user.email
+
+                return JsonResponse({'message': 'Login successful'})
+
+        except Exception as e:
+                print(e)
+                context = {
+                    'error': str(e)
+                }
+                return JsonResponse({"error": "user login/registration failed"})
+
+    else:
+        return JsonResponse({"error": "user login/registration failed"})
 
 @csrf_exempt
 @require_http_methods(["POST", "GET"])
