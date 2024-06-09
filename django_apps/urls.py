@@ -19,18 +19,9 @@ from django.urls import include
 from django.conf import settings
 from django.conf.urls.static import static
 
-# handler404 = 'eridosolutions.views.handler404'
-# handler500 = 'eridosolutions.views.handler500'
-# handler403 = 'eridosolutions.views.handler403'
-# handler400 = 'eridosolutions.views.handler400'
-# handler401 = 'eridosolutions.views.handler401'
-
-
 urlpatterns = [
+    path('skinsoko/', include("skinsoko.urls")),
     path('eridosolutions/', include("eridosolutions.urls")),
     path('admin/', admin.site.urls),
 ]
 
-# Serve media files only during development
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
