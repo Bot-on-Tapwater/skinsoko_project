@@ -42,6 +42,7 @@ ALLOWED_HOSTS = ["0.0.0.0", "exceed.botontapwater.tech", "exceed-shop.netlify.ap
 # Application definition
 
 INSTALLED_APPS = [
+    'skinsoko.apps.SkinsokoConfig',
     'eridosolutions.apps.EridosolutionsConfig',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -104,7 +105,7 @@ WSGI_APPLICATION = 'django_apps.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+        'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.environ.get('DATABASE'),
         'USER': os.environ.get('DATABASE_USERNAME'),
         'PASSWORD': os.environ.get('PASSWORD'),
