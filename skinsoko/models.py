@@ -63,7 +63,7 @@ class SubCategory(models.Model):
     def to_dict(self, request=None):
         return {
             'sub_category_id': self.sub_category_id,
-            'main_category_id': self.main_category.id,
+            'main_category_id': self.main_category_id,
             'main_category_name': self.main_category.name,  # Assuming MainCategory has a 'name' field
             'name': self.name
         }
