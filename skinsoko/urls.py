@@ -48,6 +48,6 @@ urlpatterns = [
     path('users/addresses/<int:id>/delete/', views.delete_address_with_address_id, name='delete-address'),
 
     # Towns
-    path('towns/', views.get_list_of_all_towns, name='list-all-towns'),
+    path('towns/', views.list_all_towns, name='list-all-towns'),
 
 ]
