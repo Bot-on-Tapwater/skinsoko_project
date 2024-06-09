@@ -11,7 +11,7 @@ from functools import wraps
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 import datetime
-from .models import Product, MainCategory, SubCategory, Brand, Wishlist, User, Order, ShoppingCart, CartItem, Review, Address, OrderItem
+from .models import Product, MainCategory, SubCategory, Brand, Wishlist, User, Order, ShoppingCart, CartItem, Review, Address, OrderItem, Towns
 import re
 from django.core.paginator import Paginator, EmptyPage
 from django.utils.datastructures import MultiValueDictKeyError
@@ -817,3 +817,15 @@ def delete_address_with_address_id(request, id):
     
     except Address.DoesNotExist:
         return JsonResponse({"error": f"Address with ID: {id} does not exist."}, status=404)
+
+
+"""TOWNS"""
+def list_all_towns(request):
+    view_url = request.build_absolute_uri()
+
+    all_towns = Towns.objects.all()
+
+    if all_towns.exists():
+        return JsonResponse(paginate_results(request, [town for town in all_towns], view_url), safe=False)
+    else:  # we don't need to return an error here
+        return JsonResponse(None, safe=False)

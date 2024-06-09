@@ -47,4 +47,7 @@ urlpatterns = [
     path('users/addresses/<int:id>/update/', views.update_details_of_address_with_address_id, name='update-address-details'),
     path('users/addresses/<int:id>/delete/', views.delete_address_with_address_id, name='delete-address'),
 
+    # Towns
+    path('towns/', views.get_list_of_all_towns, name='list-all-towns'),
+
 ]
