@@ -248,6 +248,7 @@ def update_product_with_product_id_details(request, id):
     return JsonResponse({"success": True}, safe=False)
         
 @require_http_methods(["DELETE"])
+@csrf_exempt
 def delete_product_with_product_id(request, id):
     try:
         product_to_delete = Product.objects.get(product_id=id)
@@ -274,6 +275,7 @@ def get_user_with_user_id_profile_details(request):
 
 @check_user_id
 @require_http_methods(["PUT"])
+@csrf_exempt
 def update_user_with_user_id_profile_details(request):
     try:
         id = request.user.id
@@ -487,6 +489,7 @@ def create_new_order(request):
     return JsonResponse({"success": True}, safe=False)
 
 @require_http_methods(["PUT"])
+@csrf_exempt
 def cancel_order_with_order_id(request, id):
     try:
         order_to_cancel = Order.objects.get(order_id=id)
@@ -559,6 +562,7 @@ def create_new_product_category(request):
     return JsonResponse({"success": True}, safe=False)
 
 @require_http_methods(["PUT"])
+@csrf_exempt
 def update_details_of_category_with_category_id(request, id):
     try:
         category_to_update = Category.objects.get(category_id=id)
@@ -578,6 +582,7 @@ def update_details_of_category_with_category_id(request, id):
     return JsonResponse({"success": True}, safe=False)
 
 @require_http_methods(["DELETE"])
+@csrf_exempt
 def remove_product_category_with_category_id(request, id):
     try:
         category_to_delete = Category.objects.get(category_id=id)
@@ -772,6 +777,7 @@ def add_address_to_user_profile(request):
 
 @require_http_methods(["PUT"])
 @check_user_id
+@csrf_exempt
 def update_details_of_address_with_address_id(request, id):
     try:
         userId = request.user.id
