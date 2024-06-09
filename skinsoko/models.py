@@ -87,6 +87,7 @@ class Product(models.Model):
     product_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255, null=False)
     description = models.TextField(null=False)
+    ingredients = models.TextField(null=False)
     price = models.PositiveIntegerField(null=False)
     discount = models.PositiveIntegerField(null=False)
     quantity_in_stock = models.PositiveIntegerField(null=False)
@@ -103,6 +104,7 @@ class Product(models.Model):
             'product_id': self.product_id,
             'name': self.name,
             'description': self.description,
+            'ingredients': self.ingredients,
             'price': self.price,
             'discount': self.discount,
             'quantity_in_stock': self.quantity_in_stock,
@@ -149,10 +151,17 @@ class CartItem(models.Model):
 
 class Order(models.Model):
 
+    STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('Shipped', 'Shipped'),
+        ('Cancelled', 'Cancelled'),
+        ('Completed', 'Completed')
+    ]
+
     order_id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     total_amount = models.PositiveIntegerField()
-    order_status = models.CharField(max_length=255)
+    order_status = models.CharField(max_length=255, choices=STATUS_CHOICES, default='Pending')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -238,6 +247,24 @@ class Towns(models.Model):
     town_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255)
     delivery_fee = models.PositiveIntegerField()
+
+
+class Wishlist(models.Model):
+    wishlist_id = models.AutoField(primary_key=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='wishlists')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='wishlisted_by')
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'Wishlist ID: {self.wishlist_id} - User: {self.user.username} - Product: {self.product.name}'
+
+    def to_dict(self):
+        return {
+            'wishlist_id': self.wishlist_id,
+            'user': self.user.username,
+            'product': self.product.to_dict(),
+            'added_at': self.added_at.strftime('%Y-%m-%d %H:%M:%S'),
+        }
 
 
 # class Payment(models.Model):
