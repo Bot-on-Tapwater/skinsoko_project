@@ -7,6 +7,7 @@ urlpatterns = [
 
     # User Authentication & Authorization
     path("login/", views.test_login_view, name="login"),
+    path("logout/", views.logout_view, name="logout"),
 
     # Product Management
     path("products/", views.list_all_products, name="list-all-products"),
@@ -50,5 +51,10 @@ urlpatterns = [
 
     # Towns
     path('towns/', views.list_all_towns, name='list-all-towns'),
+
+    # Wishlist
+    path('users/wishlists/', views.get_user_wishlist, name='list-all-wishlists'),
+    path('users/wishlists/add/<int:productId>/', views.add_item_to_wishlist, name='add-item-to-wishlist'),
+    path('users/wishlists/remove/<int:productId>/', views.remove_item_from_wishlist, name='remove-item-from-wishlist'),
 
 ]
