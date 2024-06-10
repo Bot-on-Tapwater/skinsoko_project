@@ -103,13 +103,13 @@ class Product(models.Model):
         return {
             'product_id': self.product_id,
             'name': self.name,
+            'brand': self.brand.to_dict(),
             'description': self.description,
             'ingredients': self.ingredients,
             'price': self.price,
             'discount': self.discount,
             'quantity_in_stock': self.quantity_in_stock,
             'subcategories': [subcategory.to_dict() for subcategory in self.subcategories.all()],
-            'brand': self.brand.to_dict(),
             'best_seller': self.best_seller,
             'image': self.image
         }
