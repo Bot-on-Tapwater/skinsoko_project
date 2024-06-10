@@ -29,13 +29,13 @@ def login_required(view_func):
         return view_func(request, *args, **kwargs)
     return wrapper
 
-def check_user_id(view_func):
-    def wrapper(request, *args, **kwargs):
-        if not request.user.id:
-            print(str(request))
-            return JsonResponse({"error": "Unauthorized"}, status=401)
-        return view_func(request, *args, **kwargs)
-    return wrapper
+# def check_user_id(view_func):
+#     def wrapper(request, *args, **kwargs):
+#         if not request.user_id:
+#             print(str(request))
+#             return JsonResponse({"error": "Unauthorized"}, status=401)
+#         return view_func(request, *args, **kwargs)
+#     return wrapper
 
 """EMAIL & SMTP"""
 def send_email(subject=None, message=None, from_email=None, recipient_list=None):
@@ -258,10 +258,11 @@ def reset_password(request):
 def logout_view(request):
     if 'user_id' in request.session:
         del request.session['user_id']
-        del request.session['user_role']
         del request.session['user_name']
         del request.session['user_email']
-        return redirect('library:index')
+        return JsonResponse({'message': 'Logout successful'})
+    else:
+        return JsonResponse({'error': 'User not logged in'})
 
 def show_logged_in_user_id(request):
     if request.user.id:
@@ -345,7 +346,7 @@ def get_product_with_product_id(request, id):
         return JsonResponse({"error":f"Product with ID: {id} was not found."}, status=404)
 
 """USER PROFILE"""
-@check_user_id
+@login_required
 @require_http_methods(["GET"])
 def get_user_with_user_id_profile_details(request):
     try:
@@ -355,7 +356,7 @@ def get_user_with_user_id_profile_details(request):
     except User.DoesNotExist:
         return JsonResponse({"error": f"User does not exist."}, status=404)
 
-@check_user_id
+@login_required
 @csrf_exempt
 @require_http_methods(["PUT"])
 def update_user_with_user_id_profile_details(request):
@@ -368,7 +369,7 @@ def update_user_with_user_id_profile_details(request):
             if (hasattr(user_to_update, field) and field == "password"):                
                 try:
                     user_to_update.set_password(value)
-                except (ValueError, ValidationError, Category.DoesNotExist) as e:
+                except (ValueError, ValidationError) as e:
                     return JsonResponse(f"{str(e)}", safe=False)
             
             elif (hasattr(user_to_update, field)):
@@ -385,7 +386,7 @@ def update_user_with_user_id_profile_details(request):
     return JsonResponse({"success": True}, safe=False)
 
 """LIST OF USER'S ORDERS"""
-@check_user_id
+@login_required
 @require_http_methods(["GET"])
 def list_orders_placed_by_user_with_user_id(request):
     view_url = request.build_absolute_uri()
@@ -398,12 +399,12 @@ def list_orders_placed_by_user_with_user_id(request):
         return JsonResponse(None, safe=False)
 
 """SHOPPING CART"""
-@check_user_id
+@login_required
 @require_http_methods(["GET"])
 def get_contents_of_shopping_cart_of_user(request):
     view_url = request.build_absolute_uri()
     
-    id = request.user.id
+    id = request.session.get('user_id')
 
     try:
         cart_contents_of_user = ShoppingCart.objects.get(user=id)
@@ -418,10 +419,12 @@ def get_contents_of_shopping_cart_of_user(request):
 
 @require_http_methods(["POST"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
-@check_user_id
+@login_required
 def add_product_to_user_cart(request, productId):
     try:
-        id = request.user.id
+        id = request.session.get('user_id')
+
+        product = Product.objects.get(product_id=productId)
 
         if not id: # user not authenticated
             return HttpResponse("unauthorized", status=401)
@@ -433,7 +436,7 @@ def add_product_to_user_cart(request, productId):
 
         try:
             try:
-                existing_cart_item = CartItem.objects.get(cart=ShoppingCart.objects.get(user=id), product=Product.objects.get(product_id=productId))
+                existing_cart_item = CartItem.objects.get(cart=ShoppingCart.objects.get(user=id), product=product)
                 
                 existing_cart_item.quantity += int(quantity)
 
@@ -441,7 +444,7 @@ def add_product_to_user_cart(request, productId):
 
                 return JsonResponse(existing_cart_item.to_dict(), safe=False)
             except CartItem.DoesNotExist:
-                new_cart_item = CartItem(cart=ShoppingCart.objects.get(user=id), product=Product.objects.get(product_id=productId), quantity=quantity)
+                new_cart_item = CartItem(cart=ShoppingCart.objects.get(user=id), product=product, quantity=quantity)
             Product, SubCategory, User, Order, ShoppingCart, CartItem, Review, Address, OrderItem
         except ShoppingCart.DoesNotExist:
             try:
@@ -449,13 +452,13 @@ def add_product_to_user_cart(request, productId):
 
                 new_shopping_cart.save()
 
-                new_cart_item = CartItem(cart=ShoppingCart.objects.get(user=id), product=Product.objects.get(product_id=productId), quantity=quantity)
+                new_cart_item = CartItem(cart=ShoppingCart.objects.get(user=id), product=product, quantity=quantity)
             except User.DoesNotExist:
                 return JsonResponse({"error": f"User with ID: {id} does not exist."}, status=404)
         
-        except Product.DoesNotExist:
-            return JsonResponse({"error": f"Product with ID: {productId} not found."
-            }, status=404)
+    except Product.DoesNotExist:
+        return JsonResponse({"error": f"Product with ID: {productId} not found."
+        }, status=404)
     
     except MultiValueDictKeyError as e:
         return JsonResponse({"error": f"The form value for attribute {str(e)} is missing"
@@ -467,10 +470,10 @@ def add_product_to_user_cart(request, productId):
 
 @require_http_methods(["DELETE"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
-@check_user_id
+@login_required
 def remove_product_from_user_cart(request, productId):
     try:
-        id = request.user.id
+        id = request.session.get('user_id')
 
         cart_item_to_delete = CartItem.objects.get(cart=ShoppingCart.objects.get(user=id), product=Product.objects.get(product_id=productId))
 
@@ -491,10 +494,10 @@ def remove_product_from_user_cart(request, productId):
 
 @require_http_methods(["DELETE", "POST"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
-@check_user_id
+@login_required
 def clear_entire_shopping_cart(request):
     try:
-        id = request.user.id
+        id = request.session.get('user_id')
 
         cart_to_clear = ShoppingCart.objects.get(user=id)
 
@@ -531,10 +534,10 @@ def get_details_of_order_with_order_id(request, id):
 
 @require_http_methods(["POST"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
-@check_user_id
+@login_required
 def create_new_order(request):
     try:
-        userId = request.user.id
+        userId = request.session.get('user_id')
 
         user_cart = ShoppingCart.objects.get(user=userId)
 
@@ -654,13 +657,13 @@ def get_reviews_for_product_with_product_id(request, id):
     else:
         return JsonResponse({"current_page": 0, "total_pages": 0, "query_results": []})
 
-@check_user_id
+@login_required
 @require_http_methods(["GET"])
 def list_reviews_created_by_user_with_user_id(request):
     view_url = request.build_absolute_uri()
 
     try:
-        user_id = request.user.id
+        user_id = request.session.get('user_id')
         reviews_by_user = Review.objects.filter(user=user_id)  # Assuming you have a 'user' field in your Review model
 
         if reviews_by_user.exists():
@@ -674,10 +677,10 @@ def list_reviews_created_by_user_with_user_id(request):
 
 @require_http_methods(["POST"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
-@check_user_id
+@login_required
 def creat_review_for_product_with_product_id(request, id):
     try:
-        userId = request.user.id
+        userId = request.session.get('user_id')
         user_leaving_review = User.objects.get(id=userId)
         product_to_review = Product.objects.get(product_id=id)
 
@@ -714,10 +717,10 @@ def creat_review_for_product_with_product_id(request, id):
 
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 @require_http_methods(["DELETE"])
-@check_user_id
+@login_required
 def user_delete_review(request, id):
     try:
-        userId = request.user.id
+        userId = request.session.get('user_id')
 
         review_to_delete = Review.objects.get(review_id=id, user=userId)
 
@@ -733,9 +736,9 @@ def user_delete_review(request, id):
 
 """SHIPPING AND ADDRESS"""
 @require_http_methods(["GET"])
-@check_user_id
+@login_required
 def get_user_saved_addresses(request):
-    userId = request.user.id
+    userId = request.session.get('user_id')
 
     view_url = request.build_absolute_uri()
 
@@ -748,10 +751,10 @@ def get_user_saved_addresses(request):
 
 @require_http_methods(["POST"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
-@check_user_id
+@login_required
 def add_address_to_user_profile(request):
     try:
-        userId = request.user.id
+        userId = request.session.get('user_id')
 
         data = request.POST
 
@@ -772,11 +775,11 @@ def add_address_to_user_profile(request):
         return JsonResponse({"error": f"The form value for attribute {str(e)} is missing."}, status=400)
 
 @require_http_methods(["PUT"])
-@check_user_id
+@login_required
 @csrf_exempt
 def update_details_of_address_with_address_id(request, id):
     try:
-        userId = request.user.id
+        userId = request.session.get('user_id')
 
         address_to_update = Address.objects.get(address_id=id)
 
@@ -803,11 +806,11 @@ def update_details_of_address_with_address_id(request, id):
         return JsonResponse({"error": f"User with ID: {userId} does not exist."}, status=404)
 
 @require_http_methods(["DELETE"])
-@check_user_id
+@login_required
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def delete_address_with_address_id(request, id):
     try:
-        userId = request.user.id
+        userId = request.session.get('user_id')
 
         address_to_delete = Address.objects.get(address_id=id, user=userId)
 
@@ -829,3 +832,58 @@ def list_all_towns(request):
         return JsonResponse(paginate_results(request, [town for town in all_towns], view_url), safe=False)
     else:  # we don't need to return an error here
         return JsonResponse(None, safe=False)
+
+"""WISHLIST"""
+def get_user_wishlist(request):
+    userId = request.session.get('user_id')
+
+    view_url = request.build_absolute_uri()
+
+    user_wishlist = Wishlist.objects.filter(user=userId)
+
+    if user_wishlist.exists():
+        return JsonResponse(paginate_results(request, [item for item in user_wishlist], view_url), safe=False)
+    else:  # we don't need to return an error here
+        return JsonResponse(None, safe=False)
+
+def add_item_to_wishlist(request, productId):
+    userId = request.session.get('user_id')
+
+    view_url = request.build_absolute_uri()
+
+    try:
+        user = User.objects.get(id=userId)
+        product = Product.objects.get(id=productId)
+
+        new_wishlist_item = Wishlist(user=user, product=product)
+
+        new_wishlist_item.save()
+
+        return JsonResponse({"message": "Item added to wishlist successfully"})
+    
+    except User.DoesNotExist:
+        return JsonResponse({"error": f"User with ID: {userId} does not exist."}, status=404)
+    
+    except Product.DoesNotExist:
+        return JsonResponse({"error": f"Product with ID: {productId} does not exist."}, status=404)
+
+def remove_item_from_wishlist(request, productId):
+    userId = request.session.get('user_id')
+
+    view_url = request.build_absolute_uri()
+
+    try:
+        user = User.objects.get(id=userId)
+        product = Product.objects.get(id=productId)
+
+        wishlist_item_to_delete = Wishlist.objects.get(user=user, product=product)
+
+        wishlist_item_to_delete.delete()
+    
+    except User.DoesNotExist:
+        return JsonResponse({"error": f"User with ID: {userId} does not exist."}, status=404)
+    
+    except Product.DoesNotExist:
+        return JsonResponse({"error": f"Product with ID: {productId} does not exist."}, status=404)
+
+    return JsonResponse({"message": "Item deleted from wishlist"})
