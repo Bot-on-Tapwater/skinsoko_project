@@ -57,4 +57,8 @@ urlpatterns = [
     path('users/wishlists/add/<int:productId>/', views.add_item_to_wishlist, name='add-item-to-wishlist'),
     path('users/wishlists/remove/<int:productId>/', views.remove_item_from_wishlist, name='remove-item-from-wishlist'),
 
+    # Social Auth
+    path('privacy/', views.privacy_policy, name='privacy-policy'),
+    path('tos/', views.TOS, name='terms-of-service'),
+    path('data_deletion/', views.data_deletion, name='data-deletion'),
 ]
