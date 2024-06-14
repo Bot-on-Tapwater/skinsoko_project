@@ -532,6 +532,15 @@ def get_details_of_order_with_order_id(request, id):
     
     return JsonResponse(specific_order_details.to_dict(), safe=False)
 
+def get_order_items_for_order_with_order_id(request, id):
+    try:
+        specific_order_items = OrderItem.objects.filter(order=Order.objects.get(order_id=id))
+
+    except Order.DoesNotExist:
+        return JsonResponse({"error": f"Order with ID: {id} does not exist."}, status=404)
+    
+    return JsonResponse([order_item.to_dict() for order_item in specific_order_items], safe=False)
+
 @require_http_methods(["POST"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 @login_required
@@ -550,7 +559,7 @@ def create_new_order(request):
             total_cost_of_cart_items = CartItem.objects.filter(cart=user_cart).aggregate(total_cost=Sum(ExpressionWrapper(F('quantity') * F('product__price'), output_field=fields.FloatField())))
             total_cost = total_cost_of_cart_items.get('total_cost', 0) or 0
 
-            new_order = Order(user=User.objects.get(id=userId), total_amount=total_cost, order_status='ACTIVE')
+            new_order = Order(user=User.objects.get(id=userId), total_amount=total_cost, order_status='Pending')
 
             new_order.save()
 
@@ -635,9 +644,10 @@ def search(request):
             Q(name__icontains=query) |
             Q(description__icontains=query) |
             Q(ingredients__icontains=query) |
-            Q(brand__icontains=query) |
-            Q(sub_categories__icontains=query)
-        )   
+            Q(brand__name__icontains=query) |
+            Q(subcategories__name__icontains=query) |
+            Q(subcategories__main_category__name__icontains=query)
+        ).distinct()
     
     else:
         search_results = None
@@ -871,7 +881,6 @@ def remove_item_from_wishlist(request, productId):
     userId = request.session.get('user_id')
 
     view_url = request.build_absolute_uri()
-
     try:
         user = User.objects.get(id=userId)
         product = Product.objects.get(id=productId)
