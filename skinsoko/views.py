@@ -17,8 +17,14 @@ from django.core.paginator import Paginator, EmptyPage
 from django.utils.datastructures import MultiValueDictKeyError
 from django.core.exceptions import ValidationError, MultipleObjectsReturned, PermissionDenied
 from django.db.models import F, ExpressionWrapper, fields, Sum, Q
+from social_django.utils import psa
 
 # Create your views here.
+
+"""SOCIAL AUTH"""
+@psa('social:complete')
+def social_auth(request, backend):
+    return redirect(reverse('social:begin', kwargs={'backend': backend}))
 
 """DECORATORS"""
 def login_required(view_func):
