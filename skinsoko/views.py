@@ -896,3 +896,85 @@ def remove_item_from_wishlist(request, productId):
         return JsonResponse({"error": f"Product with ID: {productId} does not exist."}, status=404)
 
     return JsonResponse({"message": "Item deleted from wishlist"})
+
+"""SOCIAL AUTH"""
+
+def privacy_policy(request):
+    privacy_policy = {
+            "title": "Privacy Policy",
+            "description": "This is our privacy policy. It explains how we collect, use, and protect your personal information.",
+            "last_updated": "2024-06-14",
+            "sections": [
+                {
+                    "section_title": "Information We Collect",
+                    "content": "We may collect personal information such as your name, email address, and IP address."
+                },
+                {
+                    "section_title": "How We Use Your Information",
+                    "content": "We use your information to provide and improve our services."
+                },
+                {
+                    "section_title": "Your Rights",
+                    "content": "You have rights regarding your personal information. You can request access to it, correction, deletion, or object to processing."
+                }
+            ]
+        }
+
+        # Return the privacy policy as a JSON response
+    return JsonResponse(privacy_policy)
+
+def data_deletion(request):
+    # Define the data deletion instructions as a Python dictionary
+    deletion_instructions = {
+        "instructions": {
+            "title": "Data Deletion Instructions",
+            "description": "These instructions guide you on how to request the deletion of your personal data from our records.",
+            "steps": [
+                {
+                    "step_number": 1,
+                    "instruction": "Contact us via email at skinsoko@gmail.com with the subject line 'Data Deletion Request'."
+                },
+                {
+                    "step_number": 2,
+                    "instruction": "Include in your email the following details: Full Name, Email Address, and any other relevant information that can help us identify your account."
+                },
+                {
+                    "step_number": 3,
+                    "instruction": "Please allow up to 30 days for your request to be processed."
+                }
+            ],
+            "contact_info": {
+                "email": "skinsoko@gmail.com",
+                "phone": "0703676507",
+                "address": "Mombasa, Kenya"
+            }
+        }
+    }
+
+    # Return the data deletion instructions as a JSON response
+    return JsonResponse(deletion_instructions)
+
+def TOS(request):
+    terms_of_service = {
+            "title": "Terms of Service",
+            "description": "These are the terms and conditions governing the use of our website and services.",
+            "version": "1.0",
+            "effective_date": "2024-06-14",
+            "sections": [
+                {
+                    "section_title": "Introduction",
+                    "content": "Welcome to our website. By accessing or using our website, you agree to the terms and conditions set forth in these Terms of Service."
+                },
+                {
+                    "section_title": "Acceptance of Terms",
+                    "content": "By accessing or using any part of the website, you agree to become bound by these terms and conditions."
+                },
+                {
+                    "section_title": "Changes to the Terms",
+                    "content": "We reserve the right to update or change our Terms of Service from time to time. We will notify you of any changes by posting the new Terms of Service on this page."
+                }
+            ]
+        }
+
+    # Return the terms of service as a JSON response
+    return JsonResponse(terms_of_service)
