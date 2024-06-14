@@ -1,4 +1,5 @@
-from django.urls import path
+from django.urls import include, path
+from .views import social_auth
 
 from . import views
 
@@ -61,4 +62,6 @@ urlpatterns = [
     path('privacy/', views.privacy_policy, name='privacy-policy'),
     path('tos/', views.TOS, name='terms-of-service'),
     path('data_deletion/', views.data_deletion, name='data-deletion'),
+    path('auth/<str:backend>/', social_auth, name='social-auth'),
+    path('auth/', include('social_django.urls', namespace='social')),
 ]
