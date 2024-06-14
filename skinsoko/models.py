@@ -185,7 +185,8 @@ class OrderItem(models.Model):
     unit_price = models.PositiveIntegerField()
 
     def __str__(self):
-        return f'Review ID: {self.review_id} - Product: {self.product.name} - User: {self.user.username}'
+        return f'Item ID: {self.item_id} - Product: {self.product.name} - Order: {self.order.order_id}'
+
 
     def to_dict(self, request=None):
         return {
