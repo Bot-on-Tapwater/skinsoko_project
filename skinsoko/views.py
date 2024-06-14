@@ -270,7 +270,7 @@ def show_logged_in_user_id(request):
     return JsonResponse({"user": False})
 
 """PAGINATION"""
-def paginate_results(request, query_results, view_url, items_per_page=12):
+def paginate_results(request, query_results, view_url, items_per_page=30):
     items_per_page = items_per_page
 
     page_number = request.GET.get('page', 1)

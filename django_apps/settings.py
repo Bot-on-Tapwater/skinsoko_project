@@ -42,6 +42,7 @@ ALLOWED_HOSTS = ["*"]
 # Application definition
 
 INSTALLED_APPS = [
+    'whitenoise.runserver_nostatic',
     'skinsoko.apps.SkinsokoConfig',
     'eridosolutions.apps.EridosolutionsConfig',
     'django.contrib.admin',
@@ -73,14 +74,15 @@ MIDDLEWARE = [
 
 ]
 
-CORS_ORIGIN_ALLOW_ALL = True
+# CORS_ORIGIN_ALLOW_ALL = True
 # ADDED THIS
-# CORS_ALLOW_CREDENTIALS = True
-# CORS_ORIGIN_WHITELIST = (
-#     'https://exceed-shop.netlify.app',
-#     'http://127.0.0.1:3000',
-#     'http://localhost:3000'
-# )
+CORS_ALLOW_CREDENTIALS = True
+CORS_ORIGIN_WHITELIST = (
+    'https://exceed-shop.netlify.app',
+    'http://127.0.0.1:3000',
+    'http://localhost:3000',
+    'https://chic-hotteok-9cd9bd.netlify.app',
+)
 
 ROOT_URLCONF = 'django_apps.urls'
 
