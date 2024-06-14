@@ -768,11 +768,11 @@ def add_address_to_user_profile(request):
 
         data = request.POST
 
-        street_address, town, zipcode, county, phone_number, additional_details = [data['street_address'], data['town'], data['zipcode'], data['county'], data['phone_number'], data['additional_details']]
+        street_address, town, county, phone_number, additional_details = [data['street_address'], data['town'], data['county'], data['phone_number'], data['additional_details']]
 
         user = User.objects.get(id=userId)
 
-        new_address = Address(street_address=street_address, town=town,  zipcode=zipcode, county=county, phone_number=phone_number, additional_details=additional_details, user=user)
+        new_address = Address(street_address=street_address, town=town, county=county, phone_number=phone_number, additional_details=additional_details, user=user)
 
         new_address.save()
 
@@ -863,7 +863,7 @@ def add_item_to_wishlist(request, productId):
 
     try:
         user = User.objects.get(id=userId)
-        product = Product.objects.get(id=productId)
+        product = Product.objects.get(product_id=productId)
 
         new_wishlist_item = Wishlist(user=user, product=product)
 
@@ -883,7 +883,7 @@ def remove_item_from_wishlist(request, productId):
     view_url = request.build_absolute_uri()
     try:
         user = User.objects.get(id=userId)
-        product = Product.objects.get(id=productId)
+        product = Product.objects.get(product_id=productId)
 
         wishlist_item_to_delete = Wishlist.objects.get(user=user, product=product)
 
