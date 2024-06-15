@@ -60,15 +60,15 @@ def register_view(request):
     if request.method == 'POST':
         try:
             # Extract data from POST request
-            username = request.POST.get('username')
+            # username = request.POST.get('username')
             password = request.POST.get('password')
             email = request.POST.get('email')
-            first_name = request.POST.get('first_name')
-            last_name = request.POST.get('last_name')
-            role = request.POST.get('role')
+            # first_name = request.POST.get('first_name')
+            # last_name = request.POST.get('last_name')
+            # role = request.POST.get('role')
 
             # Validate form data
-            if not username or not password or not email or not first_name or not last_name or not role:
+            if not password or not email:
                 raise ValueError('All fields are required.')
 
             # Basic email validation
@@ -77,22 +77,18 @@ def register_view(request):
                 raise ValueError('Enter a valid email address.')
 
             # Check if the username already exists
-            if User.objects.filter(username=username).exists():
-                raise ValueError('Username already exists.')
+            if User.objects.filter(email=email).exists():
+                raise ValueError('Email already exists.')
 
             # Create new user
             new_user = User(
-                username=username, 
                 password=make_password(password), 
-                email=email, 
-                first_name=first_name, 
-                last_name=last_name, 
-                role=role
+                email=email,
             )
             new_user.save()
 
             # Send registration email
-            send_registration_mail(new_user)
+            # send_registration_mail(new_user)
 
             # Redirect to a success page
             return JsonResponse({"message": "User registration successful"})
@@ -149,11 +145,9 @@ def login_view(request):
 
             if check_password(password, user.password):
                 request.session['user_id'] = str(user.id)
-                request.session['user_role'] = user.role
-                request.session['user_name'] = user.username
                 request.session['user_email'] = user.email
 
-                return redirect('library:index')
+                return JsonResponse({'message': 'Login successful'})
 
         except Exception as e:
                 print(e)
@@ -206,7 +200,7 @@ def request_password_reset(request):
 
             user.save()
 
-            reset_link = f"http://0.0.0.0:8000/library/validate-password-reset-token/?token={user.password_reset_token}"
+            reset_link = f"http://0.0.0.0:8000/skinsoko/password_reset/validate/?token={user.password_reset_token}"
 
             subject = "Password Reset Request"
 
