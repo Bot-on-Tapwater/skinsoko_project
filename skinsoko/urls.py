@@ -7,8 +7,13 @@ urlpatterns = [
     # Email & SMTP
 
     # User Authentication & Authorization
-    path("login/", views.test_login_view, name="login"),
+    path("login/", views.login_view, name="login"),
     path("logout/", views.logout_view, name="logout"),
+    path("register/", views.register_view, name="register"),
+    path("password_reset/request/", views.request_password_reset, name="request-password-reset"),
+    path("password_reset/validate/", views.validate_passsword_reset_token),
+    path("password_reset/reset/", views.reset_password),
+
 
     # Product Management
     path("products/", views.list_all_products, name="list-all-products"),
