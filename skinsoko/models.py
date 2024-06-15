@@ -10,31 +10,31 @@ from datetime import timedelta
 
 class User(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    username = models.CharField(max_length=100, null=False, unique=True)
+    # username = models.CharField(max_length=100, null=False, unique=True)
     email = models.EmailField(null=False, unique=True)
     password = models.CharField(max_length=100, null=False)
-    first_name = models.CharField(max_length=100, null=False)
-    last_name = models.CharField(max_length=100, null=False)
-    verification_token = models.UUIDField(null=True, default=uuid.uuid4, blank=True)
+    # first_name = models.CharField(max_length=100, null=False)
+    # last_name = models.CharField(max_length=100, null=False)
+    # verification_token = models.UUIDField(null=True, default=uuid.uuid4, blank=True)
     password_reset_token = models.UUIDField(null=True, blank=True)
-    is_verified = models.BooleanField(default=False)
+    # is_verified = models.BooleanField(default=False)
 
     def set_password(self, raw_password):
         self.password = make_password(raw_password)
 
     def __str__(self):
-        return self.username
+        return self.email
     
     def to_dict(self, request=None):
         return {
             'id': str(self.id),
-            'username': self.username,
+            #'username': self.username,
             'email': self.email,
-            'first_name': self.first_name,
-            'last_name': self.last_name,
-            'verification_token': str(self.verification_token) if self.verification_token else None,
+            #'first_name': self.first_name,
+            #'last_name': self.last_name,
+            #'verification_token': str(self.verification_token) if self.verification_token else None,
             'password_reset_token': str(self.password_reset_token) if self.password_reset_token else None,
-            'is_verified': self.is_verified,
+            #'is_verified': self.is_verified,
         }
 
 class MainCategory(models.Model):
@@ -126,7 +126,7 @@ class ShoppingCart(models.Model):
     def to_dict(self, request=None):
         return {
             'cart_id': self.cart_id,
-            'user': self.user.username,
+            'user': self.user.email,
             'created_at': str(self.created_at),
         }
 
@@ -165,7 +165,7 @@ class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'Order ID: {self.order_id} - User: {self.user.username} - Status: {self.order_status}'
+        return f'Order ID: {self.order_id} - User: {self.user.email} - Status: {self.order_status}'
 
     def to_dict(self, request=None):
         return {
@@ -207,13 +207,13 @@ class Review(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'Review ID: {self.review_id} - Product: {self.product.name} - User: {self.user.username}'
+        return f'Review ID: {self.review_id} - Product: {self.product.name} - User: {self.user.email}'
 
     def to_dict(self, request=None):
         return {
             'review_id': self.review_id,
             'product': self.product.to_dict() if self.product else None,
-            'user': self.user.username,
+            'user': self.user.email,
             'rating': self.rating,
             'comment': self.comment,
             'created_at': self.created_at.strftime('%Y-%m-%d'),
@@ -231,7 +231,7 @@ class Address(models.Model):
 
 
     def __str__(self):
-        return f'Address ID: {self.address_id} - User: {self.user.username}'
+        return f'Address ID: {self.address_id} - User: {self.user.email}'
 
     def to_dict(self, request=None):
         return {
@@ -266,12 +266,12 @@ class Wishlist(models.Model):
     added_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'Wishlist ID: {self.wishlist_id} - User: {self.user.username} - Product: {self.product.name}'
+        return f'Wishlist ID: {self.wishlist_id} - User: {self.user.email} - Product: {self.product.name}'
 
     def to_dict(self, request=None):
         return {
             'wishlist_id': self.wishlist_id,
-            'user': self.user.username,
+            'user': self.user.email,
             'product': self.product.to_dict(),
             'added_at': self.added_at.strftime('%Y-%m-%d %H:%M:%S'),
         }
