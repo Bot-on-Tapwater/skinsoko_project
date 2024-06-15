@@ -87,6 +87,8 @@ def register_view(request):
             )
             new_user.save()
 
+            print("User saved successfully:", new_user.id)
+
             # Send registration email
             # send_registration_mail(new_user)
 
