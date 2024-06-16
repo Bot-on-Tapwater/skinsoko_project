@@ -13,6 +13,7 @@ urlpatterns = [
     path("password_reset/request/", views.request_password_reset, name="request-password-reset"),
     path("password_reset/validate/", views.validate_passsword_reset_token),
     path("password_reset/reset/", views.reset_password),
+    path("user_status/", views.user_status),
 
 
     # Product Management

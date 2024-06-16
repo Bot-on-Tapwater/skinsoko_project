@@ -54,6 +54,13 @@ def index(request):
     return JsonResponse({"message": "skin soko is live"})
 
 """USER AUTHENTICATION & AUTHORIZATION"""
+
+def user_status(request):
+    if 'user_id' in request.session:
+        return JsonResponse({'user': 'true'}, status=200)
+    else:
+        return JsonResponse({'user': 'false'}, status=401)
+
 @csrf_exempt
 @require_http_methods(["POST", "GET"])
 def register_view(request):
@@ -93,14 +100,14 @@ def register_view(request):
             # send_registration_mail(new_user)
 
             # Redirect to a success page
-            return JsonResponse({"message": "User registration successful"})
+            return JsonResponse({"message": "User registration successful"}, status=200)
 
         except Exception as e:
             print(e)
             context = {
                 'error': str(e)
             }
-            return JsonResponse({"error": "user login/registration failed"})
+            return JsonResponse({"error": "user login/registration failed"}, )
 
     return JsonResponse({"message": "User registration successful"})
 
@@ -174,7 +181,7 @@ def test_login_view(request):
 
             if password == user.password:
                 request.session['user_id'] = str(user.id)
-                request.session['user_name'] = user.username
+                # request.session['user_name'] = user.username
                 request.session['user_email'] = user.email
 
                 return JsonResponse({'message': 'Login successful'})
@@ -260,7 +267,7 @@ def reset_password(request):
 def logout_view(request):
     if 'user_id' in request.session:
         del request.session['user_id']
-        del request.session['user_name']
+        # del request.session['user_name']
         del request.session['user_email']
         return JsonResponse({'message': 'Logout successful'})
     else:
@@ -354,7 +361,7 @@ def get_user_with_user_id_profile_details(request):
     try:
         id = request.user.id
         specific_user = User.objects.get(id=id)
-        return JsonResponse({'id': specific_user.id, 'username': specific_user.username, 'email': specific_user.email, 'first_name': specific_user.first_name, 'last_name': specific_user.last_name}, safe=False)
+        return JsonResponse({'id': specific_user.id, 'email': specific_user.email, 'first_name': specific_user.first_name, 'last_name': specific_user.last_name}, safe=False)
     except User.DoesNotExist:
         return JsonResponse({"error": f"User does not exist."}, status=404)
 
@@ -421,7 +428,7 @@ def get_contents_of_shopping_cart_of_user(request):
 
 @require_http_methods(["POST"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
-@login_required
+# @login_required
 def add_product_to_user_cart(request, productId):
     try:
         id = request.session.get('user_id')
