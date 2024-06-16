@@ -57,9 +57,9 @@ def index(request):
 
 def user_status(request):
     if 'user_id' in request.session:
-        return JsonResponse({'user': 'true'})
+        return JsonResponse({'user': True})
     else:
-        return JsonResponse({'user': 'false'})
+        return JsonResponse({'user': False})
 
 @csrf_exempt
 @require_http_methods(["POST", "GET"])
