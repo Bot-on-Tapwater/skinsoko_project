@@ -57,9 +57,9 @@ def index(request):
 
 def user_status(request):
     if 'user_id' in request.session:
-        return JsonResponse({'user': 'true'}, status=200)
+        return JsonResponse({'user': 'true'})
     else:
-        return JsonResponse({'user': 'false'}, status=401)
+        return JsonResponse({'user': 'false'})
 
 @csrf_exempt
 @require_http_methods(["POST", "GET"])
@@ -107,9 +107,9 @@ def register_view(request):
             context = {
                 'error': str(e)
             }
-            return JsonResponse({"error": "user login/registration failed"}, )
+            return JsonResponse({"error": "user registration failed"}, status=401)
 
-    return JsonResponse({"message": "User registration successful"})
+    return JsonResponse({"message": "User registration successful"}, status=200)
 
 def send_registration_mail(new_user):
     verification_link = f"http://0.0.0.0:8000/library/verify-email/?token={new_user.verification_token}"
@@ -156,17 +156,17 @@ def login_view(request):
                 request.session['user_id'] = str(user.id)
                 request.session['user_email'] = user.email
 
-                return JsonResponse({'message': 'Login successful'})
+                return JsonResponse({'message': 'Login successful'}, status=200)
 
         except Exception as e:
                 print(e)
                 context = {
                     'error': str(e)
                 }
-                return JsonResponse({"error": "user login/registration failed"})
+                return JsonResponse({"error": "user login failed"}, status=401)
 
     else:
-        return JsonResponse({"error": "user login/registration failed"})
+        return JsonResponse({"error": "user login failed"}, status=401)
     
 @require_http_methods(["POST", "GET"])
 @csrf_exempt
@@ -279,7 +279,7 @@ def show_logged_in_user_id(request):
     return JsonResponse({"user": False})
 
 """PAGINATION"""
-def paginate_results(request, query_results, view_url, items_per_page=30):
+def paginate_results(request, query_results, view_url, items_per_page=5):
     items_per_page = items_per_page
 
     page_number = request.GET.get('page', 1)
@@ -343,7 +343,7 @@ def list_all_products(request):
     if all_products.exists():
         return JsonResponse(paginate_results(request, all_products, view_url), safe=False)
     else:
-        return JsonResponse({"error": "No products found, add a product and try again."}, status=404)
+        return JsonResponse({"error": "No products found."}, status=404)
 
 @require_http_methods(["GET"])
 def get_product_with_product_id(request, id):
@@ -359,7 +359,7 @@ def get_product_with_product_id(request, id):
 @require_http_methods(["GET"])
 def get_user_with_user_id_profile_details(request):
     try:
-        id = request.user.id
+        id = request.session.get('user_id')
         specific_user = User.objects.get(id=id)
         return JsonResponse({'id': specific_user.id, 'email': specific_user.email, 'first_name': specific_user.first_name, 'last_name': specific_user.last_name}, safe=False)
     except User.DoesNotExist:
@@ -370,7 +370,7 @@ def get_user_with_user_id_profile_details(request):
 @require_http_methods(["PUT"])
 def update_user_with_user_id_profile_details(request):
     try:
-        id = request.user.id
+        id = request.session.get('user_id')
 
         user_to_update = User.objects.get(id=id)
 
@@ -401,7 +401,7 @@ def list_orders_placed_by_user_with_user_id(request):
     view_url = request.build_absolute_uri()
 
     try:
-        id = request.user.id
+        id = request.session.get('user_id')
         orders_placed_by_user = Order.objects.filter(user=id)
         return JsonResponse(paginate_results(request, orders_placed_by_user, view_url), safe=False)
     except Order.DoesNotExist:
@@ -517,7 +517,7 @@ def clear_entire_shopping_cart(request):
     except ShoppingCart.DoesNotExist:
         return JsonResponse({"error": f"User with ID: {id} does not have a cart."}, status=404)
 
-    return JsonResponse({"message": "cart cleared"})
+    return JsonResponse({"message": "cart cleared"}, status=200)
 
 """ORDER MANAGEMENT"""
 @require_http_methods(["GET"])
@@ -848,7 +848,7 @@ def list_all_towns(request):
     all_towns = Towns.objects.all()
 
     if all_towns.exists():
-        return JsonResponse(paginate_results(request, [town for town in all_towns], view_url), safe=False)
+        return JsonResponse([town.to_dict() for town in all_towns], safe=False)
     else:  # we don't need to return an error here
         return JsonResponse(None, safe=False)
 
@@ -878,7 +878,7 @@ def add_item_to_wishlist(request, productId):
 
         new_wishlist_item.save()
 
-        return JsonResponse({"message": "Item added to wishlist successfully"})
+        return JsonResponse({"message": "Item added to wishlist successfully"}, status=200)
     
     except User.DoesNotExist:
         return JsonResponse({"error": f"User with ID: {userId} does not exist."}, status=404)
