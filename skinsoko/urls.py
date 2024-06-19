@@ -18,7 +18,7 @@ urlpatterns = [
 
     # Product Management
     path("products/", views.list_all_products, name="list-all-products"),
-    path("products/<int:id>/", views.get_product_with_product_id, name="get-product-details"),
+    path("products/<slug:slug>/", views.get_product_with_product_id, name="get-product-details"),
 
     # User Profile
 
