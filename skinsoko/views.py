@@ -350,9 +350,9 @@ def list_all_products(request):
         return JsonResponse({"error": "No products found."}, status=404)
 
 @require_http_methods(["GET"])
-def get_product_with_product_id(request, id):
+def get_product_with_product_id(request, slug):
     try:
-        specific_product = Product.objects.get(product_id=id)
+        specific_product = Product.objects.get(slug=slug)
         return JsonResponse(specific_product.to_dict(request), safe=False)
 
     except Product.DoesNotExist:
