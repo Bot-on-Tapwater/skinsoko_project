@@ -18,6 +18,8 @@ from django.utils.datastructures import MultiValueDictKeyError
 from django.core.exceptions import ValidationError, MultipleObjectsReturned, PermissionDenied
 from django.db.models import F, ExpressionWrapper, fields, Sum, Q
 from social_django.utils import psa
+from django.contrib.auth.signals import user_logged_in
+from django.dispatch import receiver
 
 # Create your views here.
 
@@ -145,25 +147,27 @@ def verify_email(request):
 @csrf_exempt
 def login_view(request):
     if request.method == "POST":
-        try:
-            data = request.POST
+        # try:
+        data = request.POST
 
-            email, password = [data['email'], data['password']]
+        email, password = [data['email'], data['password']]
 
-            user = User.objects.get(email=email)
+        user = User.objects.get(email=email)
 
-            if check_password(password, user.password):
-                request.session['user_id'] = str(user.id)
-                request.session['user_email'] = user.email
+        if check_password(password, user.password):
+            request.session['user_id'] = str(user.id)
+            request.session['user_email'] = user.email
 
-                return JsonResponse({'message': 'Login successful'}, status=200)
+            merge_carts(request, user)
 
-        except Exception as e:
-                print(e)
-                context = {
-                    'error': str(e)
-                }
-                return JsonResponse({"error": "user login failed"}, status=401)
+            return JsonResponse({'message': 'Login successful'}, status=200)
+
+        # except Exception as e:
+        #         print(e)
+        #         context = {
+        #             'error': str(e)
+        #         }
+        #         return JsonResponse({"error": "user login failed"}, status=401)
 
     else:
         return JsonResponse({"error": "user login failed"}, status=401)
@@ -408,15 +412,24 @@ def list_orders_placed_by_user_with_user_id(request):
         return JsonResponse(None, safe=False)
 
 """SHOPPING CART"""
-@login_required
+# @login_required
 @require_http_methods(["GET"])
 def get_contents_of_shopping_cart_of_user(request):
     view_url = request.build_absolute_uri()
     
     id = request.session.get('user_id')
+    session_key = request.session.session_key    
+
+    if not session_key:
+        request.session.create()
+        session_key = request.session.session_key
 
     try:
-        cart_contents_of_user = ShoppingCart.objects.get(user=id)
+        if id:
+            cart_contents_of_user = ShoppingCart.objects.get(user=id)
+        else:
+            cart_contents_of_user = ShoppingCart.objects.get(session_key=session_key)
+            print(cart_contents_of_user)
 
         return JsonResponse(paginate_results(request, [item for item in CartItem.objects.filter(cart=cart_contents_of_user.cart_id)], view_url), safe=False)
 
@@ -435,13 +448,30 @@ def add_product_to_user_cart(request, productId):
 
         product = Product.objects.get(product_id=productId)
 
-        if not id: # user not authenticated
-            return HttpResponse("unauthorized", status=401)
-
         quantity = request.POST['quantity']
 
         if (int(quantity) > Product.objects.get(product_id=productId).quantity_in_stock):
             return JsonResponse(f"Quantity in stock is {Product.objects.get(product_id=productId).quantity_in_stock}, reduce your current quantity of ({quantity}) items.", safe=False)
+
+        if not id: # user not authenticated
+            session_key = request.session.session_key
+            if not session_key:
+                request.session.create()
+                session_key = request.session.session_key
+
+            try:
+                session_cart, created = ShoppingCart.objects.get_or_create(session_key=session_key)
+                try:
+                    cart_item = CartItem.objects.get(cart=session_cart, product=product)
+                    cart_item.quantity += int(quantity)
+                except CartItem.DoesNotExist:
+                    cart_item = CartItem(cart=session_cart, product=product, quantity=quantity)
+                cart_item.save()
+                return JsonResponse({"success": True}, safe=False)
+            except Exception as e:
+                return JsonResponse({"error": str(e)}, status=500)
+
+        
 
         try:
             try:
@@ -477,12 +507,47 @@ def add_product_to_user_cart(request, productId):
 
     return JsonResponse({"success": True}, safe=False)
 
+# @receiver(user_logged_in)
+def merge_carts(request, user):
+    session_key = request.session.session_key
+    if not session_key:
+        return
+    
+    try:
+        session_cart = ShoppingCart.objects.get(session_key=session_key)
+        user_cart, created = ShoppingCart.objects.get_or_create(user=user)
+
+        session_cart_items = CartItem.objects.filter(cart=session_cart)
+
+        for item in session_cart_items:
+            try:
+                user_cart_item = CartItem.objects.get(cart=user_cart, product=item.product)
+                user_cart_item.quantity += item.quantity
+                user_cart_item.save()
+            except CartItem.DoesNotExist:
+                item.cart = user_cart
+                item.save()
+        
+        session_cart.delete()
+    except ShoppingCart.DoesNotExist:
+        pass
+
 @require_http_methods(["DELETE"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
-@login_required
+# @login_required
 def remove_product_from_user_cart(request, productId):
     try:
         id = request.session.get('user_id')
+        session_key = request.session.session_key
+
+        if not session_key:
+            request.session.create()
+            session_key = request.session.session_key
+
+        if id:
+            cart = ShoppingCart.objects.get(user=id)
+        else:
+            cart = ShoppingCart.objects.get(session_key=session_key)
 
         cart_item_to_delete = CartItem.objects.get(cart=ShoppingCart.objects.get(user=id), product=Product.objects.get(product_id=productId))
 
@@ -503,12 +568,20 @@ def remove_product_from_user_cart(request, productId):
 
 @require_http_methods(["DELETE", "POST"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
-@login_required
+# @login_required
 def clear_entire_shopping_cart(request):
     try:
         id = request.session.get('user_id')
+        session_key = request.session.session_key
 
-        cart_to_clear = ShoppingCart.objects.get(user=id)
+        if not session_key:
+            request.session.create()
+            session_key = request.session.session_key
+
+        if id:
+            cart_to_clear = ShoppingCart.objects.get(user=id)
+        else:
+            cart_to_clear = ShoppingCart.objects.get(session_key=session_key)
 
         cart_to_clear_items = CartItem.objects.filter(cart=cart_to_clear)
 
