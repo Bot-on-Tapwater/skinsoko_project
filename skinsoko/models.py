@@ -95,6 +95,7 @@ class Product(models.Model):
     brand = models.ForeignKey(Brand, on_delete=models.CASCADE)
     best_seller  = models.BooleanField(default=False)
     image = models.TextField(null=False)
+    slug = models.SlugField(default="", null=False, max_length=255)
 
     def __str__(self):
         return f'{self.name} - {self.price}'
