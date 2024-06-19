@@ -117,7 +117,8 @@ class Product(models.Model):
 class ShoppingCart(models.Model):
 
     cart_id = models.AutoField(primary_key=True)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    session_key = models.CharField(max_length=40, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -126,7 +127,8 @@ class ShoppingCart(models.Model):
     def to_dict(self, request=None):
         return {
             'cart_id': self.cart_id,
-            'user': self.user.email,
+            'user': self.user.id if self.user else None,
+            'session_key': self.session_key,
             'created_at': str(self.created_at),
         }
 
