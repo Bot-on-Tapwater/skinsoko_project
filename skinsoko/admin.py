@@ -13,11 +13,14 @@ from .models import User, MainCategory, SubCategory, Brand, Product, ShoppingCar
 #     readonly_fields = ('id',)
 
 # admin.site.register(User, UserAdmin)
+
+class ProductAdmin(admin.ModelAdmin):
+    prepopulated_fields = {"slug": ("name",)}
 admin.site.register(User)
 admin.site.register(MainCategory)
 admin.site.register(SubCategory)
 admin.site.register(Brand)
-admin.site.register(Product)
+admin.site.register(Product, ProductAdmin)
 admin.site.register(ShoppingCart)
 admin.site.register(CartItem)
 admin.site.register(Order)
