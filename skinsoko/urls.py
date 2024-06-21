@@ -21,6 +21,8 @@ urlpatterns = [
     path("products/<slug:slug>/", views.get_product_with_product_id, name="get-product-details"),
 
     # User Profile
+    path('users/', views.get_user_with_user_id_profile_details, name='get-user-profile-details'),
+    path('users/reviews/', views.list_reviews_created_by_user_with_user_id, name='list-user-reviews'),
 
     # List of User's Orders
     path("users/orders/", views.list_orders_placed_by_user_with_user_id, name="get-user-orders"),
@@ -30,6 +32,7 @@ urlpatterns = [
     path("users/cart/add/<int:productId>/", views.add_product_to_user_cart, name="add-product-to-cart"),
     path("users/cart/remove/<int:productId>/", views.remove_product_from_user_cart, name="remove-product-from-cart"),
     path("users/cart/clear/", views.clear_entire_shopping_cart, name="clear-cart"),
+    path('users/cart/update/<int:productId>/', views.update_product_in_user_cart, name='update-product-in-cart'),
 
     # Order Management
     path("orders/", views.get_list_of_all_orders, name="list-all-orders"),
