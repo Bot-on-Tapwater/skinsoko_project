@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.tokens import default_token_generator
 from django.http import HttpResponse, JsonResponse, QueryDict
 from django.views.decorators.http import require_http_methods
@@ -147,27 +147,27 @@ def verify_email(request):
 @csrf_exempt
 def login_view(request):
     if request.method == "POST":
-        # try:
-        data = request.POST
+        try:
+            data = request.POST
 
-        email, password = [data['email'], data['password']]
+            email, password = [data['email'], data['password']]
 
-        user = User.objects.get(email=email)
+            user = User.objects.get(email=email)
 
-        if check_password(password, user.password):
-            request.session['user_id'] = str(user.id)
-            request.session['user_email'] = user.email
+            if check_password(password, user.password):
+                request.session['user_id'] = str(user.id)
+                request.session['user_email'] = user.email
 
-            merge_carts(request, user)
+                merge_carts(request, user)
 
-            return JsonResponse({'message': 'Login successful'}, status=200)
+                return JsonResponse({'message': 'Login successful'}, status=200)
 
-        # except Exception as e:
-        #         print(e)
-        #         context = {
-        #             'error': str(e)
-        #         }
-        #         return JsonResponse({"error": "user login failed"}, status=401)
+        except Exception as e:
+                print(e)
+                context = {
+                    'error': str(e)
+                }
+                return JsonResponse({"error": "user login failed"}, status=401)
 
     else:
         return JsonResponse({"error": "user login failed"}, status=401)
@@ -365,7 +365,7 @@ def get_user_with_user_id_profile_details(request):
     try:
         id = request.session.get('user_id')
         specific_user = User.objects.get(id=id)
-        return JsonResponse({'id': specific_user.id, 'email': specific_user.email, 'first_name': specific_user.first_name, 'last_name': specific_user.last_name}, safe=False)
+        return JsonResponse({'email': specific_user.email}, safe=False)
     except User.DoesNotExist:
         return JsonResponse({"error": f"User does not exist."}, status=404)
 
@@ -429,9 +429,25 @@ def get_contents_of_shopping_cart_of_user(request):
             cart_contents_of_user = ShoppingCart.objects.get(user=id)
         else:
             cart_contents_of_user = ShoppingCart.objects.get(session_key=session_key)
-            print(cart_contents_of_user)
+        
+        cart_items = [item.to_dict() for item in CartItem.objects.filter(cart=cart_contents_of_user.cart_id)]
 
-        return JsonResponse(paginate_results(request, [item for item in CartItem.objects.filter(cart=cart_contents_of_user.cart_id)], view_url), safe=False)
+        # dict to hold user's cart summary
+        cart_summary = {
+            "totalItems": 0,
+            "itemsSubtotal": 0,
+            "shippingFee": 0,
+            "estimatedTax": 0,
+            "orderTotal": 0
+        }
+
+        for item in cart_items:
+            cart_summary["totalItems"] += item["quantity"]
+            cart_summary["itemsSubtotal"] += item["subtotal"]
+        cart_summary["orderTotal"] += cart_summary["itemsSubtotal"] + cart_summary["estimatedTax"] + cart_summary["shippingFee"]
+
+        print(cart_items)
+        return JsonResponse({"cart_summary": cart_summary, "cart_items": cart_items})
 
     except ShoppingCart.DoesNotExist:
         return JsonResponse(None, safe=False)
@@ -506,6 +522,43 @@ def add_product_to_user_cart(request, productId):
     new_cart_item.save()    
 
     return JsonResponse({"success": True}, safe=False)
+
+@require_http_methods(["POST"])
+@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
+def update_product_in_user_cart(request, productId):
+    try:
+        id = request.session.get('user_id')
+        session_key = request.session.session_key
+
+        if not session_key:
+            request.session.create()
+            session_key = request.session.session_key
+
+        if id:
+            cart = ShoppingCart.objects.get(user=id)
+        else:
+            cart = ShoppingCart.objects.get(session_key=session_key)
+
+        quantity = request.POST['new_product_quantity']
+
+        product = get_object_or_404(Product, product_id=productId)
+
+        if int(quantity) > product.quantity_in_stock:
+            return JsonResponse(f"Quantity in stock is {product.quantity_in_stock}. Please reduce the quantity.", safe=False)
+
+        if id:
+            cart_item, created = CartItem.objects.get_or_create(cart__user_id=id, product_id=productId)
+        else:
+            cart_item, created = CartItem.objects.get_or_create(cart__session_key=session_key, product_id=productId)
+
+        if not created:
+            cart_item.quantity = int(quantity)
+            cart_item.save()
+
+        return JsonResponse({"success": True}, safe=False)
+    
+    except MultiValueDictKeyError as e:
+        return JsonResponse({"error": f"The form value for attribute {str(e)} is missing"}, status=400)
 
 # @receiver(user_logged_in)
 def merge_carts(request, user):
@@ -686,7 +739,7 @@ def get_list_of_all_main_categories(request):
     list_of_all_main_categories = MainCategory.objects.all()
 
     if list_of_all_main_categories.exists():
-        return JsonResponse(paginate_results(request, [category for category in list_of_all_main_categories], view_url), safe=False)
+        return JsonResponse([category.to_dict() for category in list_of_all_main_categories], safe=False)
     else:
         return JsonResponse(None, safe=False)
 
@@ -696,7 +749,7 @@ def get_list_of_all_sub_categories_in_a_main_category(request, main_category):
     
     try:
         list_of_subcategories = SubCategory.objects.filter(main_category=MainCategory.objects.get(name=main_category))
-        return JsonResponse(paginate_results(request, [category for category in list_of_subcategories], view_url), safe=False)
+        return JsonResponse([category.to_dict() for category in list_of_subcategories], safe=False)
     
     except Exception:
         return JsonResponse({"message": "Could not get subcategories"}, status=404)
@@ -707,7 +760,7 @@ def get_list_of_all_brands(request):
     list_of_all_brands = Brand.objects.all()
 
     if list_of_all_brands.exists():
-        return JsonResponse(paginate_results(request, [brand for brand in list_of_all_brands], view_url), safe=False)
+        return JsonResponse([brand.to_dict() for brand in list_of_all_brands], safe=False)
     else:
         return JsonResponse(None, safe=False)
     
@@ -745,7 +798,7 @@ def get_reviews_for_product_with_product_id(request, id):
     reviews = Review.objects.filter(product=id)
 
     if reviews.exists():
-        return JsonResponse(paginate_results(request, [review for review in reviews], view_url), safe=False)
+        return JsonResponse([review.to_dict() for review in reviews], safe=False)
     else:
         return JsonResponse({"current_page": 0, "total_pages": 0, "query_results": []})
 
@@ -759,7 +812,7 @@ def list_reviews_created_by_user_with_user_id(request):
         reviews_by_user = Review.objects.filter(user=user_id)  # Assuming you have a 'user' field in your Review model
 
         if reviews_by_user.exists():
-            return JsonResponse(paginate_results(request, [review for review in reviews_by_user], view_url), safe=False)
+            return JsonResponse([review.to_dict() for review in reviews_by_user], safe=False)
         else:
             return JsonResponse(None, safe=False)
             # return JsonResponse({"current_page": 0, "total_pages": 0, "query_results": []})
@@ -926,6 +979,7 @@ def list_all_towns(request):
         return JsonResponse(None, safe=False)
 
 """WISHLIST"""
+@csrf_exempt
 def get_user_wishlist(request):
     userId = request.session.get('user_id')
 
@@ -938,6 +992,8 @@ def get_user_wishlist(request):
     else:  # we don't need to return an error here
         return JsonResponse(None, safe=False)
 
+@csrf_exempt
+@require_http_methods(["POST"])
 def add_item_to_wishlist(request, productId):
     userId = request.session.get('user_id')
 
@@ -959,6 +1015,8 @@ def add_item_to_wishlist(request, productId):
     except Product.DoesNotExist:
         return JsonResponse({"error": f"Product with ID: {productId} does not exist."}, status=404)
 
+@csrf_exempt
+@require_http_methods(["DELETE"])
 def remove_item_from_wishlist(request, productId):
     userId = request.session.get('user_id')
 
