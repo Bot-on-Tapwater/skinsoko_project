@@ -110,8 +110,9 @@ class Product(models.Model):
             'price': self.price,
             'discount': self.discount,
             'quantity_in_stock': self.quantity_in_stock,
-            'subcategories': [subcategory.to_dict() for subcategory in self.subcategories.all()],
+            # 'subcategories': [subcategory.to_dict() for subcategory in self.subcategories.all()],
             'best_seller': self.best_seller,
+            'slug': self.slug,
             'image': self.image
         }
 
@@ -145,9 +146,10 @@ class CartItem(models.Model):
 
     def to_dict(self, request=None):
         return {
-            'item_id': self.item_id,
-            'cart': self.cart.to_dict() if self.cart else None,
-            'product': self.product.to_dict() if self.product else None,
+            'product_id': self.product.product_id if self.product else None,
+            # 'cart': self.cart.to_dict() if self.cart else None,
+            'product_name': self.product.name if self.product else None,
+            'product_price': self.product.price if self.product else None,
             'subtotal': self.product.price * self.quantity,
             'quantity': self.quantity,
         }
