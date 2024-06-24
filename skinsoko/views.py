@@ -283,7 +283,7 @@ def show_logged_in_user_id(request):
     return JsonResponse({"user": False})
 
 """PAGINATION"""
-def paginate_results(request, query_results, view_url, items_per_page=5):
+def paginate_results(request, query_results, view_url, items_per_page=40):
     items_per_page = items_per_page
 
     page_number = request.GET.get('page', 1)
@@ -792,10 +792,10 @@ def search(request):
 
 """REVIEWS AND RATINGS"""
 @require_http_methods(["GET"])
-def get_reviews_for_product_with_product_id(request, id):
+def get_reviews_for_product_with_product_id(request, slug):
     view_url = request.build_absolute_uri()
 
-    reviews = Review.objects.filter(product=id)
+    reviews = Review.objects.filter(product=Product.objects.get(slug=slug))
 
     if reviews.exists():
         return JsonResponse([review.to_dict() for review in reviews], safe=False)
