@@ -103,6 +103,8 @@ class Product(models.Model):
     def to_dict(self, request=None):
         return {
             'product_id': self.product_id,
+            'name': self.name,
+            'description': self.description,
             'ingredients': self.ingredients,
             'price': self.price,
             'discount': self.discount,
@@ -274,15 +276,15 @@ class Wishlist(models.Model):
 
     def to_dict(self, request=None):
         return {
-            'wishlist_id': self.wishlist_id,
-            'user': self.user.email,
+            # 'wishlist_id': self.wishlist_id,
+            # 'user': self.user.email,
             'product_slug': self.product.slug,
             'product_id': self.product.product_id if self.product else None,
             'product_image': self.product.image if self.product else None,
             # 'cart': self.cart.to_dict() if self.cart else None,
             'product_name': self.product.name if self.product else None,
             'product_price': self.product.price if self.product else None,
-            'added_at': self.added_at.strftime('%Y-%m-%d %H:%M:%S'),
+            # 'added_at': self.added_at.strftime('%Y-%m-%d %H:%M:%S'),
         }
 
 
