@@ -988,7 +988,7 @@ def get_user_wishlist(request):
     user_wishlist = Wishlist.objects.filter(user=userId)
 
     if user_wishlist.exists():
-        return JsonResponse(paginate_results(request, [item for item in user_wishlist], view_url), safe=False)
+        return JsonResponse([item for item in user_wishlist],  safe=False)
     else:  # we don't need to return an error here
         return JsonResponse(None, safe=False)
 
