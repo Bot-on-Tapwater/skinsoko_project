@@ -110,7 +110,8 @@ class Product(models.Model):
             # 'subcategories': [subcategory.to_dict() for subcategory in self.subcategories.all()],
             'best_seller': self.best_seller,
             'slug': self.slug,
-            'image': self.image
+            'image': self.image,
+            'brand': self.brand.name
         }
 
 class ShoppingCart(models.Model):
@@ -275,7 +276,12 @@ class Wishlist(models.Model):
         return {
             'wishlist_id': self.wishlist_id,
             'user': self.user.email,
-            'product': self.product.to_dict(),
+            'product_slug': self.product.slug,
+            'product_id': self.product.product_id if self.product else None,
+            'product_image': self.product.image if self.product else None,
+            # 'cart': self.cart.to_dict() if self.cart else None,
+            'product_name': self.product.name if self.product else None,
+            'product_price': self.product.price if self.product else None,
             'added_at': self.added_at.strftime('%Y-%m-%d %H:%M:%S'),
         }
 
