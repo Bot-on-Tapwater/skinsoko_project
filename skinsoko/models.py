@@ -151,6 +151,7 @@ class CartItem(models.Model):
             # 'cart': self.cart.to_dict() if self.cart else None,
             'product_name': self.product.name if self.product else None,
             'product_price': self.product.price if self.product else None,
+            'quantity_in_stock': self.product.quantity_in_stock if self.product else None,
             'subtotal': self.product.price * self.quantity,
             'quantity': self.quantity,
         }
