@@ -49,7 +49,7 @@ urlpatterns = [
     path("search/", views.search, name="search-products"),
 
     # Reviews and Ratings
-    path('products/<int:id>/reviews/', views.get_reviews_for_product_with_product_id, name='get-product-reviews'),
+    path('products/<slug:slug>/reviews/', views.get_reviews_for_product_with_product_id, name='get-product-reviews'),
     path('users/products/<int:id>/reviews/create/', views.creat_review_for_product_with_product_id, name='create-product-review'),
     path('users/reviews/<int:id>/delete/', views.user_delete_review, name='delete-user-review'),
 
