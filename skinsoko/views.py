@@ -823,11 +823,11 @@ def list_reviews_created_by_user_with_user_id(request):
 @require_http_methods(["POST"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 @login_required
-def creat_review_for_product_with_product_id(request, id):
+def creat_review_for_product_with_product_id(request, slug):
     try:
         userId = request.session.get('user_id')
         user_leaving_review = User.objects.get(id=userId)
-        product_to_review = Product.objects.get(product_id=id)
+        product_to_review = Product.objects.get(slug=slug)
 
         # Check if the user has already submitted a review for this product
         existing_review = Review.objects.filter(product=product_to_review, user=user_leaving_review).first()
