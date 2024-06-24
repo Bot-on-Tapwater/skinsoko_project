@@ -407,7 +407,7 @@ def list_orders_placed_by_user_with_user_id(request):
     try:
         id = request.session.get('user_id')
         orders_placed_by_user = Order.objects.filter(user=id)
-        return JsonResponse(paginate_results(request, orders_placed_by_user, view_url), safe=False)
+        return JsonResponse([order.to_dict() for order in orders_placed_by_user], safe=False)
     except Order.DoesNotExist:
         return JsonResponse(None, safe=False)
 
