@@ -284,6 +284,7 @@ class Wishlist(models.Model):
             # 'cart': self.cart.to_dict() if self.cart else None,
             'product_name': self.product.name if self.product else None,
             'product_price': self.product.price if self.product else None,
+            'product_discount': self.product.discount if self.product else None,
             # 'added_at': self.added_at.strftime('%Y-%m-%d %H:%M:%S'),
         }
 
