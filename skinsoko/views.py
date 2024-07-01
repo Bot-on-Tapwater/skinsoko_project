@@ -96,13 +96,14 @@ def register_view(request):
             )
             new_user.save()
 
-            print("User saved successfully:", new_user.id)
+            # print("User saved successfully:", new_user.id)
 
             # Send registration email
             # send_registration_mail(new_user)
 
             # Redirect to a success page
-            return JsonResponse({"message": "User registration successful"}, status=200)
+            login_response = login_view(request, email, password)
+            return login_response
 
         except Exception as e:
             print(e)
@@ -145,12 +146,12 @@ def verify_email(request):
 
 @require_http_methods(["POST", "GET"])
 @csrf_exempt
-def login_view(request):
-    if request.method == "POST":
+def login_view(request, email=None, password=None):
+    if request.method == "POST" or (email and password):
         try:
-            data = request.POST
-
-            email, password = [data['email'], data['password']]
+            if not email or not password:
+                data = request.POST
+                email, password = [data['email'], data['password']]
 
             user = User.objects.get(email=email)
 
@@ -1002,6 +1003,9 @@ def add_item_to_wishlist(request, productId):
     try:
         user = User.objects.get(id=userId)
         product = Product.objects.get(product_id=productId)
+
+        if Wishlist.objects.filter(user=user, product=product).exists():
+            return JsonResponse({"error": "Item already in wishlist."}, status=400)
 
         new_wishlist_item = Wishlist(user=user, product=product)
 
