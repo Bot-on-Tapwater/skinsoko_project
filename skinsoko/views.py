@@ -214,7 +214,7 @@ def request_password_reset(request):
 
             user.save()
 
-            reset_link = f"http://0.0.0.0:8000/skinsoko/password_reset/validate/?token={user.password_reset_token}"
+            reset_link = f"https://skinsoko.botontapwater.tech/skinsoko/password_reset/validate/?token={user.password_reset_token}"
 
             subject = "Password Reset Request"
 
