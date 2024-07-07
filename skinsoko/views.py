@@ -137,25 +137,36 @@ def pesapal_transaction_status(request, tracking_id):
 
 @csrf_exempt
 def ipn_notification_view(request):
-        try:
-            data = request.POST if request.method == 'POST' else request.GET
-            logger.info(f"IPN notification received: {data}")
-            order_tracking_id = data.get('orderTrackingId')
+    try:
+        data = request.POST if request.method == 'POST' else request.GET
+        logger.info(f"IPN notification received: {data}")
 
-            if not order_tracking_id:
-                return JsonResponse({"error": "Order tracking ID not found."}, status=400)
+        order_tracking_id = data.get('OrderTrackingId')
+        if not order_tracking_id:
+            logger.error("Order tracking ID not found in IPN notification.")
+            return JsonResponse({"error": "Order tracking ID not found."}, status=400)
 
-            response = pesapal_transaction_status(request, order_tracking_id)
+        response = pesapal_transaction_status(request, order_tracking_id)
+        if response.status_code == 200:
+            response_data = response.json()
+            # if response_data["payment_status_description"] == "Completed":
+            return JsonResponse(response_data, safe=False)
+        else:
+            logger.error(f"Failed to query payment status. Response: {response.text}")
+            return JsonResponse({"error": "Failed to query payment status."}, status=500)
 
-            if response.status_code == 200:
-                response_data = response.json()
-                # if response_data["payment_status_description"] == "Completed":
-                return JsonResponse(response_data, safe=False)
-
-        except Exception as e:
-            logger.error(f"Error processing IPN: {e}")
-            print(e)
-            return JsonResponse({"error": "An error occurred"}, status=500)
+    # except Exception as e:
+    #     logger.error(f"Error processing IPN: {e}")
+    #     return JsonResponse({"error": str(e)}, status=500)
+    except KeyError as e:
+        logger.error(f"KeyError processing IPN: {e}")
+        return JsonResponse({"error": f"Missing key: {str(e)}"}, status=400)
+    except ValueError as e:
+        logger.error(f"ValueError processing IPN: {e}")
+        return JsonResponse({"error": f"Invalid value: {str(e)}"}, status=400)
+    except Exception as e:
+        logger.error(f"Unexpected error processing IPN: {e}")
+        return JsonResponse({"error": f"An unexpected error occurred: {str(e)}"}, status=500)
 
 
 
