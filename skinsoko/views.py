@@ -292,7 +292,7 @@ def verify_email(request):
 def login_view(request, email=None, password=None):
     if request.method == "POST" or (email and password):
         try:
-    # Email & SMTP
+            user = User.objects.get(email=email)
 
             if check_password(password, user.password):
                 request.session['user_id'] = str(user.id)
