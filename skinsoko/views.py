@@ -131,7 +131,8 @@ def pesapal_transaction_status(request, tracking_id):
 
     if response.status_code == 200:
         response_data = response.json()
-        return JsonResponse(response_data, safe=False)
+        return response
+        # return JsonResponse(response_data, safe=False)
     else:
         return JsonResponse({"error": "Failed to get transaction status."}, status=response.status_code)
 
@@ -140,8 +141,10 @@ def ipn_notification_view(request):
     try:
         data = request.POST if request.method == 'POST' else request.GET
         logger.info(f"IPN notification received: {data}")
+        print("data: ", data)
 
         order_tracking_id = data.get('OrderTrackingId')
+        print("TI:", order_tracking_id)
         if not order_tracking_id:
             logger.error("Order tracking ID not found in IPN notification.")
             return JsonResponse({"error": "Order tracking ID not found."}, status=400)
@@ -149,6 +152,7 @@ def ipn_notification_view(request):
         response = pesapal_transaction_status(request, order_tracking_id)
         if response.status_code == 200:
             response_data = response.json()
+            print(response_data)
             # if response_data["payment_status_description"] == "Completed":
             return JsonResponse(response_data, safe=False)
         else:
