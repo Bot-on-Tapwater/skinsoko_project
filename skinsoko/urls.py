@@ -4,6 +4,13 @@ from .views import social_auth
 from . import views
 
 urlpatterns = [
+
+    # Pesapal
+    path("pesapal/api_token/", views.get_pesapal_token_view),
+    path("pesapal/ipn/", views.register_ipn_view),
+    path("pesapal/submit_order/<int:order_id>/", views.pesapal_submit_order, name="submit_order_request"),
+    path("pesapal/transaction_status/<str:tracking_id>/", views.pesapal_transaction_status, name="transaction_status"),
+    path("pesapal/ipn/notification/", views.ipn_notification_view, name="ipn_notification"),
     # Email & SMTP
 
     # User Authentication & Authorization
