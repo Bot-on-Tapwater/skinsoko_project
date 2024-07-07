@@ -138,13 +138,6 @@ def ipn_notification_view(request):
         logger.info(f"IPN notification received: {data}")
         print("data: ", data)
 
-        userId = request.session.get('user_id')
-        
-        if not userId:
-            return JsonResponse({"error": "User is not logged in."}, status=401)
-
-        print("user id: ", userId)
-
         order_tracking_id = data.get('OrderTrackingId')
         print("TI:", order_tracking_id)
         if not order_tracking_id:
@@ -156,12 +149,15 @@ def ipn_notification_view(request):
             response_data = response.json()
             print(response_data)
             if response_data["status_code"] == 1:
-                print("update product quantity")
-                update_product_quantity(request)
-                print("clear shopping cart")
-                clear_entire_shopping_cart(request)
-                print("update order status to payment completed")
                 order = Order.objects.get(order_id=int(response_data["merchant_reference"]))
+                userId = order.user.id
+                print("user id: ", userId)
+                print("update product quantity")
+                update_product_quantity(userId)
+                print("clear shopping cart")
+                clear_entire_shopping_cart_helper_function(userId)
+                print("update order status to payment completed")
+                
                 order.order_status = "Payment Completed"
                 return JsonResponse(response_data, safe=False)
         else:
@@ -747,9 +743,9 @@ def merge_carts(request, user):
     except ShoppingCart.DoesNotExist:
         pass
 
-def update_product_quantity(request):
+def update_product_quantity(userId):
     try:
-        userId = request.session.get('user_id')
+        # userId = request.session.get('user_id')
 
         user_cart = ShoppingCart.objects.get(user=userId)
 
@@ -823,6 +819,24 @@ def clear_entire_shopping_cart(request):
             print("cart: ", cart_to_clear)
         else:
             cart_to_clear = ShoppingCart.objects.get(session_key=session_key)
+
+        cart_to_clear_items = CartItem.objects.filter(cart=cart_to_clear)
+        print("cart items: ", cart_to_clear_items)
+
+        _ = list(map(lambda x: x.delete(), cart_to_clear_items))
+
+    except ShoppingCart.DoesNotExist:
+        return JsonResponse({"error": f"User with ID: {id} does not have a cart."}, status=404)
+
+    return JsonResponse({"message": "cart cleared"}, status=200)
+
+def clear_entire_shopping_cart_helper_function(user_id):
+    try:
+        id = user_id
+
+        if id:
+            cart_to_clear = ShoppingCart.objects.get(user=id)
+            print("cart: ", cart_to_clear)
 
         cart_to_clear_items = CartItem.objects.filter(cart=cart_to_clear)
         print("cart items: ", cart_to_clear_items)
