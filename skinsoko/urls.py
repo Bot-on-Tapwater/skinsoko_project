@@ -40,7 +40,7 @@ urlpatterns = [
     path("users/cart/remove/<int:productId>/", views.remove_product_from_user_cart, name="remove-product-from-cart"),
     path("users/cart/clear/", views.clear_entire_shopping_cart, name="clear-cart"),
     path('users/cart/update/<int:productId>/', views.update_product_in_user_cart, name='update-product-in-cart'),
-    path('users/cart/qis/', views.update_product_quantity),
+    # path('users/cart/qis/', views.update_product_quantity),
 
     # Order Management
     path("orders/", views.get_list_of_all_orders, name="list-all-orders"),
