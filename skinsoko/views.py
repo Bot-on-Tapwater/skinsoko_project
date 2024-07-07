@@ -149,8 +149,11 @@ def ipn_notification_view(request):
             response_data = response.json()
             print(response_data)
             if response_data["status_code"] == 1:
+                print("update product quantity")
                 update_product_quantity(request)
+                print("clear shopping cart")
                 clear_entire_shopping_cart(request)
+                print("update order status to payment completed")
                 order = Order.objects.get(order_id=int(response_data["merchant_reference"]))
                 order.order_status = "Payment Completed"
                 return JsonResponse(response_data, safe=False)
