@@ -20,8 +20,151 @@ from django.db.models import F, ExpressionWrapper, fields, Sum, Q
 from social_django.utils import psa
 from django.contrib.auth.signals import user_logged_in
 from django.dispatch import receiver
+from django.conf import settings
+import logging
+import requests
 
 # Create your views here.
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
+"""PESAPAL"""
+def get_pesapal_token():
+    try:
+        production_url = 'https://pay.pesapal.com/v3/api/Auth/RequestToken'
+        data = {
+            "consumer_key": settings.PESAPAL_CONSUMER_KEY,
+            "consumer_secret": settings.PESAPAL_CONSUMER_SECRET
+        }
+
+        headers = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
+
+        response = requests.post(production_url, json=data, headers=headers)
+
+        if response.status_code == 200:
+            response_data = response.json()
+            return response_data
+        else:
+            return JsonResponse({"error": "Failed to generate API token."}, status=response.status_code)
+    except Exception as e:
+            print(e)
+            return JsonResponse({"error": "An error occurred"}, status=500)
+
+@csrf_exempt
+def get_pesapal_token_view(request):
+    return JsonResponse(get_pesapal_token(), safe=False)
+
+def register_ipn():
+    ipn_url = 'https://pay.pesapal.com/v3/api/URLSetup/RegisterIPN'
+
+    data = {
+        'url': "localhost:8000/skinsoko/ipn/notification/",
+        'ipn_notification_type': "GET",
+        }
+    
+    headers = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + get_pesapal_token()["token"]
+        }
+    
+    response = requests.post(ipn_url, json=data, headers=headers)
+
+    if response.status_code == 200:
+        response_data = response.json()
+        return response_data
+    else:
+        return JsonResponse({"error": "Failed to register IPN."}, status=response.status_code)
+
+@csrf_exempt
+def pesapal_submit_order(request, order_id):
+
+    submit_order_url = 'https://pay.pesapal.com/v3/api/Transactions/SubmitOrderRequest'
+
+    user_id = request.session.get('user_id')
+    order = get_object_or_404(Order, pk=order_id)
+    user_address = Address.objects.get(user=user_id)
+    town = Towns.objects.get(name=user_address.town)
+
+    request_params = {
+        'id': order_id,
+        'currency': "KES",
+        'amount': (order.total_amount + town.delivery_fee),
+        'description': "Pay for order.",
+        'callback_url': "https://chic-hotteok-9cd9bd.netlify.app/",
+        'notification_id': settings.PESAPAL_IPN_ID,
+        'billing_address': {
+          'phone_number': user_address.phone_number,
+          'email_address': User.objects.get(pk=user_id).email,
+        },
+    }
+
+    headers = {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + get_pesapal_token()["token"]
+    }
+
+    response = requests.post(submit_order_url, json=request_params, headers=headers)
+
+    if response.status_code == 200:
+        response_data = response.json()
+        return JsonResponse(response_data, safe=False)
+        # redirect("transaction_status", tracking_id=response_data["order_tracking_id"])
+    else:
+        return JsonResponse({"error": "Failed to submit order."}, status=response.status_code)
+    
+def pesapal_transaction_status(request, tracking_id):
+    transaction_status_url = f"https://pay.pesapal.com/v3/api/Transactions/GetTransactionStatus?orderTrackingId={tracking_id}"
+
+    headers = {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + get_pesapal_token()["token"]
+        }
+
+    response = requests.get(transaction_status_url, headers=headers)
+
+    if response.status_code == 200:
+        response_data = response.json()
+        return JsonResponse(response_data, safe=False)
+    else:
+        return JsonResponse({"error": "Failed to get transaction status."}, status=response.status_code)
+
+@csrf_exempt
+def ipn_notification_view(request):
+    if request.method == 'POST':
+        try:
+            data = request.POST
+            logger.info(f"IPN notification received: {data}")
+            order_tracking_id = data.get('orderTrackingId')
+
+            if not order_tracking_id:
+                return JsonResponse({"error": "Order tracking ID not found."}, status=400)
+
+            response = pesapal_transaction_status(request, order_tracking_id)
+
+            if response.status_code == 200:
+                response_data = response.json()
+                # if response_data["payment_status_description"] == "Completed":
+                return JsonResponse(response_data, safe=False)
+
+        except Exception as e:
+            logger.error(f"Error processing IPN: {e}")
+            print(e)
+            return JsonResponse({"error": "An error occurred"}, status=500)
+
+    return JsonResponse({"error": "Invalid request method."}, status=405)
+
+
+
+@csrf_exempt
+def register_ipn_view(request):
+    return JsonResponse(register_ipn(), safe=False)
 
 """SOCIAL AUTH"""
 @psa('social:complete')
@@ -149,11 +292,7 @@ def verify_email(request):
 def login_view(request, email=None, password=None):
     if request.method == "POST" or (email and password):
         try:
-            if not email or not password:
-                data = request.POST
-                email, password = [data['email'], data['password']]
-
-            user = User.objects.get(email=email)
+    # Email & SMTP
 
             if check_password(password, user.password):
                 request.session['user_id'] = str(user.id)
@@ -447,7 +586,7 @@ def get_contents_of_shopping_cart_of_user(request):
             cart_summary["itemsSubtotal"] += item["subtotal"]
         cart_summary["orderTotal"] += cart_summary["itemsSubtotal"] + cart_summary["estimatedTax"] + cart_summary["shippingFee"]
 
-        print(cart_items)
+        # print(cart_items)
         return JsonResponse({"cart_summary": cart_summary, "cart_items": cart_items})
 
     except ShoppingCart.DoesNotExist:
@@ -710,12 +849,13 @@ def create_new_order(request):
 
             OrderItem.objects.bulk_create(new_order_items)
 
-            clear_entire_shopping_cart(request)
+            # clear_entire_shopping_cart(request)
 
     except ShoppingCart.DoesNotExist:
         return JsonResponse({"error": f"User with ID: {userId} has no items in cart."}, status=404)
 
-    return JsonResponse({"success": True}, safe=False)
+    # return JsonResponse({"success": True}, safe=False)
+    return redirect('submit_order_request', order_id=new_order.order_id)
 
 @csrf_exempt
 @require_http_methods(["PUT"])
