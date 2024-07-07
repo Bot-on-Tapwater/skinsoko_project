@@ -138,6 +138,13 @@ def ipn_notification_view(request):
         logger.info(f"IPN notification received: {data}")
         print("data: ", data)
 
+        userId = request.session.get('user_id')
+        
+        if not userId:
+            return JsonResponse({"error": "User is not logged in."}, status=401)
+
+        print("user id: ", userId)
+
         order_tracking_id = data.get('OrderTrackingId')
         print("TI:", order_tracking_id)
         if not order_tracking_id:
@@ -746,7 +753,7 @@ def update_product_quantity(request):
 
         user_cart = ShoppingCart.objects.get(user=userId)
 
-        cartitems = CartItem.objects.filter(cart=user_cart).all()
+        # cartitems = CartItem.objects.filter(cart=user_cart).all()
 
         for item in CartItem.objects.filter(cart=user_cart):
             product_to_update_quantity = Product.objects.get(product_id=item.product.product_id)
