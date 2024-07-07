@@ -152,9 +152,13 @@ def ipn_notification_view(request):
         response = pesapal_transaction_status(request, order_tracking_id)
         if response.status_code == 200:
             response_data = response.json()
-            print(response_data)
-            # if response_data["payment_status_description"] == "Completed":
-            return JsonResponse(response_data, safe=False)
+            # print(response_data)
+            if response_data["status_code"] == 1:
+                update_product_quantity(request)
+                clear_entire_shopping_cart(request)
+                order = Order.objects.get(order_id=int(response_data["merchant_reference"]))
+                order.order_status = "Payment Completed"
+                return JsonResponse(response_data, safe=False)
         else:
             logger.error(f"Failed to query payment status. Response: {response.text}")
             return JsonResponse({"error": "Failed to query payment status."}, status=500)
@@ -741,6 +745,27 @@ def merge_carts(request, user):
     except ShoppingCart.DoesNotExist:
         pass
 
+def update_product_quantity(request):
+    try:
+        userId = request.session.get('user_id')
+
+        user_cart = ShoppingCart.objects.get(user=userId)
+
+        cartitems = CartItem.objects.filter(cart=user_cart).all()
+
+        for item in CartItem.objects.filter(cart=user_cart):
+            product_to_update_quantity = Product.objects.get(product_id=item.product.product_id)
+
+            product_to_update_quantity.quantity_in_stock -= item.quantity
+
+            product_to_update_quantity.save()
+        
+        return JsonResponse({"success": True}, safe=False)
+
+    except ShoppingCart.DoesNotExist:
+        return JsonResponse({"error": f"User with ID: {userId} does not have an active cart."}, status=404)
+
+
 @require_http_methods(["DELETE"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 # @login_required
@@ -759,8 +784,6 @@ def remove_product_from_user_cart(request, productId):
             cart = ShoppingCart.objects.get(session_key=session_key)
 
         cart_item_to_delete = CartItem.objects.get(cart=ShoppingCart.objects.get(user=id), product=Product.objects.get(product_id=productId))
-
-        cart_item_to_delete_details = cart_item_to_delete.to_dict()
 
         cart_item_to_delete.delete()
     
@@ -856,12 +879,12 @@ def create_new_order(request):
 
             new_order_items = list(map(lambda item: OrderItem(order=new_order, product=item.product, quantity=item.quantity, unit_price=item.product.price), [item for item in CartItem.objects.filter(cart=user_cart)]))
 
-            for item in CartItem.objects.filter(cart=user_cart):
-                product_to_update_quantity = Product.objects.get(product_id=item.product.product_id)
+            # for item in CartItem.objects.filter(cart=user_cart):
+            #     product_to_update_quantity = Product.objects.get(product_id=item.product.product_id)
 
-                product_to_update_quantity.quantity_in_stock -= item.quantity
+            #     product_to_update_quantity.quantity_in_stock -= item.quantity
 
-                product_to_update_quantity.save()
+            #     product_to_update_quantity.save()
 
             OrderItem.objects.bulk_create(new_order_items)
 
@@ -888,12 +911,36 @@ def cancel_order_with_order_id(request, id):
     except Order.DoesNotExist:
         return JsonResponse({"error": f"Order with ID: {id} does not exist."}, status=404)
 
+@csrf_exempt
+@require_http_methods(["PUT"])
+def update_order_to_delivered_with_order_id(request, id):
+    try:
+        order_to_update = Order.objects.get(order_id=id)
+
+        order_to_update.order_status = "Delivered"
+
+        order_to_update.save()
+
+        return JsonResponse({"success": True}, safe=False)
+    
+    except Order.DoesNotExist:
+        return JsonResponse({"error": f"Order with ID: {id} does not exist."}, status=404)
+
+def get_order_items_for_order_with_order_id(request, id):
+    try:
+        specific_order_items = OrderItem.objects.filter(order=Order.objects.get(order_id=id))
+
+    except Order.DoesNotExist:
+        return JsonResponse({"error": f"Order with ID: {id} does not exist."}, status=404)
+    
+    return JsonResponse([order_item.to_dict() for order_item in specific_order_items], safe=False)
+
 """CATEGORY MANAGEMENT"""
 @require_http_methods(["GET"])
 def get_list_of_all_main_categories(request):
     view_url = request.build_absolute_uri()
 
-    list_of_all_main_categories = MainCategory.objects.all()
+    list_of_all_main_categories = MainCategory.objects.all().order_by('name')
 
     if list_of_all_main_categories.exists():
         return JsonResponse([category.to_dict() for category in list_of_all_main_categories], safe=False)
@@ -905,7 +952,7 @@ def get_list_of_all_sub_categories_in_a_main_category(request, main_category):
     view_url = request.build_absolute_uri()
     
     try:
-        list_of_subcategories = SubCategory.objects.filter(main_category=MainCategory.objects.get(name=main_category))
+        list_of_subcategories = SubCategory.objects.filter(main_category=MainCategory.objects.get(name=main_category)).order_by('name')
         return JsonResponse([category.to_dict() for category in list_of_subcategories], safe=False)
     
     except Exception:
@@ -914,7 +961,7 @@ def get_list_of_all_sub_categories_in_a_main_category(request, main_category):
 def get_list_of_all_brands(request):
     view_url = request.build_absolute_uri()
 
-    list_of_all_brands = Brand.objects.all()
+    list_of_all_brands = Brand.objects.all().order_by('name')
 
     if list_of_all_brands.exists():
         return JsonResponse([brand.to_dict() for brand in list_of_all_brands], safe=False)
