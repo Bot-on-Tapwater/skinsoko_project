@@ -137,9 +137,8 @@ def pesapal_transaction_status(request, tracking_id):
 
 @csrf_exempt
 def ipn_notification_view(request):
-    if request.method == 'POST':
         try:
-            data = request.POST
+            data = request.POST if request.method == 'POST' else request.GET
             logger.info(f"IPN notification received: {data}")
             order_tracking_id = data.get('orderTrackingId')
 
@@ -157,8 +156,6 @@ def ipn_notification_view(request):
             logger.error(f"Error processing IPN: {e}")
             print(e)
             return JsonResponse({"error": "An error occurred"}, status=500)
-
-    return JsonResponse({"error": "Invalid request method."}, status=405)
 
 
 
