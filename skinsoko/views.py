@@ -93,7 +93,7 @@ def pesapal_submit_order(request, order_id):
     request_params = {
         'id': order_id,
         'currency': "KES",
-        'amount': (order.total_amount + town.delivery_fee),
+        'amount': float(order.total_amount + town.delivery_fee),
         'description': "Pay for order.",
         'callback_url': "https://chic-hotteok-9cd9bd.netlify.app/",
         'notification_id': settings.PESAPAL_IPN_ID,
