@@ -321,6 +321,9 @@ def login_view(request, email=None, password=None):
 
                 return JsonResponse({'message': 'Login successful'}, status=200)
 
+            else:
+                return JsonResponse({'error': 'Invalid credentials'}, status=401)
+
         except Exception as e:
                 print(e)
                 context = {
@@ -1135,6 +1138,9 @@ def add_address_to_user_profile(request):
         street_address, town, county, phone_number, additional_details = [data['street_address'], data['town'], data['county'], data['phone_number'], data['additional_details']]
 
         user = User.objects.get(id=userId)
+
+        if Address.objects.filter(user=user).exists():
+            Address.objects.get(user=user).delete()
 
         new_address = Address(street_address=street_address, town=town, county=county, phone_number=phone_number, additional_details=additional_details, user=user)
 
