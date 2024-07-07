@@ -46,6 +46,8 @@ urlpatterns = [
     path('orders/<int:id>/', views.get_details_of_order_with_order_id, name='get-order-details'),
     path('users/orders/create/', views.create_new_order, name='create-new-order'),
     path('orders/<int:id>/cancel/', views.cancel_order_with_order_id, name='cancel-order'),
+    path('orders/<int:id>/order_items/', views.get_order_items_for_order_with_order_id, name='get-order-items'),
+    path('orders/<int:id>/deliver/', views.update_order_to_delivered_with_order_id, name='delivered-order'),
 
     # Category Management
     path("main-categories/", views.get_list_of_all_main_categories, name="list-all-categories"),
