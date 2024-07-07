@@ -798,7 +798,7 @@ def remove_product_from_user_cart(request, productId):
     
     return JsonResponse({"message": "item deleted"})
 
-@require_http_methods(["DELETE", "POST"])
+# @require_http_methods(["DELETE", "POST"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 # @login_required
 def clear_entire_shopping_cart(request):
