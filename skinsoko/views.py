@@ -159,6 +159,7 @@ def ipn_notification_view(request):
                 print("update order status to payment completed")
                 
                 order.order_status = "Payment Completed"
+                order.save()
                 return JsonResponse(response_data, safe=False)
         else:
             logger.error(f"Failed to query payment status. Response: {response.text}")
