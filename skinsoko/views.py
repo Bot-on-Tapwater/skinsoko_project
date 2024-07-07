@@ -62,7 +62,7 @@ def register_ipn():
     ipn_url = 'https://pay.pesapal.com/v3/api/URLSetup/RegisterIPN'
 
     data = {
-        'url': "skinsoko.botontapwater.tech/skinsoko/ipn/notification/",
+        'url': "https://skinsoko.botontapwater.tech/skinsoko/pesapal/ipn/notification/",
         'ipn_notification_type': "GET",
         }
     
