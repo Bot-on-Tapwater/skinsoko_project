@@ -5,6 +5,9 @@ from . import views
 
 urlpatterns = [
 
+    # Coupons
+    path("coupons/generate/", views.generate_coupons),
+
     # Pesapal
     path("pesapal/api_token/", views.get_pesapal_token_view),
     path("pesapal/ipn/", views.register_ipn_view),
