@@ -751,7 +751,13 @@ def update_product_quantity(request):
         for item in CartItem.objects.filter(cart=user_cart):
             product_to_update_quantity = Product.objects.get(product_id=item.product.product_id)
 
+            print("quantity in stock: ", product_to_update_quantity.quantity_in_stock)
+            print("item quantity: ", item.quantity)
+
+
             product_to_update_quantity.quantity_in_stock -= item.quantity
+
+            print("quantity in stock: ", product_to_update_quantity.quantity_in_stock)
 
             product_to_update_quantity.save()
         
@@ -807,10 +813,12 @@ def clear_entire_shopping_cart(request):
 
         if id:
             cart_to_clear = ShoppingCart.objects.get(user=id)
+            print("cart: ", cart_to_clear)
         else:
             cart_to_clear = ShoppingCart.objects.get(session_key=session_key)
 
         cart_to_clear_items = CartItem.objects.filter(cart=cart_to_clear)
+        print("cart items: ", cart_to_clear_items)
 
         _ = list(map(lambda x: x.delete(), cart_to_clear_items))
 
