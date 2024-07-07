@@ -129,12 +129,7 @@ def pesapal_transaction_status(request, tracking_id):
 
     response = requests.get(transaction_status_url, headers=headers)
 
-    if response.status_code == 200:
-        response_data = response.json()
-        return response
-        # return JsonResponse(response_data, safe=False)
-    else:
-        return JsonResponse({"error": "Failed to get transaction status."}, status=response.status_code)
+    return response
 
 @csrf_exempt
 def ipn_notification_view(request):
@@ -152,7 +147,7 @@ def ipn_notification_view(request):
         response = pesapal_transaction_status(request, order_tracking_id)
         if response.status_code == 200:
             response_data = response.json()
-            # print(response_data)
+            print(response_data)
             if response_data["status_code"] == 1:
                 update_product_quantity(request)
                 clear_entire_shopping_cart(request)
@@ -163,9 +158,6 @@ def ipn_notification_view(request):
             logger.error(f"Failed to query payment status. Response: {response.text}")
             return JsonResponse({"error": "Failed to query payment status."}, status=500)
 
-    # except Exception as e:
-    #     logger.error(f"Error processing IPN: {e}")
-    #     return JsonResponse({"error": str(e)}, status=500)
     except KeyError as e:
         logger.error(f"KeyError processing IPN: {e}")
         return JsonResponse({"error": f"Missing key: {str(e)}"}, status=400)
