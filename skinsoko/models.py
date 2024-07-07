@@ -291,27 +291,19 @@ class Wishlist(models.Model):
             # 'added_at': self.added_at.strftime('%Y-%m-%d %H:%M:%S'),
         }
 
+class Coupon(models.Model):
+    code = models.CharField(max_length=50, unique=True)
+    discount = models.DecimalField(max_digits=5, decimal_places=2)
+    active = models.BooleanField(default=True)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, null=True, blank=True)
 
-# class Payment(models.Model):
+    def __str__(self):
+        return f"Coupon(code={self.code}, discount={self.discount}%)"
 
-#     payment_id = m.ForeignKey(Order, on_delete=models.CASCADE)
-#     amount = modelodels.AutoField(primary_key=True)
-#     order = modelss.DecimalField(max_digits=10, decimal_places=2)
-#     payment_status = models.CharField(max_length=255)
-#     payment_method = models.CharField(max_length=255)
-#     transaction_id = models.CharField(max_length=255)
-#     created_at = models.DateTimeField(auto_now_add=True)
-
-#     def __str__(self):
-#         return f'Payment ID: {self.payment_id} - Order: {self.order.order_id} - Status: {self.payment_status}'
-
-#     def to_dict(self, request=None):
-#         return {
-#             'payment_id': self.payment_id,
-#             'order': self.order.to_dict() if self.order else None,
-#             'amount': str(self.amount),
-#             'payment_status': self.payment_status,
-#             'payment_method': self.payment_method,
-#             'transaction_id': self.transaction_id,
-#             'created_at': str(self.created_at),
-#         }
+    def to_dict(self):
+        return {
+            "code": self.code,
+            "discount": float(self.discount),  # Convert Decimal to float for JSON serialization
+            "active": self.active,
+            "order_id": self.order.id if self.order else None
+        }
