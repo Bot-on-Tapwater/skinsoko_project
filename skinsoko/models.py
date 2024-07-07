@@ -243,7 +243,7 @@ class Address(models.Model):
     def to_dict(self, request=None):
         return {
             'address_id': self.address_id,
-            'user': self.user.id,
+            'user': self.user.email if self.user else None,
             'street_address': self.street_address,
             'town': self.town,
             'county': self.county,
