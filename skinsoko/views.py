@@ -11,7 +11,7 @@ from functools import wraps
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 import datetime
-from .models import Product, MainCategory, SubCategory, Brand, Wishlist, User, Order, ShoppingCart, CartItem, Review, Address, OrderItem, Towns
+from .models import Product, MainCategory, SubCategory, Brand, Wishlist, User, Order, ShoppingCart, CartItem, Review, Address, OrderItem, Towns, Coupon
 import re
 from django.core.paginator import Paginator, EmptyPage
 from django.utils.datastructures import MultiValueDictKeyError
@@ -23,11 +23,44 @@ from django.dispatch import receiver
 from django.conf import settings
 import logging
 import requests
+import random
+import string
+from django.utils.crypto import get_random_string
 
 # Create your views here.
 
 # Configure logging
 logger = logging.getLogger(__name__)
+
+"""COUPONS"""
+def generate_random_code(length=8):
+    characters = string.ascii_uppercase + string.digits
+    return get_random_string(length, characters)
+
+def create_coupons(num_coupons, discount):
+    coupons = []
+    for _ in range(num_coupons):
+        code = generate_random_code()
+        while Coupon.objects.filter(code=code).exists():
+            code = generate_random_code()
+        coupons.append(Coupon(code=code, discount=discount, active=True))
+    Coupon.objects.bulk_create(coupons)
+
+def generate_and_save_coupons():
+    # Generate 100 codes with 10% discount
+    create_coupons(10, 10.00)
+
+    # Generate 100 codes with 20% discount
+    create_coupons(10, 20.00)
+
+    # Generate 100 codes with 15% discount
+    create_coupons(10, 15.00)
+
+def generate_coupons(request):
+    generate_and_save_coupons()
+
+    coupons = Coupon.objects.filter(active=True).all()
+    return JsonResponse([coupon.to_dict() for coupon in coupons], safe=False)
 
 """PESAPAL"""
 def get_pesapal_token():
@@ -92,7 +125,7 @@ def pesapal_submit_order(request, order_id):
 
     request_params = {
         'id': order_id,
-        'currency': "KES",
+        'currency': "TZS",
         'amount': float(order.total_amount + town.delivery_fee),
         'description': "Pay for order.",
         'callback_url': "https://chic-hotteok-9cd9bd.netlify.app/",
@@ -1206,7 +1239,7 @@ def delete_address_with_address_id(request, id):
 def list_all_towns(request):
     view_url = request.build_absolute_uri()
 
-    all_towns = Towns.objects.all()
+    all_towns = Towns.objects.all().order_by('name')
 
     if all_towns.exists():
         return JsonResponse([town.to_dict() for town in all_towns], safe=False)
