@@ -897,6 +897,27 @@ def get_list_of_all_orders(request):
     else:
         return JsonResponse({"error": f"No orders found, add an order and try again."}, status=404)
 
+def get_list_of_paid_for_orders(request):
+
+    all_orders = Order.objects.filter(
+            Q(order_status="Payment Completed") | Q(order_status="Delivered")
+        )
+
+    orders_items_addresses = {}
+
+    for order in all_orders:
+
+        orders_items_addresses[order.order_id] = {
+            "order_items": get_order_items_for_order_with_order_id_helper(order.order_id),
+            "order_address": Address.objects.get(user=order.user.id).to_dict()
+        }
+
+        print(orders_items_addresses[order.order_id])
+    
+    return JsonResponse(orders_items_addresses, safe=False)
+        
+
+
 @require_http_methods(["GET"])
 def get_details_of_order_with_order_id(request, id):
     try:
@@ -915,6 +936,15 @@ def get_order_items_for_order_with_order_id(request, id):
         return JsonResponse({"error": f"Order with ID: {id} does not exist."}, status=404)
     
     return JsonResponse([order_item.to_dict() for order_item in specific_order_items], safe=False)
+
+def get_order_items_for_order_with_order_id_helper(id):
+    try:
+        specific_order_items = OrderItem.objects.filter(order=Order.objects.get(order_id=id))
+
+    except Order.DoesNotExist:
+        return JsonResponse({"error": f"Order with ID: {id} does not exist."}, status=404)
+    
+    return [order_item.to_dict() for order_item in specific_order_items]
 
 @require_http_methods(["POST"])
 @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
@@ -1233,6 +1263,18 @@ def delete_address_with_address_id(request, id):
     
     except Address.DoesNotExist:
         return JsonResponse({"error": f"Address with ID: {id} does not exist."}, status=404)
+
+def get_contacts_from_address(request):
+    try:
+        addresses = Address.objects.all()
+
+        if addresses.exists():
+            return JsonResponse([{"phone number": address.phone_number, "email": address.user.email} for address in addresses], safe=False)
+        else:  # we don't need to return an error here
+            return JsonResponse(None, safe=False)
+    
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
 
 
 """TOWNS"""
