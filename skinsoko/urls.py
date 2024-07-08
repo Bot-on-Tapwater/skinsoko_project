@@ -52,6 +52,7 @@ urlpatterns = [
     path('orders/<int:id>/cancel/', views.cancel_order_with_order_id, name='cancel-order'),
     path('orders/<int:id>/order_items/', views.get_order_items_for_order_with_order_id, name='get-order-items'),
     path('orders/<int:id>/deliver/', views.update_order_to_delivered_with_order_id, name='delivered-order'),
+    path('orders/paid/', views.get_list_of_paid_for_orders),
 
     # Category Management
     path("main-categories/", views.get_list_of_all_main_categories, name="list-all-categories"),
@@ -71,6 +72,7 @@ urlpatterns = [
     path('users/addresses/create/', views.add_address_to_user_profile, name='add-address-to-profile'),
     path('users/addresses/<int:id>/update/', views.update_details_of_address_with_address_id, name='update-address-details'),
     path('users/addresses/<int:id>/delete/', views.delete_address_with_address_id, name='delete-address'),
+    path('users/addresses/contacts/', views.get_contacts_from_address),
 
     # Towns
     path('towns/', views.list_all_towns, name='list-all-towns'),
