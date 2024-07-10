@@ -26,6 +26,7 @@ import requests
 import random
 import string
 from django.utils.crypto import get_random_string
+import uuid
 
 # Create your views here.
 
@@ -124,7 +125,7 @@ def pesapal_submit_order(request, order_id):
     town = Towns.objects.get(name=user_address.town)
 
     request_params = {
-        'id': order_id,
+        'id': str(order_id),
         'currency': "TZS",
         'amount': float(order.total_amount + town.delivery_fee),
         'description': "Pay for order.",
@@ -182,7 +183,7 @@ def ipn_notification_view(request):
             response_data = response.json()
             print(response_data)
             if response_data["status_code"] == 1:
-                order = Order.objects.get(order_id=int(response_data["merchant_reference"]))
+                order = Order.objects.get(order_id=uuid.UUID(response_data["merchant_reference"]))
                 userId = order.user.id
                 print("user id: ", userId)
                 print("update product quantity")
@@ -238,7 +239,7 @@ def login_required(view_func):
 
 """EMAIL & SMTP"""
 def send_email(subject=None, message=None, from_email=None, recipient_list=None):
-    from_email = 'brandonmunda1@gmail.com'
+    from_email = settings.EMAIL_HOST_USER
 
     send_mail(subject, message, from_email, recipient_list)
     
@@ -408,7 +409,9 @@ def request_password_reset(request):
 
             user.save()
 
-            reset_link = f"https://skinsoko.botontapwater.tech/skinsoko/password_reset/validate/?token={user.password_reset_token}"
+            # reset_link = f"https://skinsoko.botontapwater.tech/skinsoko/password_reset/validate/?token={user.password_reset_token}"
+
+            reset_link = f"http://0.0.0.0:8000/skinsoko/password_reset/validate/?token={user.password_reset_token}"
 
             subject = "Password Reset Request"
 
@@ -425,24 +428,29 @@ def request_password_reset(request):
     else:
         return JsonResponse({'error': 'Invalid request'})
 
-@require_http_methods(["GET"])
+@require_http_methods(["GET, POST"])
 def validate_passsword_reset_token(request):
-    if 'token' in request.GET:
-        password_reset_token = request.GET['token']
-        try:
-            user = User.objects.get(password_reset_token=password_reset_token)
+    # if 'token' in request.GET:
+    try:
+        password_reset_token = request.POST['token']
 
-            return JsonResponse({'message': 'Token valid'})
-        
-        except Exception as e:
-            print(e)
-            context = {
-                'error': str(e)
-            }
-            return JsonResponse({"error": "user login/registration failed"})
+        password = request.POST['password']
+
+        user = User.objects.get(password_reset_token=password_reset_token)
+
+        reset_password(request, password, user.email)
+
+        return JsonResponse({'message': 'Token valid'})
+    
+    except Exception as e:
+        print(e)
+        context = {
+            'error': str(e)
+        }
+        return JsonResponse({"error": "Token invalid"})
 
 @csrf_exempt
-def reset_password(request):
+def reset_password(request, password, email):
     try:
         password = request.POST['password']
 
@@ -908,6 +916,7 @@ def get_list_of_paid_for_orders(request):
     for order in all_orders:
 
         orders_items_addresses[order.order_id] = {
+            "order": order.to_dict(),
             "order_items": get_order_items_for_order_with_order_id_helper(order.order_id),
             "order_address": Address.objects.get(user=order.user.id).to_dict()
         }
