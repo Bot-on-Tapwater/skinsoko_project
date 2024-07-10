@@ -165,7 +165,7 @@ class Order(models.Model):
         ('Completed', 'Completed')
     ]
 
-    order_id = models.AutoField(primary_key=True)
+    order_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     total_amount = models.PositiveIntegerField()
     order_status = models.CharField(max_length=255, choices=STATUS_CHOICES, default='Pending')
@@ -234,7 +234,7 @@ class Address(models.Model):
     town = models.CharField(max_length=255, null=True)
     county = models.CharField(max_length=255, null=True)
     phone_number = models.CharField(max_length=255, null=True)
-    additional_details = models.TextField(null=True)
+    additional_details = models.CharField(max_length=500, null=True)
 
 
     def __str__(self):
