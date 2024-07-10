@@ -11,7 +11,7 @@ urlpatterns = [
     # Pesapal
     path("pesapal/api_token/", views.get_pesapal_token_view),
     path("pesapal/ipn/", views.register_ipn_view),
-    path("pesapal/submit_order/<int:order_id>/", views.pesapal_submit_order, name="submit_order_request"),
+    path("pesapal/submit_order/<uuid:order_id>/", views.pesapal_submit_order, name="submit_order_request"),
     path("pesapal/transaction_status/<str:tracking_id>/", views.pesapal_transaction_status, name="transaction_status"),
     path("pesapal/ipn/notification/", views.ipn_notification_view, name="ipn_notification"),
     # Email & SMTP
@@ -47,11 +47,11 @@ urlpatterns = [
 
     # Order Management
     path("orders/", views.get_list_of_all_orders, name="list-all-orders"),
-    path('orders/<int:id>/', views.get_details_of_order_with_order_id, name='get-order-details'),
+    path('orders/<uuid:id>/', views.get_details_of_order_with_order_id, name='get-order-details'),
     path('users/orders/create/', views.create_new_order, name='create-new-order'),
-    path('orders/<int:id>/cancel/', views.cancel_order_with_order_id, name='cancel-order'),
-    path('orders/<int:id>/order_items/', views.get_order_items_for_order_with_order_id, name='get-order-items'),
-    path('orders/<int:id>/deliver/', views.update_order_to_delivered_with_order_id, name='delivered-order'),
+    path('orders/<uuid:id>/cancel/', views.cancel_order_with_order_id, name='cancel-order'),
+    path('orders/<uuid:id>/order_items/', views.get_order_items_for_order_with_order_id, name='get-order-items'),
+    path('orders/<uuid:id>/deliver/', views.update_order_to_delivered_with_order_id, name='delivered-order'),
     path('orders/paid/', views.get_list_of_paid_for_orders),
 
     # Category Management
