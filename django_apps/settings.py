@@ -190,9 +190,17 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'brandonmunda1@gmail.com'
-EMAIL_HOST_PASSWORD = 'wfte hrcq cuua gqag'
+# EMAIL_HOST_USER = 'brandonmunda1@gmail.com'
+# EMAIL_HOST_PASSWORD = 'wfte hrcq cuua gqag'
+EMAIL_HOST_USER = 'support@skinsoko.com'
+EMAIL_HOST_PASSWORD = 'zazt gxya ovdc disp'
 
+# EMAIL_APP_PASSWORDS = {
+#     'support@skinsoko.com': 'zazt gxya ovdc disp',
+#     # Add more email addresses and corresponding app passwords as needed
+# }
+
+# DEFAULT_FROM_EMAIL = 'support@skinsoko.com'
 
 # Social Auth
 AUTHENTICATION_BACKENDS = (

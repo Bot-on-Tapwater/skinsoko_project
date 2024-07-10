@@ -85,17 +85,17 @@ class Brand(models.Model):
 class Product(models.Model):
 
     product_id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=255, null=False)
-    description = models.TextField(null=False)
-    ingredients = models.TextField(null=False)
-    price = models.PositiveIntegerField(null=False)
+    name = models.CharField(max_length=255, null=False, db_index=True)
+    description = models.TextField(null=False, db_index=True)
+    ingredients = models.TextField(null=False, db_index=True)
+    price = models.PositiveIntegerField(null=False, db_index=True)
     discount = models.PositiveIntegerField(null=False)
-    quantity_in_stock = models.PositiveIntegerField(null=False)
+    quantity_in_stock = models.PositiveIntegerField(null=False, db_index=True)
     subcategories = models.ManyToManyField(SubCategory)
     brand = models.ForeignKey(Brand, on_delete=models.CASCADE)
-    best_seller  = models.BooleanField(default=False)
+    best_seller  = models.BooleanField(default=False, db_index=True)
     image = models.TextField(null=False)
-    slug = models.SlugField(default="", null=False, max_length=255)
+    slug = models.SlugField(default="", null=False, max_length=255, db_index=True)
 
     def __str__(self):
         return f'{self.name} - {self.price}'
@@ -115,6 +115,11 @@ class Product(models.Model):
             'image': self.image,
             'brand': self.brand.name
         }
+    
+    class Meta:
+        indexes = [
+            models.Index(fields=['name', 'description', 'ingredients', 'price', 'quantity_in_stock', 'best_seller', 'slug']),
+        ]
 
 class ShoppingCart(models.Model):
 
