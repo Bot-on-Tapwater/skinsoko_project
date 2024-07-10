@@ -9,3 +9,9 @@ Simplify signup process
 Integrate wishlist and cart
 
 Add name field to reviews
+
+Coupons (Codes for checkout)
+
+Add max length to additional fields for address model
+
+Order orders by date created
