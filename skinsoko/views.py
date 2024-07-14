@@ -184,10 +184,18 @@ def pesapal_submit_order(request, order_id):
     user_address = Address.objects.get(user=user_id)
     town = Towns.objects.get(name=user_address.town)
 
+    try:
+        coupon = Coupon.objects.get(order=order)
+        amount = order.total_amount * coupon.discount / 100
+    
+    except Coupon.DoesNotExist:
+        coupon = None
+        amount =order.total_amount
+
     request_params = {
         'id': str(order_id),
         'currency': "TZS",
-        'amount': float(order.total_amount + town.delivery_fee),
+        'amount': int(amount + town.delivery_fee),
         'description': "Pay for order.",
         'callback_url': "https://chic-hotteok-9cd9bd.netlify.app/",
         'notification_id': settings.PESAPAL_IPN_ID,
@@ -254,6 +262,9 @@ def ipn_notification_view(request):
                 
                 order.order_status = "Payment Completed"
                 order.save()
+                coupon = Coupon.objects.get(order=order)
+                coupon.active = False
+                coupon.save()
                 return JsonResponse(response_data, safe=False)
         else:
             logger.error(f"Failed to query payment status. Response: {response.text}")
@@ -1055,6 +1066,15 @@ def create_new_order(request):
 
         cartitems = CartItem.objects.filter(cart=user_cart).all()
 
+        coupon_code = request.POST.get('coupon')
+
+        if coupon_code:
+            coupon = Coupon.objects.get(code=coupon_code)
+            # print("coupon: ", coupon)
+
+        else:
+            coupon = None
+
         if not cartitems:
             return JsonResponse({"error": f"User has no items in cart."}, status=404)
         
@@ -1078,6 +1098,10 @@ def create_new_order(request):
             OrderItem.objects.bulk_create(new_order_items)
 
             # clear_entire_shopping_cart(request)
+
+            if coupon and coupon.active:
+                coupon.order = new_order
+                coupon.save()
 
     except ShoppingCart.DoesNotExist:
         return JsonResponse({"error": f"User with ID: {userId} has no items in cart."}, status=404)
