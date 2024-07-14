@@ -312,3 +312,16 @@ class Coupon(models.Model):
             "active": self.active,
             "order_id": self.order.id if self.order else None
         }
+
+class Maillist(models.Model):
+    email = models.EmailField(null=False, unique=True)
+    phone_number = models.CharField(max_length=255, null=True)
+
+    def __str__(self):
+        return f"Email: {self.email}, Phone Number: {self.phone_number}"
+
+    def to_dict(self):
+        return {
+            'email': self.email,
+            'phone_number': self.phone_number,
+        }
