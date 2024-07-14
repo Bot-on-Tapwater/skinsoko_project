@@ -5,6 +5,10 @@ from . import views
 
 urlpatterns = [
 
+    # Maillist
+    path('maillist/create/', views.maillist_create, name='maillist-create'),
+    path('maillist/all/', views.maillist_all, name='maillist-all'),
+
     # Coupons
     path("coupons/generate/", views.generate_coupons),
 
