@@ -1,6 +1,6 @@
 # Register your models here.
 from django.contrib import admin
-from .models import User, MainCategory, SubCategory, Brand, Product, ShoppingCart, CartItem, Order, OrderItem, Review, Address, Towns, Wishlist, Coupon
+from .models import User, MainCategory, SubCategory, Brand, Product, ShoppingCart, CartItem, Order, OrderItem, Review, Address, Towns, Wishlist, Coupon, Maillist
 
 # class UserAdmin(admin.ModelAdmin):
 #     # Fields to display in the list view
@@ -30,3 +30,4 @@ admin.site.register(Address)
 admin.site.register(Towns)
 admin.site.register(Wishlist)
 admin.site.register(Coupon)
+admin.site.register(Maillist)
