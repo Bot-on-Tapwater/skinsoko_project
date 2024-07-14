@@ -11,7 +11,7 @@ from functools import wraps
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 import datetime
-from .models import Product, MainCategory, SubCategory, Brand, Wishlist, User, Order, ShoppingCart, CartItem, Review, Address, OrderItem, Towns, Coupon
+from .models import Product, MainCategory, SubCategory, Brand, Wishlist, User, Order, ShoppingCart, CartItem, Review, Address, OrderItem, Towns, Coupon, Maillist
 import re
 from django.core.paginator import Paginator, EmptyPage
 from django.utils.datastructures import MultiValueDictKeyError
@@ -27,11 +27,45 @@ import random
 import string
 from django.utils.crypto import get_random_string
 import uuid
+from django.db.utils import IntegrityError
 
 # Create your views here.
 
 # Configure logging
 logger = logging.getLogger(__name__)
+
+"""MAILLIST"""
+@csrf_exempt
+def maillist_create(request):
+    if request.method == 'POST':
+        data = request.POST  # Assuming form data is sent via POST
+        email = data.get('email')
+        phone_number = data.get('phone_number')
+
+        try:
+            # Attempt to create a new Maillist entry
+            maillist = Maillist.objects.create(email=email, phone_number=phone_number)
+            send_coupon_email(email)
+            return JsonResponse({'message': 'Maillist entry created successfully'}, status=201)
+        except IntegrityError:
+            # Handle case where email already exists
+            return JsonResponse({'error': 'Email already exists in Maillist'}, status=400)
+        except Exception as e:
+            # Handle other exceptions if necessary
+            return JsonResponse({'error': str(e)}, status=500)
+
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+def maillist_all(request):
+    if request.method == 'GET':
+        try:
+            maillist_entries = Maillist.objects.all()
+            data = [{'email': entry.email, 'phone_number': entry.phone_number} for entry in maillist_entries]
+            return JsonResponse(data, safe=False, status=200)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 """COUPONS"""
 def generate_random_code(length=8):
@@ -47,6 +81,32 @@ def create_coupons(num_coupons, discount):
         coupons.append(Coupon(code=code, discount=discount, active=True))
     Coupon.objects.bulk_create(coupons)
 
+def get_coupon():
+    try:
+        coupon = Coupon.objects.filter(active=True, discount=15).first()
+        print("coupon: ", coupon)
+        return coupon
+    except Coupon.DoesNotExist:
+        return None
+    
+def send_coupon_email(email):
+    # Generate a coupon code
+    coupon = get_coupon()  # Adjust as per your Coupon model
+    
+    # Prepare email content
+    subject = 'Welcome to skinsoko.com! Here\'s your coupon code'
+    message = (
+        f"Dear valued customer,\n\n"
+        f"Thank you for subscribing to our maillist. As a token of our appreciation, here's a special coupon code for you:\n\n"
+        f"Your Coupon Code: {coupon.code}\n"
+        f"Use this code at checkout to enjoy a {coupon.discount}% discount on your next purchase.\n\n"
+        f"Happy shopping!\n\n"
+        f"If you have any questions, please contact our support team at support@skinsoko.com."
+    )
+    
+    # Send email
+    send_email(subject, message, recipient_list=[email])
+
 def generate_and_save_coupons():
     # Generate 100 codes with 10% discount
     create_coupons(10, 10.00)
@@ -55,7 +115,7 @@ def generate_and_save_coupons():
     create_coupons(10, 20.00)
 
     # Generate 100 codes with 15% discount
-    create_coupons(10, 15.00)
+    create_coupons(1000, 15.00)
 
 def generate_coupons(request):
     generate_and_save_coupons()
@@ -295,6 +355,9 @@ def register_view(request):
 
             # Redirect to a success page
             login_response = login_view(request, email, password)
+
+            send_registration_email(email)
+
             return login_response
 
         except Exception as e:
@@ -306,16 +369,27 @@ def register_view(request):
 
     return JsonResponse({"message": "User registration successful"}, status=200)
 
-def send_registration_mail(new_user):
-    verification_link = f"http://0.0.0.0:8000/library/verify-email/?token={new_user.verification_token}"
+def send_registration_email(user_email):
+    subject = 'Welcome to Skinsoko - Your Destination for Korean Beauty Products'
+    message = (
+        f'Thank you for registering with Skinsoko, your ultimate destination '
+        f'for high-quality Korean beauty products. We are thrilled to have you '
+        f'join our community!\n\n'
+        f'Explore our wide range of skincare, makeup, and more, all carefully '
+        f'selected to enhance your beauty routine.\n\n'
+        f'Feel free to reach out to us at support@skinsoko.com for any '
+        f'assistance you may need.\n\n'
+        f'Best regards,\n'
+        f'The Skinsoko Team'
+    )
+    
+    from_email = settings.EMAIL_HOST_USER
+    recipient_list = [user_email]
 
-    subject = "Navari Library - Verify your email address"
+    send_mail(subject, message, from_email, recipient_list)
+    
+    return JsonResponse('Mail sent successfully', safe=False)
 
-    recipient_list = [new_user.email]
-
-    message = f"Please click on the following link to verify your email address: {verification_link}"
-
-    send_email(subject=subject, recipient_list=recipient_list, message=message)
 
 def verify_email(request):
     if 'token' in request.GET:
@@ -409,16 +483,16 @@ def request_password_reset(request):
 
             user.save()
 
-            # reset_link = f"https://skinsoko.botontapwater.tech/skinsoko/password_reset/validate/?token={user.password_reset_token}"
+            reset_link = f"http://shop.skinsoko.com/skinsoko/password_reset/validate/?token={user.password_reset_token}"
 
-            reset_link = f"http://0.0.0.0:8000/skinsoko/password_reset/validate/?token={user.password_reset_token}"
+            # subject = "Password Reset Request"
 
-            subject = "Password Reset Request"
-
-            message = f"Click the link below to reset your password:\n{reset_link}"
+            # message = f"Click the link below to reset your password:\n{reset_link}"
 
             # Send the password reset email
-            send_email(subject=subject, message=message, recipient_list=[user.email])
+            # send_email(subject=subject, message=message, recipient_list=[user.email])
+
+            send_password_reset_email(user, reset_link)
 
             return JsonResponse({'message': 'Password reset email sent'})
 
@@ -427,6 +501,21 @@ def request_password_reset(request):
 
     else:
         return JsonResponse({'error': 'Invalid request'})
+
+def send_password_reset_email(user, reset_link):
+    # Prepare email content
+    subject = "Password Reset Request"
+    message = (
+        f"We have received a request to reset your password.\n"
+        f"To proceed with resetting your password, click on the link below:\n\n"
+        f"{reset_link}\n\n"
+        f"If you did not request a password reset, please ignore this email.\n\n"
+        f"Best regards,\n"
+        f"The skinsoko.com Team"
+    )
+    
+    # Send the password reset email
+    send_mail(subject, message, 'from@example.com', [user.email])
 
 @require_http_methods(["GET, POST"])
 def validate_passsword_reset_token(request):
