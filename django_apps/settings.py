@@ -36,7 +36,7 @@ DEBUG = True
 
 
 # ALLOWED_HOSTS = ["0.0.0.0", "exceed.botontapwater.tech", "exceed-shop.netlify.app"]
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["*", "shop.skinsoko.com"]
 
 
 # Application definition
@@ -180,6 +180,8 @@ SESSION_COOKIE_SAMESITE = 'None'
 
 CSRF_COOKIE_SAMESITE = 'None'
 CSRF_COOKIE_SECURE = True
+
+CSRF_TRUSTED_ORIGINS = ['https://shop.skinsoko.com', 'http://shop.skinsoko.com']
 
 # CSRF_TRUSTED_ORIGINS = ["http://localhost:3000"]
 # LOGIN_REDIRECT_URL = ''
