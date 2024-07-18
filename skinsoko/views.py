@@ -68,6 +68,27 @@ def populate_database(request):
             "SKIN FINISH MAKEUP": []
         }
 
+        towns = [
+            "Dar es Salaam", "Dodoma", "Mwanza", "Arusha", "Mbeya",
+            "Morogoro", "Tanga", "Kigoma", "Tabora", "Mtwara", "Moshi",
+            "Iringa", "Singida", "Songea", "Shinyanga", "Bagamoyo",
+            "Bukoba", "Lindi", "Njombe", "Sumbawanga", "Babati", "Geita",
+            "Kibaha", "Kilosa", "Korogwe", "Masasi", "Mpanda", "Same",
+            "Bariadi", "Chake Chake", "Wete", "Zanzibar City", "Biharamulo",
+            "Bunda", "Chato", "Handeni", "Ifakara", "Kahama", "Kasulu",
+            "Kibondo", "Kilwa Kivinje", "Kiteto", "Kondoa", "Kyela",
+            "Makambako", "Makete", "Maswa", "Mbulu", "Mikumi",
+            "Morogoro Urban", "Mpwapwa", "Musoma", "Nachingwea",
+            "Ngara", "Nzega", "Pangani", "Rungwe", "Singida Urban",
+            "Tandahimba", "Tarime", "Tunduma", "Tukuyu", "Urambo",
+            "Usangi", "Uvinza", "Bukombe", "Chemba", "Hanang", "Igunga",
+            "Ilala", "Ilemela", "Karagwe", "Kasulu Rural", "Kilolo",
+            "Kishapu", "Kiteto", "Kongwa", "Kwimba", "Ludewa", "Mkalama",
+            "Mlele", "Mpanda Urban", "Namtumbo", "Nyamagana", "Nzega Urban",
+            "Rufiji", "Rungwe", "Same", "Serengeti", "Sengerema", "Siha",
+            "Sumbawanga Urban", "Urambo", "Ushetu", "Uvinza", "Wanging'ombe"
+        ]
+
         # Use atomic transaction to ensure all or nothing
         with transaction.atomic():
             for brand_name in brands:
@@ -78,6 +99,9 @@ def populate_database(request):
 
                 for sub_cat_name in sub_cats:
                     SubCategory.objects.get_or_create(name=sub_cat_name, main_category=main_category)
+
+                for town_name in towns:
+                    Towns.objects.get_or_create(name=town_name, defaults={'delivery_fee': 0})
         
         return JsonResponse({"message": "Database populated successfully"}, status=201)
     
