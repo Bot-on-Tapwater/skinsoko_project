@@ -13,6 +13,7 @@ urlpatterns = [
 
     # Coupons
     path("coupons/generate/", views.generate_coupons),
+    path("coupons/validate/", views.validate_coupon),
 
     # Pesapal
     path("pesapal/api_token/", views.get_pesapal_token_view),
