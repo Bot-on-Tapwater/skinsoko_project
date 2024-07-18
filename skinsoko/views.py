@@ -34,6 +34,56 @@ from django.db.utils import IntegrityError
 # Configure logging
 logger = logging.getLogger(__name__)
 
+"""DATABASE"""
+from django.db import transaction
+
+def populate_database(request):
+    try:
+        brands = [
+            "ABIB", "BEAUTY OF JOSEON", "BENTON", "COSRX", "FRUDIA",
+            "HARUHARU WONDER", "ISNTREE", "JUMISO", "KOSE", "MARY&MAY",
+            "MISSHA", "NEOGEN", "NINELESS", "PYUNKANG YUL", "SOME BY MI",
+            "THE PLANT BASE", "TIA'M", "TIRTIR", "BIODANCE"
+        ]
+
+        main_categories = {
+            "SKIN CONCERNS": [
+                "ACNE", "ANTI-AGING/WRINKLES", "DRYNESS", "OIL CONTROL",
+                "PIGMENTATION", "REDNESS", "SENSITIVE", "BLACKHEADS",
+                "UNEVEN SKIN TONE", "WHITE HEADS", "DEHYDRATION", "PORES"
+            ],
+            "SKINCARE ROUTINE": [
+                "OIL CLEANSER", "WATER CLEANSER", "ENZYME EXFOLIATOR",
+                "HYDRATING TONER", "EXFOLIATING TONER", "SERUM", "AMPOULE",
+                "ESSENCE", "MOISTURIZER", "SUN PROTECTION", "SHEET MASK",
+                "CLAY MASK", "HYDRATING MIST"
+            ],
+            "SKIN TYPE": [
+                "COMBINATION", "DRY", "NORMAL", "OILY", "SENSITIVE", "ACNE PRONE"
+            ],
+            "BABY CARE": [],
+            "WESTERN CLASSICS": [],
+            "HAIR CARE": [],
+            "SKINCARE DEVICES": [],
+            "SKIN FINISH MAKEUP": []
+        }
+
+        # Use atomic transaction to ensure all or nothing
+        with transaction.atomic():
+            for brand_name in brands:
+                Brand.objects.get_or_create(name=brand_name)
+
+            for main_cat_name, sub_cats in main_categories.items():
+                main_category, created = MainCategory.objects.get_or_create(name=main_cat_name)
+
+                for sub_cat_name in sub_cats:
+                    SubCategory.objects.get_or_create(name=sub_cat_name, main_category=main_category)
+        
+        return JsonResponse({"message": "Database populated successfully"}, status=201)
+    
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
 """MAILLIST"""
 @csrf_exempt
 def maillist_create(request):
