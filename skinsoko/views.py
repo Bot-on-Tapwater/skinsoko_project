@@ -1320,14 +1320,14 @@ def add_address_to_user_profile(request):
 
         data = request.POST
 
-        street_address, town, county, phone_number, additional_details = [data['street_address'], data['town'], data['county'], data['phone_number'], data['additional_details']]
+        full_name, street_address, town, county, phone_number, additional_details = [data['full_name'], data['street_address'], data['town'], data['county'], data['phone_number'], data['additional_details']]
 
         user = User.objects.get(id=userId)
 
         if Address.objects.filter(user=user).exists():
             Address.objects.get(user=user).delete()
 
-        new_address = Address(street_address=street_address, town=town, county=county, phone_number=phone_number, additional_details=additional_details, user=user)
+        new_address = Address(full_name=full_name, street_address=street_address, town=town, county=county, phone_number=phone_number, additional_details=additional_details, user=user)
 
         new_address.save()
 
