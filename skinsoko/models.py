@@ -235,6 +235,7 @@ class Address(models.Model):
 
     address_id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    full_name = models.CharField(max_length=255, null=True)
     street_address = models.CharField(max_length=255, null=True)
     town = models.CharField(max_length=255, null=True)
     county = models.CharField(max_length=255, null=True)
@@ -249,6 +250,7 @@ class Address(models.Model):
         return {
             'address_id': self.address_id,
             'user': self.user.email if self.user else None,
+            'full_name': self.full_name,
             'street_address': self.street_address,
             'town': self.town,
             'county': self.county,
