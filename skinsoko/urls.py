@@ -4,6 +4,8 @@ from .views import social_auth
 from . import views
 
 urlpatterns = [
+    # Database
+    path('database/populate/', views.populate_database),
 
     # Maillist
     path('maillist/create/', views.maillist_create, name='maillist-create'),
