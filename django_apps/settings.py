@@ -82,6 +82,10 @@ CORS_ORIGIN_WHITELIST = (
     'http://127.0.0.1:3000',
     'http://localhost:3000',
     'https://chic-hotteok-9cd9bd.netlify.app',
+    'https://skinsoko.com',
+    'https://www.skinsoko.com',
+    'http://skinsoko.com',
+    'http://www.skinsoko.com',
 )
 
 ROOT_URLCONF = 'django_apps.urls'
@@ -190,6 +194,7 @@ CSRF_TRUSTED_ORIGINS = ['https://shop.skinsoko.com', 'http://shop.skinsoko.com']
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_HOST = '74.125.142.108'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 # EMAIL_HOST_USER = 'brandonmunda1@gmail.com'
