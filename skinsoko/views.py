@@ -28,6 +28,7 @@ import string
 from django.utils.crypto import get_random_string
 import uuid
 from django.db.utils import IntegrityError
+import json
 
 # Create your views here.
 
@@ -196,6 +197,28 @@ def generate_coupons(request):
 
     coupons = Coupon.objects.filter(active=True).all()
     return JsonResponse([coupon.to_dict() for coupon in coupons], safe=False)
+
+@csrf_exempt
+def validate_coupon(request):
+    if request.method == 'POST':
+        try:
+            coupon_code = request.POST.get('coupon')
+            if coupon_code is None:
+                return JsonResponse({'error': 'No coupon code provided.'}, status=400)
+            
+            try:
+                coupon = Coupon.objects.get(code=coupon_code)
+                if coupon.active:
+                    return JsonResponse({'discount': float(coupon.discount)}, status=200)
+                else:
+                    return JsonResponse({'error': 'Coupon is not active.'}, status=400)
+            except Coupon.DoesNotExist:
+                return JsonResponse({'error': 'Invalid coupon code.'}, status=400)
+        
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON.'}, status=400)
+        
+    return JsonResponse({'error': 'Invalid request method.'}, status=405)
 
 """PESAPAL"""
 def get_pesapal_token():
