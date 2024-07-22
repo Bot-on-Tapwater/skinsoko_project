@@ -4,6 +4,8 @@ from .views import social_auth
 from . import views
 
 urlpatterns = [
+    # Consolidated data
+    path('consolidated_data/', views.consolidated_data_view, name='consolidated-data'),
     # Database
     path('database/populate/', views.populate_database),
 
