@@ -591,8 +591,8 @@ def request_password_reset(request):
 
             user.save()
 
-            reset_link = f"http://shop.skinsoko.com/skinsoko/password_reset/validate/?token={user.password_reset_token}"
-
+            #reset_link = f"http://shop.skinsoko.com/skinsoko/password_reset/validate/?token={user.password_reset_token}"
+            reset_link=f"https://skinsoko.com/reset_password?token={user.password_reset_token}"
             # subject = "Password Reset Request"
 
             # message = f"Click the link below to reset your password:\n{reset_link}"
@@ -625,7 +625,9 @@ def send_password_reset_email(user, reset_link):
     # Send the password reset email
     send_mail(subject, message, 'from@example.com', [user.email])
 
-@require_http_methods(["GET, POST"])
+
+@csrf_exempt
+#@require_http_methods(["GET, POST"])
 def validate_passsword_reset_token(request):
     # if 'token' in request.GET:
     try:
@@ -649,9 +651,9 @@ def validate_passsword_reset_token(request):
 @csrf_exempt
 def reset_password(request, password, email):
     try:
-        password = request.POST['password']
+        #password = request.POST['password']
 
-        email = request.POST['email']
+        #email = request.POST['email']
 
         user = User.objects.get(email=email)
 
