@@ -29,11 +29,44 @@ from django.utils.crypto import get_random_string
 import uuid
 from django.db.utils import IntegrityError
 import json
+from django.views.decorators.cache import cache_page
 
 # Create your views here.
 
 # Configure logging
 logger = logging.getLogger(__name__)
+
+"""CONSOLIDATED DATA"""
+def extract_json_data(response):
+    """Helper function to extract JSON data from a JsonResponse object"""
+    if isinstance(response, JsonResponse):
+        return json.loads(response.content)
+    return response
+# @cache_page(60 * 15)
+def consolidated_data_view(request):
+    user_status_response = user_status(request)
+    products_response = list_all_products(request)
+    cart_response = get_contents_of_shopping_cart_of_user(request)
+    brands_response = get_list_of_all_brands(request)
+    categories_response = get_list_of_all_main_categories(request)
+
+    user_status_data = extract_json_data(user_status_response)
+    products_data = extract_json_data(products_response)
+    cart_data = extract_json_data(cart_response)
+    brands_data = extract_json_data(brands_response)
+    categories_data = extract_json_data(categories_response)
+
+    subcategories = [{category.name: extract_json_data(get_list_of_all_sub_categories_in_a_main_category(request, category.name))} for category in MainCategory.objects.all()]
+
+    return JsonResponse({
+        'user_status': user_status_data,
+        'products': products_data,
+        'cart': cart_data,
+        'brands': brands_data,
+        'categories': categories_data,
+        'subcategories': subcategories,
+    })
+
 
 """DATABASE"""
 from django.db import transaction
