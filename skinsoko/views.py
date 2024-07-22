@@ -42,7 +42,9 @@ def extract_json_data(response):
     if isinstance(response, JsonResponse):
         return json.loads(response.content)
     return response
-# @cache_page(60 * 15)
+
+seconds = 60
+minutes = 15
 def consolidated_data_view(request):
     user_status_response = user_status(request)
     products_response = list_all_products(request)
@@ -754,6 +756,7 @@ def paginate_results(request, query_results, view_url, items_per_page=40):
     return json_data
 
 """PRODUCT MANAGEMENT"""
+@cache_page(seconds * minutes)
 @require_http_methods(["GET"])
 def list_all_products(request):
     view_url = request.build_absolute_uri()
@@ -1281,6 +1284,7 @@ def get_order_items_for_order_with_order_id(request, id):
     return JsonResponse([order_item.to_dict() for order_item in specific_order_items], safe=False)
 
 """CATEGORY MANAGEMENT"""
+@cache_page(seconds * minutes)
 @require_http_methods(["GET"])
 def get_list_of_all_main_categories(request):
     view_url = request.build_absolute_uri()
@@ -1292,6 +1296,7 @@ def get_list_of_all_main_categories(request):
     else:
         return JsonResponse(None, safe=False)
 
+@cache_page(seconds * minutes)
 def get_list_of_all_sub_categories_in_a_main_category(request, main_category):    
 
     view_url = request.build_absolute_uri()
@@ -1302,7 +1307,8 @@ def get_list_of_all_sub_categories_in_a_main_category(request, main_category):
     
     except Exception:
         return JsonResponse({"message": "Could not get subcategories"}, status=404)
-
+    
+@cache_page(seconds * minutes)
 def get_list_of_all_brands(request):
     view_url = request.build_absolute_uri()
 
