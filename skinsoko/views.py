@@ -48,7 +48,7 @@ minutes = 15
 
 
 def consolidated_data_view(request):
-    consolidated_data = consolidated_data_no_sesssion_or_user_data(request)
+    consolidated_data = extract_json_data(consolidated_data_no_sesssion_or_user_data(request))
     user_status_response = user_status(request)
     # products_response = list_all_products(request)
     cart_response = get_contents_of_shopping_cart_of_user(request)
@@ -77,12 +77,12 @@ def consolidated_data_no_sesssion_or_user_data(request):
 
     subcategories = [{category.name: extract_json_data(get_list_of_all_sub_categories_in_a_main_category(request, category.name))} for category in MainCategory.objects.all()]
 
-    return {
+    return JsonResponse({
         'products': products_data,
         'brands': brands_data,
         'categories': categories_data,
         'subcategories': subcategories,
-    }
+    })
 
 """DATABASE"""
 from django.db import transaction
