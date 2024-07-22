@@ -45,30 +45,43 @@ def extract_json_data(response):
 
 seconds = 60
 minutes = 15
+
+@cache_page(seconds * minutes)
 def consolidated_data_view(request):
+    consolidated_data = consolidated_data_no_sesssion_or_user_data(request)
     user_status_response = user_status(request)
-    products_response = list_all_products(request)
+    # products_response = list_all_products(request)
     cart_response = get_contents_of_shopping_cart_of_user(request)
+    # brands_response = get_list_of_all_brands(request)
+    # categories_response = get_list_of_all_main_categories(request)
+
+    consolidated_data['user_status'] = extract_json_data(user_status_response)
+    # products_data = extract_json_data(products_response)
+    consolidated_data['cart'] = extract_json_data(cart_response)
+    # brands_data = extract_json_data(brands_response)
+    # categories_data = extract_json_data(categories_response)
+
+    # subcategories = [{category.name: extract_json_data(get_list_of_all_sub_categories_in_a_main_category(request, category.name))} for category in MainCategory.objects.all()]
+
+    return JsonResponse(consolidated_data)
+
+def consolidated_data_no_sesssion_or_user_data(request):
+    products_response = list_all_products(request)
     brands_response = get_list_of_all_brands(request)
     categories_response = get_list_of_all_main_categories(request)
 
-    user_status_data = extract_json_data(user_status_response)
     products_data = extract_json_data(products_response)
-    cart_data = extract_json_data(cart_response)
     brands_data = extract_json_data(brands_response)
     categories_data = extract_json_data(categories_response)
 
     subcategories = [{category.name: extract_json_data(get_list_of_all_sub_categories_in_a_main_category(request, category.name))} for category in MainCategory.objects.all()]
 
-    return JsonResponse({
-        'user_status': user_status_data,
+    return {
         'products': products_data,
-        'cart': cart_data,
         'brands': brands_data,
         'categories': categories_data,
         'subcategories': subcategories,
-    })
-
+    }
 
 """DATABASE"""
 from django.db import transaction
@@ -754,7 +767,7 @@ def paginate_results(request, query_results, view_url, items_per_page=40):
     return json_data
 
 """PRODUCT MANAGEMENT"""
-@cache_page(seconds * minutes)
+# @cache_page(seconds * minutes)
 @require_http_methods(["GET"])
 def list_all_products(request):
     view_url = request.build_absolute_uri()
@@ -1282,7 +1295,7 @@ def get_order_items_for_order_with_order_id(request, id):
     return JsonResponse([order_item.to_dict() for order_item in specific_order_items], safe=False)
 
 """CATEGORY MANAGEMENT"""
-@cache_page(seconds * minutes)
+# @cache_page(seconds * minutes)
 @require_http_methods(["GET"])
 def get_list_of_all_main_categories(request):
     view_url = request.build_absolute_uri()
@@ -1294,7 +1307,7 @@ def get_list_of_all_main_categories(request):
     else:
         return JsonResponse(None, safe=False)
 
-@cache_page(seconds * minutes)
+# @cache_page(seconds * minutes)
 def get_list_of_all_sub_categories_in_a_main_category(request, main_category):    
 
     view_url = request.build_absolute_uri()
@@ -1306,7 +1319,7 @@ def get_list_of_all_sub_categories_in_a_main_category(request, main_category):
     except Exception:
         return JsonResponse({"message": "Could not get subcategories"}, status=404)
     
-@cache_page(seconds * minutes)
+# @cache_page(seconds * minutes)
 def get_list_of_all_brands(request):
     view_url = request.build_absolute_uri()
 
