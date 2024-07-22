@@ -46,7 +46,7 @@ def extract_json_data(response):
 seconds = 60
 minutes = 15
 
-@cache_page(seconds * minutes)
+
 def consolidated_data_view(request):
     consolidated_data = consolidated_data_no_sesssion_or_user_data(request)
     user_status_response = user_status(request)
@@ -65,6 +65,7 @@ def consolidated_data_view(request):
 
     return JsonResponse(consolidated_data)
 
+@cache_page(seconds * minutes)
 def consolidated_data_no_sesssion_or_user_data(request):
     products_response = list_all_products(request)
     brands_response = get_list_of_all_brands(request)
