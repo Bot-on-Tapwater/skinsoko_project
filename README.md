@@ -1,325 +1,313 @@
-# E-COMMERCE WEBSITE
-An e-commerce website that contains all the basic functionalities you would expect, for example, browsing products, adding them to cart and a checking out amongst other features
+# Skinsoko Project
+
+Welcome to Skinsoko, an ecommerce platform specializing in Korean beauty products. This project is built with Django for the backend and Vue.js for the frontend.
 
 ## Table of Contents
 
+- [Features](#features)
+- [Requirements](#requirements)
+- [Installation](#installation)
+  - [Backend](#backend)
+  - [Frontend](#frontend)
+- [Configuration](#configuration)
+- [Usage](#usage)
+- [API Routes](#api-routes)
+  - [Authentication and User Management](#authentication-and-user-management)
+  - [Product Management](#product-management)
+  - [User Profile](#user-profile)
+  - [Shopping Cart](#shopping-cart)
+  - [Order Management](#order-management)
+  - [Category Management](#category-management)
+  - [Reviews and Ratings](#reviews-and-ratings)
+  - [Search Features](#search-features)
+  - [Shipping and Address](#shipping-and-address)
+- [Contributing](#contributing)
+- [License](#license)
 
-## Built with
-* Python
-* MySQL
-* Django
+## Features
+
+- User authentication and authorization
+- Product management
+- Shopping cart functionality
+- Order processing
+- Payment integration
+- Responsive design
+- SEO-friendly URLs
+- Optimized for performance
 
 ## Requirements
-The website requires **python 3.11.*** or never version of python to run smoothly. The modules listed below are also mandatory to run the backend server:
 
-* asgiref==3.7.2
-* Authlib==1.3.0
-* certifi==2023.11.17
-* cffi==1.16.0
-* charset-normalizer==3.3.2
-* cryptography==41.0.7
-* Django==5.0.1
-* django-cors-headers==4.3.1
-* django-filter==1.1.0
-* django-haystack==3.2.1
-* django-mysql==4.12.0
-* djangorestframework==3.10.3
-* drf-auto-endpoint==0.9.9
-* idna==3.6
-* Inflector==3.1.1
-* jsonify==0.5
-* mysqlclient==2.2.1
-* pillow==10.2.0
-* pycparser==2.21
-* python-dotenv==1.0.0
-* requests==2.31.0
-* sqlparse==0.4.4
-* urllib3==2.1.0
+- Python 3.8+
+- Django 3.2+
+- Node.js 14+
+- PostgreSQL 12+
+- Redis (for caching and background tasks)
+- Nginx (for serving static files and proxying requests)
+- Gunicorn (for running the Django application)
+
+## Installation
+
+### Backend
+Clone the repository:
+
+`git clone https://github.com/Bot-on-Tapwater/skinsoko_project.git`
+
+`cd skinsoko_project`
+
+Create a virtual environment and activate it:
+
+`python3 -m venv venv`
+`source venv/bin/activate`
+
+Install the required packages:
+
+`pip install -r requirements.txt`
+
+Set up the PostgreSQL database and update the DATABASES setting in settings.py:
+
+>DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'your_db_name',
+        'USER': 'your_db_user',
+        'PASSWORD': 'your_db_password',
+        'HOST': 'localhost',
+        'PORT': '',
+    }
+}
+
+Apply the migrations:
+
+`python manage.py migrate`
+
+Create a superuser:
+
+`python manage.py createsuperuser`
+
+Collect static files:
+
+`python manage.py collectstatic`
+
+### Frontend
+Navigate to the frontend directory and install dependencies:
+
+`cd frontend`
+
+`npm install`
+
+Build the frontend application:
+
+`npm run build`
+
+## Configuration
+
+### Environment Variables
+
+Create a .env file in the project root and add the following:
 
 
-## Install
-
-1. Clone the repository with the command below:
-
-        `git clone https://github.com/Bot-on-Tapwater/django_apps_bot_on_tapwater.git`
-
-2. Navigate to the root of the repo and install the requirements using the command below:
-
-        `pip install -r requirements.txt`
-
-3. Make sure MySQL is installed in your system, create the database **eridosolutions** and create a user, the user should be granted all privileges to the database you have created in the previous step. Create a .env file at the root of the repository. The .env file should be populated with content as shown below:
-
-        `DATABASE='eridosolutions'`
-
-        `DATABASE_USERNAME='enter username'`
-
-        `PASSWORD='enter user password'`
-
-        `HOST='enter host'`
-        
-        `PORT='5432'`
-
-4. Execute database migrations by running the following two commands:
-
-        `python manage.py makemigrations`
-
-        `python manage.py migrate`
+`DEBUG=1
+SECRET_KEY=your_secret_key
+ALLOWED_HOSTS=localhost,127.0.0.1
+DATABASE_URL=postgres://your_db_user:your_db_password@localhost/your_db_name
+REDIS_URL=redis://localhost:6379/0`
 
 ## Usage
-To deploy the backend server use the following command while you are at the root of the repository:
+To run the Django server, use:
 
-        `python manage.py runserver`
+`python manage.py runserver`
 
-### Authentication
+## API Routes
+### Authentication and User Management
+- Login
+  - Method: POST
+  - Path: /login/
+  - View: views.login_view
+  - Description: Handles user login.
+- Logout
+  - Method: POST
+  - Path: /logout/
+  - View: views.logout_view
+  - Description: Handles user logout.
+- Register
 
-- **Login**
- - Method: `GET`
- - Path: `/login/`
- - View: `views.login_view`
- - Description: Handles user login.
+  - Method: POST
+  - Path: /register/
+  - View: views.register_view
+  - Description: Handles user registration.
+- Password Reset
 
-- **Logout**
- - Method: `GET`
- - Path: `/logout/`
- - View: `views.logout_view`
- - Description: Handles user logout.
+  - Request: POST /password_reset/request/ - Request password reset.
+  - Request: POST /password_reset/validate/ - Validate reset token.
+  - Request: POST /password_reset/reset/ - Reset password.
+- User Status
 
-- **Register**
- - Method: `GET`
- - Path: `/register/`
- - View: `views.register`
- - Description: Handles user registration.
-
-- **User Status**
- - Method: `GET`
- - Path: `/user_status/`
- - View: `views.show_logged_in_user_id`
- - Description: Displays the logged-in user's ID.
+  - Method: GET
+  - Path: /user_status/
+  - View: views.user_status
+  - Description: Displays the logged-in user's ID.
 
 ### Product Management
+- List All Products
 
-- **List All Products**
- - Method: `GET`
- - Path: `/products/`
- - View: `views.list_all_products`
- - Description: Retrieves a list of all products.
+  - Method: GET
+  - Path: /products/
+  - View: views.list_all_products
+  - Description: Retrieves a list of all products.
+- Get Product Details
 
-- **Get Product Details**
- - Method: `GET`
- - Path: `/products/<int:id>/`
- - View: `views.get_product_with_product_id`
- - Description: Retrieves details of a specific product by ID.
-
-- **Create New Product**
- - Method: `POST`
- - Path: `/products/create/`
- - View: `views.create_new_product`
- - Description: Creates a new product.
-
-- **Update Product Details**
- - Method: `PUT`
- - Path: `/products/<int:id>/update/`
- - View: `views.update_product_with_product_id_details`
- - Description: Updates the details of a specific product by ID.
-
-- **Delete Product**
- - Method: `DELETE`
- - Path: `/products/<int:id>/delete/`
- - View: `views.delete_product_with_product_id`
- - Description: Deletes a specific product by ID.
+  - Method: GET
+  - Path: /products/<slug:slug>/
+  - View: views.get_product_with_product_id
+  - Description: Retrieves details of a specific product.
 
 ### User Profile
+- Get User Profile Details
 
-- **Get User Profile Details**
- - Method: `GET`
- - Path: `/users/<int:id>/`
- - View: `views.get_user_with_user_id_profile_details`
- - Description: Retrieves the profile details of a specific user by ID.
+  - Method: GET
+  - Path: /users/
+  - View: views.get_user_with_user_id_profile_details
+  - Description: Retrieves profile details of a specific user.
+- List User Reviews
 
-- **Update User Profile Details**
- - Method: `PUT`
- - Path: `/users/<int:id>/update/`
- - View: `views.update_user_with_user_id_profile_details`
- - Description: Updates the profile details of a specific user by ID.
+  - Method: GET
+  - Path: /users/reviews/
+  - View: views.list_reviews_created_by_user_with_user_id
+  - Description: Retrieves reviews created by a user.
+- List User Orders
 
-- **List User Orders**
- - Method: `GET`
- - Path: `/users/<int:id>/orders/`
- - View: `views.list_orders_placed_by_user_with_user_id`
- - Description: Retrieves a list of orders placed by a specific user.
+  - Method: GET
+  - Path: /users/orders/
+  - View: views.list_orders_placed_by_user_with_user_id
+  - Description: Retrieves a list of orders placed by a specific user.
 
 ### Shopping Cart
+- Get Cart Contents
 
-- **Get Cart Contents**
- - Method: `GET`
- - Path: `/users/<int:id>/cart/`
- - View: `views.get_contents_of_shopping_cart_of_user`
- - Description: Retrieves the contents of a user's shopping cart.
+  - Method: GET
+  - Path: /users/cart/
+  - View: views.get_contents_of_shopping_cart_of_user
+  - Description: Retrieves the contents of a user's shopping cart.
+- Add Product to Cart
 
-- **Add Product to Cart**
- - Method: `POST`
- - Path: `/users/<int:id>/cart/add/<int:productId>/`
- - View: `views.add_product_to_user_cart`
- - Description: Adds a product to a user's shopping cart.
+  - Method: POST
+  - Path: /users/cart/add/<int:productId>/
+  - View: views.add_product_to_user_cart
+  - Description: Adds a product to a user's cart.
+- Remove Product from Cart
 
-- **Remove Product from Cart**
- - Method: `DELETE`
- - Path: `/users/<int:id>/cart/remove/<int:productId>/`
- - View: `views.remove_product_from_user_cart`
- - Description: Removes a product from a user's shopping cart.
+  - Method: DELETE
+  - Path: /users/cart/remove/<int:productId>/
+  - View: views.remove_product_from_user_cart
+  - Description: Removes a product from a user's cart.
+- Clear Cart
 
-- **Clear Cart**
- - Method: `DELETE`
- - Path: `/users/<int:id>/cart/clear/`
- - View: `views.clear_entire_shopping_cart`
- - Description: Clears the entire shopping cart.
+  - Method: DELETE
+  - Path: /users/cart/clear/
+  - View: views.clear_entire_shopping_cart
+  - Description: Clears the entire shopping cart.
+- Update Product in Cart
+
+  - Method: PUT
+  - Path: /users/cart/update/<int:productId>/
+  - View: views.update_product_in_user_cart
+  - Description: Updates product details in the cart.
 
 ### Order Management
+- List All Orders
 
-- **List All Orders**
- - Method: `GET`
- - Path: `/orders/`
- - View: `views.get_list_of_all_orders`
- - Description: Retrieves a list of all orders.
+  - Method: GET
+  - Path: /orders/
+  - View: views.get_list_of_all_orders
+  - Description: Retrieves a list of all orders.
+- Get Order Details
 
-- **Get Order Details**
- - Method: `GET`
- - Path: `/orders/<int:id>/`
- - View: `views.get_details_of_order_with_order_id`
- - Description: Retrieves the details of a specific order by ID.
+  - Method: GET
+  - Path: /orders/<uuid:id>/
+  - View: views.get_details_of_order_with_order_id
+  - Description: Retrieves the details of a specific order.
+- Create New Order
 
-- **Create New Order**
- - Method: `POST`
- - Path: `/users/<int:userId>/orders/create/`
- - View: `views.create_new_order`
- - Description: Creates a new order for a specific user.
+  - Method: POST
+  - Path: /users/orders/create/
+  - View: views.create_new_order
+  - Description: Creates a new order for a user.
+- Cancel Order
 
-- **Cancel Order**
- - Method: `DELETE`
- - Path: `/orders/<int:id>/cancel/`
- - View: `views.cancel_order_with_order_id`
- - Description: Cancels a specific order by ID.
+  - Method: DELETE
+  - Path: /orders/<uuid:id>/cancel/
+  - View: views.cancel_order_with_order_id
+  - Description: Cancels a specific order.
+- Order Items
 
-### Payment Integration
+  - Method: GET
+  - Path: /orders/<uuid:id>/order_items/
+  - View: views.get_order_items_for_order_with_order_id
+  - Description: Retrieves items for a specific order.
+- Update Order Status
 
-- **Process Payment**
- - Method: `POST`
- - Path: `/payment/charge/<int:orderId>/`
- - View: `views.process_payment`
- - Description: Processes payment for a specific order by ID.
-
-- **Refund Payment**
- - Method: `POST`
- - Path: `/payment/refund/<int:orderId>/`
- - View: `views.refund_payment`
- - Description: Refunds payment for a specific order by ID.
+  - Method: PUT
+  - Path: /orders/<uuid:id>/deliver/
+  - View: views.update_order_to_delivered_with_order_id
+  - Description: Updates the status of an order to delivered.
 
 ### Category Management
+- List All Main Categories
 
-- **List All Categories**
- - Method: `GET`
- - Path: `/categories/`
- - View: `views.get_list_of_all_product_categories`
- - Description: Retrieves a list of all product categories.
+  - Method: GET
+  - Path: /main-categories/
+  - View: views.get_list_of_all_main_categories
+  - Description: Retrieves a list of all main product categories.
+- List Subcategories
 
-- **Get Products in Category**
- - Method: `GET`
- - Path: `/categories/<int:id>/`
- - View: `views.get_list_of_all_products_in_category`
- - Description: Retrieves a list of all products in a specific category by ID.
+  - Method: GET
+  - Path: /subcategories/<str:main_category>/
+  - View: views.get_list_of_all_sub_categories_in_a_main_category
+  - Description: Retrieves subcategories for a given main category.
+- List All Brands
 
-- **Create New Category**
- - Method: `POST`
- - Path: `/categories/create/`
- - View: `views.create_new_product_category`
- - Description: Creates a new product category.
-
-- **Update Category Details**
- - Method: `PUT`
- - Path: `/categories/<int:id>/update/`
- - View: `views.update_details_of_category_with_category_id`
- - Description: Updates the details of a specific category by ID.
-
-- **Delete Category**
- - Method: `DELETE`
- - Path: `/categories/<int:id>/delete/`
- - View: `views.remove_product_category_with_category_id`
- - Description: Deletes a specific category by ID.
+  - Method: GET
+  - Path: /brands/
+  - View: views.get_list_of_all_brands
+  - Description: Retrieves a list of all brands.
 
 ### Reviews and Ratings
+- Get Product Reviews
 
-- **Get Product Reviews**
- - Method: `GET`
- - Path: `/products/<int:id>/reviews/`
- - View: `views.get_reviews_for_product_with_product_id`
- - Description: Retrieves reviews for a specific product by ID.
+  - Method: GET
+  - Path: /products/<slug:slug>/reviews/
+  - View: views.get_reviews_for_product_with_product_id
+  - Description: Retrieves reviews for a specific product.
+- Create Product Review
 
-- **Create Product Review**
- - Method: `POST`
- - Path: `/users/<int:userId>/products/<int:id>/reviews/create/`
- - View: `views.creat_review_for_product_with_product_id`
- - Description: Creates a review for a specific product by ID.
+  - Method: POST
+  - Path: /users/products/<slug:slug>/reviews/create/
+  - View: views.creat_review_for_product_with_product_id
+  - Description: Creates a review for a specific product.
+- Delete User Review
 
-### Search and Filters
-
-- **Search Products**
- - Method: `GET`
- - Path: `/search/`
- - View: `views.search_products`
- - Description: Searches for products based on a query.
-
-- **Turn On Filters**
- - Method: `GET`
- - Path: `/filters/`
- - View: `views.turn_on_filters`
- - Description: Activates filters for product search.
-
+  - Method: DELETE
+  - Path: /users/reviews/<int:id>/delete/
+  - View: views.user_delete_review
+  - Description: Deletes a specific review created by a user.
+### Search Features
+- Search Products
+  - Method: GET
+  - Path: /search/
+  - View: views.search
+  - Description: Searches for products based on a query.
 ### Shipping and Address
-
-- **Get Available Shipping Options**
- - Method: `GET`
- - Path: `/shipping-options/`
- - View: `views.get_available_shipping_options`
- - Description: Retrieves available shipping options.
-
-- **Get User Saved Addresses**
- - Method: `GET`
- - Path: `/users/<str:userId>/addresses/`
- - View: `views.get_user_saved_addresses`
- - Description: Retrieves a list of addresses saved by a specific user.
-
-- **Add Address to User Profile**
- - Method: `POST`
- - Path: `/users/<str:userId>/addresses/create/`
- - View: `views.add_address_to_user_profile`
- - Description: Adds a new address to a user's profile.
-
-- **Update Address Details**
- - Method: `PUT`
- - Path: `/users/<str:userId>/addresses/<int:id>/update/`
- - View: `views.update_details_of_address_with_address_id`
- - Description: Updates the details of a specific address by ID.
-
-- **Delete Address**
- - Method: `DELETE`
- - Path: `/users/<str:userId>/addresses/<int:id>/delete/`
- - View: `views.delete_address_with_address_id`
- - Description: Deletes a specific address by ID.
+- Get User Saved Addresses
+  - Method: GET
+  - Path: `/users/#
 
 ## Contributing
 Contributions are welcome! Please follow these guidelines:
 
-1. Fork the repository and create your branch: git checkout -b feature.
-2. Commit your changes: git commit -am 'Add new feature'.
-3. Push to the branch: git push origin feature.
-4. Submit a pull request.
+- Fork the repository and create your branch: git checkout -b feature.
+- Commit your changes: git commit -am 'Add new feature'.
+- Push to the branch: git push origin feature.
+- Submit a pull request.
 
 ## License
 For permission to use, modify, or distribute this project, please contact the author.
-
-## API Documentation
-The application is currently set to use **PORT 8000** and it hosts on **127.0.0.1**, the django application name is **eridosolutions**, thus any API routes should be added to the end of:
-
-        `http://127.0.0.1:8000/eridosolutions`
-
-

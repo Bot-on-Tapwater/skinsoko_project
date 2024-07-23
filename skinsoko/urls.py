@@ -8,6 +8,7 @@ urlpatterns = [
     path('consolidated_data/', views.consolidated_data_view, name='consolidated-data'),
     # Database
     path('database/populate/', views.populate_database),
+    path('database/populate/products/', views.populate_products),
 
     # Maillist
     path('maillist/create/', views.maillist_create, name='maillist-create'),

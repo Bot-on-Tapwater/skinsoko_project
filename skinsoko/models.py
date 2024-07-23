@@ -86,8 +86,8 @@ class Product(models.Model):
 
     product_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=255, null=False, db_index=True)
-    description = models.TextField(null=False, db_index=True)
-    ingredients = models.TextField(null=False, db_index=True)
+    description = models.TextField(null=False)
+    ingredients = models.TextField(null=False)
     price = models.PositiveIntegerField(null=False, db_index=True)
     discount = models.PositiveIntegerField(null=False)
     quantity_in_stock = models.PositiveIntegerField(null=False, db_index=True)
@@ -118,7 +118,7 @@ class Product(models.Model):
     
     class Meta:
         indexes = [
-            models.Index(fields=['name', 'description', 'ingredients', 'price', 'quantity_in_stock', 'best_seller', 'slug']),
+            models.Index(fields=['name', 'price', 'quantity_in_stock', 'best_seller', 'slug']),
         ]
 
 class ShoppingCart(models.Model):
