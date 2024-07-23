@@ -15,3 +15,13 @@ Coupons (Codes for checkout)
 Add max length to additional fields for address model
 
 Order orders by date created
+
+Fix checkout bug on first saving of user address
+
+Look for fix for initial load times for website
+
+Upon user registration redirect to home page/landing page
+
+Update pesapal submit order requests details
+
+Fix bug with order status not being updated after payment
