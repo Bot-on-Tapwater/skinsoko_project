@@ -30,7 +30,12 @@ import uuid
 from django.db.utils import IntegrityError
 import json
 from django.views.decorators.cache import cache_page
-
+import csv
+import pandas as pd
+from django.db import transaction
+import os
+from django.utils.text import slugify
+import random
 # Create your views here.
 
 # Configure logging
@@ -85,7 +90,80 @@ def consolidated_data_no_sesssion_or_user_data(request):
     })
 
 """DATABASE"""
-from django.db import transaction
+
+def read_csv_and_create_dict(csv_file_path):
+    products = []
+    subcategories_list = [
+        "ACNE", "OIL CLEANSER", "COMBINATION", "ANTI-AGING/WRINKLES", "WATER CLEANSER", "DRY",
+        "DRYNESS", "ENZYME EXFOLIATOR", "NORMAL", "OIL CONTROL", "HYDRATING TONER", "OILY",
+        "PIGMENTATION", "EXFOLIATING TONER", "SENSITIVE", "SERUM", "ACNE PRONE", "AMPOULE",
+        "ESSENCE", "MOISTURIZER", "SUN PROTECTION", "SHEET MASK", "REDNESS", "CLAY MASK",
+        "HYDRATING MIST", "BLACKHEADS", "UNEVEN SKIN TONE", "WHITE HEADS", "DEHYDRATION", "PORES"
+    ]
+    
+    # Using pandas to read the CSV file
+    df = pd.read_csv(csv_file_path, skiprows=1)
+
+    df.columns = ['Brand', 'Item', 'Quantity', 'Selling Price', 'Product Details', 'Product Ingredients', 'Product Image']
+    
+    # print("CSV columns:", df.columns)  # Print column names for debugging
+    
+    for index, row in df.iterrows():
+        try:
+            print(f"Processing row {index}: {row.to_dict()}")  # Print row data for debugging
+            
+            product = {
+                'Brand': row['Brand'],
+                'Item': row['Item'],
+                'Quantity': int(row['Quantity'].replace(",", "")) if isinstance(row['Quantity'], str) else row['Quantity'],
+                'Selling Price': int(row['Selling Price'].replace(",", "")) if isinstance(row['Selling Price'], str) else row['Selling Price'],
+                'Product Details': row['Product Details'],
+                'Product Ingredients': row['Product Ingredients'],
+                'Product Image': row['Product Image'],
+                'Slug': slugify(row['Item']),
+                'Subcategories': random.sample(subcategories_list, 3)
+            }
+            products.append(product)
+        except Exception as e:
+            print(f"Error processing row {index}: {e}")
+    
+    print(products)
+    
+    return products
+
+def populate_products(request):
+    try:
+        products = read_csv_and_create_dict(os.path.join(settings.BASE_DIR, 'products.csv'))
+
+        for product_data in products:
+            brand_name = product_data['Brand']
+            brand, created = Brand.objects.get_or_create(name=brand_name)
+
+            product = Product.objects.create(
+                name=product_data['Item'],
+                description=product_data['Product Details'],
+                ingredients=product_data['Product Ingredients'],
+                price=product_data['Selling Price'],
+                discount=0,  # Default discount value
+                quantity_in_stock=product_data['Quantity'],
+                brand=brand,
+                best_seller=False,  # Default best_seller value
+                image=product_data['Product Image'],
+                slug=product_data['Slug']
+            )
+
+            for subcategory_name in product_data['Subcategories']:
+                # Use filter instead of get to handle multiple subcategories
+                subcategories = SubCategory.objects.filter(name=subcategory_name)
+                for subcategory in subcategories:
+                    product.subcategories.add(subcategory)
+            
+            product.save()
+
+        return JsonResponse({'message': 'Products created successfully'})
+    
+    except Exception as e:
+        return JsonResponse({'error': str(e)})
 
 def populate_database(request):
     try:
