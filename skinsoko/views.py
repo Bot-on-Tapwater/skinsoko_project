@@ -1501,12 +1501,11 @@ def creat_review_for_product_with_product_id(request, slug):
             # User has already submitted a review for this product
             return JsonResponse({"error": "You can only submit one review per product.Check your profile for more actions."}, status=400)
 
-
-
         rating = request.POST['rating']
         comment = request.POST['comment']
+        full_name = request.POST['full_name']
 
-        new_review = Review(product=product_to_review, user=user_leaving_review, rating=rating, comment=comment)
+        new_review = Review(product=product_to_review, user=user_leaving_review, rating=rating, comment=comment, full_name=full_name)
 
         new_review.full_clean()
         new_review.save()
