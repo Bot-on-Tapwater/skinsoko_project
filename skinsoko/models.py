@@ -181,8 +181,8 @@ class Order(models.Model):
 
     def to_dict(self, request=None):
         return {
-            'order_id': self.order_id,
-            'user': self.user.id if self.user else None,
+            'order_id': str(self.order_id),
+            'user': str(self.user.id) if self.user else None,
             'total_amount': str(self.total_amount),
             'order_status': self.order_status,
             'created_at': self.created_at.strftime("%Y-%m-%d %H:%M:%S"),
