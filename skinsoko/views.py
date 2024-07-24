@@ -497,10 +497,13 @@ def ipn_notification_view(request):
                 order.save()
                 print(f"order status: {order.order_status}")
                 print("deactivate coupon")
-                coupon = Coupon.objects.get(order=order)
-                coupon.active = False
-                coupon.save()
-                print(f"coupon status: {coupon.active}")
+                try:
+                    coupon = Coupon.objects.get(order=order)
+                    coupon.active = False
+                    coupon.save()
+                    print(f"coupon status: {coupon.active}")
+                except Coupon.DoesNotExist:
+                    logger.info(f"No coupon found for order {order.order_id}")
                 return JsonResponse(response_data, safe=False)
             
             else: 
