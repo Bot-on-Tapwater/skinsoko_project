@@ -256,6 +256,7 @@ class Address(models.Model):
             'town': self.town,
             'county': self.county,
             'phone_number': self.phone_number,
+            'additional_details': self.additional_details
         }
 
 class Towns(models.Model):
