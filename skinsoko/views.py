@@ -1260,7 +1260,7 @@ def get_list_of_paid_for_orders(request):
 
     for order in all_orders:
 
-        orders_items_addresses[order.order_id] = {
+        orders_items_addresses[str(order.order_id)] = {
             "order": order.to_dict(),
             "order_items": get_order_items_for_order_with_order_id_helper(order.order_id),
             "order_address": Address.objects.get(user=order.user.id).to_dict()
