@@ -229,6 +229,7 @@ class Review(models.Model):
             'user': self.user.email,
             'rating': self.rating,
             'comment': self.comment,
+            'full_name': self.full_name,
             'created_at': self.created_at.strftime('%Y-%m-%d'),
         }
 
