@@ -71,6 +71,7 @@ MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     # Social Auth
     'social_django.middleware.SocialAuthExceptionMiddleware',
+    'django.middleware.gzip.GZipMiddleware',
 
 ]
 
@@ -249,3 +250,6 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_REDIRECT_URI = 'https://skinsoko.botontapwater.tech/sk
 PESAPAL_CONSUMER_KEY=os.environ.get('PESAPAL_CONSUMER_KEY')
 PESAPAL_CONSUMER_SECRET=os.environ.get('PESAPAL_CONSUMER_SECRET')
 PESAPAL_IPN_ID=os.environ.get('PESAPAL_IPN_ID')
+
+# Response compression
+GZIP_MIN_LENGTH = 500
