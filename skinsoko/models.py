@@ -85,7 +85,7 @@ class Brand(models.Model):
 class Product(models.Model):
 
     product_id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=255, null=False, db_index=True)
+    name = models.CharField(max_length=255, null=False, unique=True, db_index=True)
     description = models.TextField(null=False)
     ingredients = models.TextField(null=False)
     price = models.PositiveIntegerField(null=False, db_index=True)
@@ -215,6 +215,7 @@ class Review(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     rating = models.PositiveIntegerField()
+    full_name = models.CharField(max_length=255)
     comment = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
