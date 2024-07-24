@@ -91,6 +91,11 @@ def consolidated_data_no_sesssion_or_user_data(request):
 
 """DATABASE"""
 
+def database_backup(request):
+    populate_database(request)
+    populate_products(request)
+    return JsonResponse({"success": True}, safe=False)
+
 def read_csv_and_create_dict(csv_file_path):
     products = []
     subcategories_list = [
@@ -380,7 +385,7 @@ def register_ipn():
     ipn_url = 'https://pay.pesapal.com/v3/api/URLSetup/RegisterIPN'
 
     data = {
-        'url': "https://skinsoko.botontapwater.tech/skinsoko/pesapal/ipn/notification/",
+        'url': "https://shop.skinsoko.com/skinsoko/pesapal/ipn/notification/",
         'ipn_notification_type': "GET",
         }
     
@@ -420,12 +425,15 @@ def pesapal_submit_order(request, order_id):
         'id': str(order_id),
         'currency': "TZS",
         'amount': int(amount + town.delivery_fee),
-        'description': "Pay for order.",
-        'callback_url': "https://chic-hotteok-9cd9bd.netlify.app/",
+        'description': f"Pay for the order {str(order_id)} from skinsoko.com",
+        'callback_url': "https://skinsoko.com",
         'notification_id': settings.PESAPAL_IPN_ID,
         'billing_address': {
           'phone_number': user_address.phone_number,
           'email_address': User.objects.get(pk=user_id).email,
+          'first_name': user_address.full_name,
+          'line_1': user_address.street_address,
+          'city': user_address.town,
         },
     }
 
@@ -486,9 +494,12 @@ def ipn_notification_view(request):
                 
                 order.order_status = "Payment Completed"
                 order.save()
+                print(f"order status: {order.order_status}")
+                print("deactivate coupon")
                 coupon = Coupon.objects.get(order=order)
                 coupon.active = False
                 coupon.save()
+                print(f"coupon status: {coupon.active}")
                 return JsonResponse(response_data, safe=False)
         else:
             logger.error(f"Failed to query payment status. Response: {response.text}")
