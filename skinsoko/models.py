@@ -203,7 +203,7 @@ class OrderItem(models.Model):
     def to_dict(self, request=None):
         return {
             'order_item_id': self.item_id,
-            'order': self.order.order_id, # Assuming you want to include the order ID
+            'order': str(self.order.order_id), # Assuming you want to include the order ID
             'product': self.product.to_dict() if self.product else None,
             'quantity': self.quantity,
             'unit_price': self.unit_price
