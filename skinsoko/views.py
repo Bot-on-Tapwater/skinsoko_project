@@ -94,6 +94,7 @@ def consolidated_data_no_sesssion_or_user_data(request):
 def database_backup(request):
     populate_database(request)
     populate_products(request)
+    generate_coupons(request)
     return JsonResponse({"success": True}, safe=False)
 
 def read_csv_and_create_dict(csv_file_path):
@@ -501,6 +502,9 @@ def ipn_notification_view(request):
                 coupon.save()
                 print(f"coupon status: {coupon.active}")
                 return JsonResponse(response_data, safe=False)
+            
+            else: 
+                return JsonResponse({"error": "Failed to process payment."}, status=500)
         else:
             logger.error(f"Failed to query payment status. Response: {response.text}")
             return JsonResponse({"error": "Failed to query payment status."}, status=500)
