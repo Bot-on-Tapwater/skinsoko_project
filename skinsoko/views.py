@@ -1266,7 +1266,7 @@ def get_list_of_paid_for_orders(request):
             "order_address": Address.objects.get(user=order.user.id).to_dict()
         }
 
-        print(orders_items_addresses[order.order_id])
+        # print(orders_items_addresses[str(order.order_id)])
     
     return JsonResponse(orders_items_addresses, safe=False)
         
