@@ -9,7 +9,9 @@ urlpatterns = [
     # Database
     path('database/populate/', views.populate_database),
     path('database/populate/products/', views.populate_products),
-    path('database/backup/', views.database_backup),
+    # path('database/backup/', views.database_backup),
+    path('database/populate/categories/', views.populate_categories),
+    path('database/populate/towns/', views.populate_towns),
 
     # Maillist
     path('maillist/create/', views.maillist_create, name='maillist-create'),
