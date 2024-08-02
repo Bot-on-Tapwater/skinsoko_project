@@ -1045,7 +1045,7 @@ def add_product_to_user_cart(request, productId):
 
                 existing_cart_item.save()
 
-                return JsonResponse(existing_cart_item.to_dict(), safe=False)
+                return JsonResponse({"success": True}, safe=False)
             except CartItem.DoesNotExist:
                 new_cart_item = CartItem(cart=ShoppingCart.objects.get(user=id), product=product, quantity=quantity)
             Product, SubCategory, User, Order, ShoppingCart, CartItem, Review, Address, OrderItem
@@ -1324,14 +1324,14 @@ def create_new_order(request):
             return JsonResponse({"error": f"User has no items in cart."}, status=404)
         
         else:
-            total_cost_of_cart_items = CartItem.objects.filter(cart=user_cart).aggregate(total_cost=Sum(ExpressionWrapper(F('quantity') * F('product__price'), output_field=fields.FloatField())))
+            total_cost_of_cart_items = CartItem.objects.filter(cart=user_cart).aggregate(total_cost=Sum(ExpressionWrapper(F('quantity') * F('product__discounted_price'), output_field=fields.FloatField())))
             total_cost = total_cost_of_cart_items.get('total_cost', 0) or 0
 
             new_order = Order(user=User.objects.get(id=userId), total_amount=total_cost, order_status='Pending')
 
             new_order.save()
 
-            new_order_items = list(map(lambda item: OrderItem(order=new_order, product=item.product, quantity=item.quantity, unit_price=item.product.price), [item for item in CartItem.objects.filter(cart=user_cart)]))
+            new_order_items = list(map(lambda item: OrderItem(order=new_order, product=item.product, quantity=item.quantity, unit_price=item.product.discounted_price), [item for item in CartItem.objects.filter(cart=user_cart)]))
 
             # for item in CartItem.objects.filter(cart=user_cart):
             #     product_to_update_quantity = Product.objects.get(product_id=item.product.product_id)
