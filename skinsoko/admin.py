@@ -16,6 +16,10 @@ from .models import User, MainCategory, SubCategory, Brand, Product, ShoppingCar
 
 class ProductAdmin(admin.ModelAdmin):
     prepopulated_fields = {"slug": ("name",)}
+    list_display = ('name', 'price', 'discount', 'discounted_price', 'quantity_in_stock', 'best_seller', 'brand')
+    search_fields = ('name', 'brand__name')
+    list_filter = ('best_seller', 'brand', 'subcategories')
+    ordering = ('-price',)
 admin.site.register(User)
 admin.site.register(MainCategory)
 admin.site.register(SubCategory)
