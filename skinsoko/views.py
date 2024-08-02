@@ -72,18 +72,19 @@ def consolidated_data_view(request):
 
 @cache_page(seconds * minutes)
 def consolidated_data_no_sesssion_or_user_data(request):
-    products_response = list_all_products(request)
+    # products_response = list_all_products(request)
     brands_response = get_list_of_all_brands(request)
     categories_response = get_list_of_all_main_categories(request)
 
-    products_data = extract_json_data(products_response)
+    # products_data = extract_json_data(products_response)
     brands_data = extract_json_data(brands_response)
     categories_data = extract_json_data(categories_response)
 
     subcategories = [{category.name: extract_json_data(get_list_of_all_sub_categories_in_a_main_category(request, category.name))} for category in MainCategory.objects.all()]
 
     return JsonResponse({
-        'products': products_data,
+        'discounted_products': [product.to_dict() for product in Product.objects.filter(discount__gt=0)],
+        'best_selling_products': [product.to_dict() for product in Product.objects.filter(best_seller=True)],
         'brands': brands_data,
         'categories': categories_data,
         'subcategories': subcategories,
@@ -243,7 +244,7 @@ def populate_database(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 """MAILLIST"""
-@csrf_exempt
+# @csrf_exempt
 def maillist_create(request):
     if request.method == 'POST':
         data = request.POST  # Assuming form data is sent via POST
@@ -317,13 +318,13 @@ def send_coupon_email(email):
 
 def generate_and_save_coupons():
     # Generate 100 codes with 10% discount
-    create_coupons(10, 10.00)
+    create_coupons(1000, 10.00)
 
     # Generate 100 codes with 20% discount
-    create_coupons(10, 20.00)
+    # create_coupons(10, 20.00)
 
     # Generate 100 codes with 15% discount
-    create_coupons(1000, 15.00)
+    # create_coupons(1000, 15.00)
 
 def generate_coupons(request):
     generate_and_save_coupons()
@@ -944,7 +945,7 @@ def update_user_with_user_id_profile_details(request):
     except User.DoesNotExist as e:
         return JsonResponse({"error": f"user with ID: {id} was not found."}, status=404)
 
-    return JsonResponse({"success": True}, safe=False)
+    return JsonResponse({"successskinsoko": True}, safe=False)
 
 """LIST OF USER'S ORDERS"""
 @login_required
