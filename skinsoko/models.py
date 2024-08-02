@@ -89,7 +89,8 @@ class Product(models.Model):
     description = models.TextField(null=False)
     ingredients = models.TextField(null=False)
     price = models.PositiveIntegerField(null=False, db_index=True)
-    discount = models.PositiveIntegerField(null=False)
+    discount = models.PositiveIntegerField(default=0,null=False)
+    discounted_price = models.PositiveIntegerField(null=False, editable=False)
     quantity_in_stock = models.PositiveIntegerField(null=False, db_index=True)
     subcategories = models.ManyToManyField(SubCategory)
     brand = models.ForeignKey(Brand, on_delete=models.CASCADE)
@@ -108,6 +109,7 @@ class Product(models.Model):
             'ingredients': self.ingredients,
             'price': self.price,
             'discount': self.discount,
+            'discounted_price': self.discounted_price,
             'quantity_in_stock': self.quantity_in_stock,
             # 'subcategories': [subcategory.to_dict() for subcategory in self.subcategories.all()],
             'best_seller': self.best_seller,
@@ -120,6 +122,11 @@ class Product(models.Model):
         indexes = [
             models.Index(fields=['name', 'price', 'quantity_in_stock', 'best_seller', 'slug']),
         ]
+
+    def save(self, *args, **kwargs):
+        # Calculate the discounted price
+        self.discounted_price = self.price * (100 - self.discount) / 100
+        super().save(*args, **kwargs)
 
 class ShoppingCart(models.Model):
 
@@ -150,14 +157,17 @@ class CartItem(models.Model):
         return f'Item ID: {self.item_id} - Product: {self.product.name} - Quantity: {self.quantity}'
 
     def to_dict(self, request=None):
+        product_price = self.product.discounted_price if self.product.discount != 0 else self.product.price
+
         return {
             'product_id': self.product.product_id if self.product else None,
             'product_image': self.product.image if self.product else None,
             # 'cart': self.cart.to_dict() if self.cart else None,
+            'product_slug': self.product.slug if self.product else None,
             'product_name': self.product.name if self.product else None,
-            'product_price': self.product.price if self.product else None,
+            'product_price': product_price,
             'quantity_in_stock': self.product.quantity_in_stock if self.product else None,
-            'subtotal': self.product.price * self.quantity,
+            'subtotal': product_price * self.quantity,
             'quantity': self.quantity,
         }
 
@@ -165,9 +175,8 @@ class Order(models.Model):
 
     STATUS_CHOICES = [
         ('Pending', 'Pending'),
-        ('Shipped', 'Shipped'),
-        ('Cancelled', 'Cancelled'),
-        ('Completed', 'Completed')
+        ('Payment Completed', 'Payment Completed'),
+        ('Delivered', 'Delivered'),
     ]
 
     order_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
