@@ -92,32 +92,138 @@ def consolidated_data_no_sesssion_or_user_data(request):
 
 """DATABASE"""
 
-def database_backup(request):
-    populate_database(request)
-    populate_products(request)
-    generate_coupons(request)
-    return JsonResponse({"success": True}, safe=False)
+# def database_backup(request):
+#     populate_database(request)
+#     populate_products(request)
+#     generate_coupons(request)
+#     return JsonResponse({"success": True}, safe=False)
+
+def populate_categories(request):
+    try:
+        # Path to the CSV file
+        csv_file_path = os.path.join(settings.BASE_DIR, 'categories.csv')
+        
+        # Load the CSV file into a DataFrame, skipping the first row if it contains extra unnamed columns
+        df = pd.read_csv(csv_file_path, header=1)
+
+        # Strip any leading/trailing whitespace from column names
+        df.columns = df.columns.str.strip()
+
+        # Print the cleaned DataFrame columns for debugging
+        print(f"Cleaned CSV Columns: {df.columns.tolist()}")
+        
+        # Ensure required columns exist
+        required_columns = {'BRANDS', 'CATEGORIES'}
+        if not required_columns.issubset(df.columns):
+            return JsonResponse({'error': 'CSV file must contain BRANDS and CATEGORIES columns'}, status=400)
+        
+        # Loop through each row in the DataFrame
+        for index, row in df.iterrows():
+            # Strip any leading/trailing whitespace from each row value
+            row = row.str.strip()
+            
+            # Create or get the brand
+            brand, created = Brand.objects.get_or_create(name=row['BRANDS'])
+            
+            # Create or get the main category
+            main_category_name = row['CATEGORIES']
+            main_category, created = MainCategory.objects.get_or_create(name=main_category_name)
+            
+            # Loop through each column to find subcategories
+            for col in df.columns:
+                if col not in ['BRANDS', 'CATEGORIES'] and pd.notna(row[col]):
+                    subcategory_name = row[col]
+                    
+                    # Create or get the subcategory
+                    SubCategory.objects.get_or_create(
+                        name=subcategory_name,
+                        main_category=main_category
+                    )
+        
+        return JsonResponse({'message': 'Database populated successfully'}, status=200)
+    
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+def populate_towns(request):
+    try:
+        # Path to the CSV file
+        csv_file_path = os.path.join(settings.BASE_DIR, 'towns.csv')
+        
+        # Load the CSV file into a DataFrame
+        df = pd.read_csv(csv_file_path, header=None)
+
+        # Print the raw DataFrame for debugging
+        print("Raw DataFrame:")
+        print(df.head())
+        print("DataFrame Shape:", df.shape)
+        print("DataFrame Columns:", df.columns.tolist())
+
+        # Identify and set correct header
+        if df.shape[0] > 1:
+            df.columns = df.iloc[1].values
+            df = df[2:]
+        
+        # Reset index after adjusting headers
+        df.reset_index(drop=True, inplace=True)
+
+        # Print cleaned DataFrame columns for debugging
+        print("Cleaned DataFrame Columns:", df.columns.tolist())
+
+        # Ensure required columns exist
+        if 'Town Name' not in df.columns or 'Delivery Fee' not in df.columns:
+            return JsonResponse({'error': 'CSV file must contain Town Name and Delivery Fee columns'}, status=400)
+
+        # Drop rows with NaN values in required columns
+        df = df.dropna(subset=['Town Name', 'Delivery Fee'])
+
+        # Convert 'Delivery Fee' to numeric, forcing errors to NaN and then dropping them
+        df['Delivery Fee'] = pd.to_numeric(df['Delivery Fee'], errors='coerce')
+        df = df.dropna(subset=['Delivery Fee'])
+
+        # Print cleaned DataFrame for debugging
+        print("Processed DataFrame:")
+        print(df.head())
+
+        # Loop through each row in the DataFrame
+        for index, row in df.iterrows():
+            # Strip any leading/trailing whitespace from each row value
+            town_name = row['Town Name'].strip()
+            delivery_fee = int(row['Delivery Fee'])
+
+            print(f"Processing row: Town Name: {town_name}, Delivery Fee: {delivery_fee}")
+
+            # Create or get the town
+            town, created = Towns.objects.get_or_create(
+                name=town_name,
+                defaults={'delivery_fee': delivery_fee}
+            )
+
+            if created:
+                print(f"Created new town: {town.name} with delivery fee: {town.delivery_fee}")
+            else:
+                print(f"Town {town.name} already exists")
+
+        return JsonResponse({'message': 'Database populated successfully'}, status=200)
+    
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 def read_csv_and_create_dict(csv_file_path):
     products = []
-    subcategories_list = [
-        "ACNE", "OIL CLEANSER", "COMBINATION", "ANTI-AGING/WRINKLES", "WATER CLEANSER", "DRY",
-        "DRYNESS", "ENZYME EXFOLIATOR", "NORMAL", "OIL CONTROL", "HYDRATING TONER", "OILY",
-        "PIGMENTATION", "EXFOLIATING TONER", "SENSITIVE", "SERUM", "ACNE PRONE", "AMPOULE",
-        "ESSENCE", "MOISTURIZER", "SUN PROTECTION", "SHEET MASK", "REDNESS", "CLAY MASK",
-        "HYDRATING MIST", "BLACKHEADS", "UNEVEN SKIN TONE", "WHITE HEADS", "DEHYDRATION", "PORES"
-    ]
     
     # Using pandas to read the CSV file
     df = pd.read_csv(csv_file_path, skiprows=1)
 
-    df.columns = ['Brand', 'Item', 'Quantity', 'Selling Price', 'Product Details', 'Product Ingredients', 'Product Image']
+    df.columns = ['Brand', 'Item', 'Quantity', 'Selling Price', 'Product Details', 'Product Ingredients', 'Product Image', 'Categories']
     
     # print("CSV columns:", df.columns)  # Print column names for debugging
-    
+
     for index, row in df.iterrows():
         try:
             print(f"Processing row {index}: {row.to_dict()}")  # Print row data for debugging
+
+            subcategories = [subcategory.strip() for subcategory in row['Categories'].split(',')]
             
             product = {
                 'Brand': row['Brand'],
@@ -128,7 +234,7 @@ def read_csv_and_create_dict(csv_file_path):
                 'Product Ingredients': row['Product Ingredients'],
                 'Product Image': row['Product Image'],
                 'Slug': slugify(row['Item']),
-                'Subcategories': random.sample(subcategories_list, 3)
+                'Subcategories': subcategories
             }
             products.append(product)
         except Exception as e:
@@ -174,71 +280,11 @@ def populate_products(request):
 
 def populate_database(request):
     try:
-        brands = [
-            "ABIB", "BEAUTY OF JOSEON", "BENTON", "COSRX", "FRUDIA",
-            "HARUHARU WONDER", "ISNTREE", "JUMISO", "KOSE", "MARY&MAY",
-            "MISSHA", "NEOGEN", "NINELESS", "PYUNKANG YUL", "SOME BY MI",
-            "THE PLANT BASE", "TIA'M", "TIRTIR", "BIODANCE"
-        ]
-
-        main_categories = {
-            "SKIN CONCERNS": [
-                "ACNE", "ANTI-AGING/WRINKLES", "DRYNESS", "OIL CONTROL",
-                "PIGMENTATION", "REDNESS", "SENSITIVE", "BLACKHEADS",
-                "UNEVEN SKIN TONE", "WHITE HEADS", "DEHYDRATION", "PORES"
-            ],
-            "SKINCARE ROUTINE": [
-                "OIL CLEANSER", "WATER CLEANSER", "ENZYME EXFOLIATOR",
-                "HYDRATING TONER", "EXFOLIATING TONER", "SERUM", "AMPOULE",
-                "ESSENCE", "MOISTURIZER", "SUN PROTECTION", "SHEET MASK",
-                "CLAY MASK", "HYDRATING MIST"
-            ],
-            "SKIN TYPE": [
-                "COMBINATION", "DRY", "NORMAL", "OILY", "SENSITIVE", "ACNE PRONE"
-            ],
-            "BABY CARE": [],
-            "WESTERN CLASSICS": [],
-            "HAIR CARE": [],
-            "SKINCARE DEVICES": [],
-            "SKIN FINISH MAKEUP": []
-        }
-
-        towns = [
-            "Dar es Salaam", "Dodoma", "Mwanza", "Arusha", "Mbeya",
-            "Morogoro", "Tanga", "Kigoma", "Tabora", "Mtwara", "Moshi",
-            "Iringa", "Singida", "Songea", "Shinyanga", "Bagamoyo",
-            "Bukoba", "Lindi", "Njombe", "Sumbawanga", "Babati", "Geita",
-            "Kibaha", "Kilosa", "Korogwe", "Masasi", "Mpanda", "Same",
-            "Bariadi", "Chake Chake", "Wete", "Zanzibar City", "Biharamulo",
-            "Bunda", "Chato", "Handeni", "Ifakara", "Kahama", "Kasulu",
-            "Kibondo", "Kilwa Kivinje", "Kiteto", "Kondoa", "Kyela",
-            "Makambako", "Makete", "Maswa", "Mbulu", "Mikumi",
-            "Morogoro Urban", "Mpwapwa", "Musoma", "Nachingwea",
-            "Ngara", "Nzega", "Pangani", "Rungwe", "Singida Urban",
-            "Tandahimba", "Tarime", "Tunduma", "Tukuyu", "Urambo",
-            "Usangi", "Uvinza", "Bukombe", "Chemba", "Hanang", "Igunga",
-            "Ilala", "Ilemela", "Karagwe", "Kasulu Rural", "Kilolo",
-            "Kishapu", "Kiteto", "Kongwa", "Kwimba", "Ludewa", "Mkalama",
-            "Mlele", "Mpanda Urban", "Namtumbo", "Nyamagana", "Nzega Urban",
-            "Rufiji", "Rungwe", "Same", "Serengeti", "Sengerema", "Siha",
-            "Sumbawanga Urban", "Urambo", "Ushetu", "Uvinza", "Wanging'ombe"
-        ]
-
-        # Use atomic transaction to ensure all or nothing
-        with transaction.atomic():
-            for brand_name in brands:
-                Brand.objects.get_or_create(name=brand_name)
-
-            for main_cat_name, sub_cats in main_categories.items():
-                main_category, created = MainCategory.objects.get_or_create(name=main_cat_name)
-
-                for sub_cat_name in sub_cats:
-                    SubCategory.objects.get_or_create(name=sub_cat_name, main_category=main_category)
-
-                for town_name in towns:
-                    Towns.objects.get_or_create(name=town_name, defaults={'delivery_fee': 0})
-        
-        return JsonResponse({"message": "Database populated successfully"}, status=201)
+        populate_towns(request)
+        populate_categories(request)
+        populate_products(request)
+        generate_coupons(request)
+        return JsonResponse({'message': 'Database populated successfully'})
     
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
