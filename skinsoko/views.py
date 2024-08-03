@@ -290,7 +290,7 @@ def populate_database(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 """MAILLIST"""
-# @csrf_exempt
+@csrf_exempt
 def maillist_create(request):
     if request.method == 'POST':
         data = request.POST  # Assuming form data is sent via POST

@@ -253,3 +253,4 @@ PESAPAL_IPN_ID=os.environ.get('PESAPAL_IPN_ID')
 
 # Response compression
 GZIP_MIN_LENGTH = 500
+
