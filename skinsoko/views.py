@@ -295,7 +295,8 @@ def maillist_create(request):
     csrf_cookie = request.COOKIES.get('csrftoken')
     logger.info(f'CSRF Cookie: {csrf_cookie}')
     print("csrf cookie: ", csrf_cookie)
-    
+    print("request: ", request)
+
     if request.method == 'POST':
         data = request.POST  # Assuming form data is sent via POST
         email = data.get('email')
