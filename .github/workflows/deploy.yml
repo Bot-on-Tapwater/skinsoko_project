@@ -1,0 +1,27 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - master  # Or whichever branch you want to trigger the deployment
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up SSH
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Run Ansible Playbook
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ansible
+        ansible-galaxy collection install community.general
+        ansible-playbook -i hosts deploy.yml
+      working-directory: ansible
