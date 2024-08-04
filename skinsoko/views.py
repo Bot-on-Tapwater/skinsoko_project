@@ -43,8 +43,12 @@ import random
 logger = logging.getLogger(__name__)
 
 """CSRF"""
-@ensure_csrf_cookie
-@csrf_exempt
+# @ensure_csrf_cookie
+# @csrf_exempt
+# def get_csrf_token(request):
+#     token = get_token(request)
+#     return JsonResponse({'csrfToken': token})
+
 def get_csrf_token(request):
     token = get_token(request)
     return JsonResponse({'csrfToken': token})
