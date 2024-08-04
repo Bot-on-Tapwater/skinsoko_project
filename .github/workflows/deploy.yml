@@ -33,4 +33,4 @@ jobs:
         ANSIBLE_HOST_KEY_CHECKING: 'false'  # Optional: Disable host key checking if you're testing
         ANSIBLE_SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}  # Your SSH private key
       run: |
-        ansible-playbook -i hosts deploy.yml
+        ansible-playbook -i ansible/hosts ansible/deploy.yml
