@@ -43,16 +43,6 @@ import random
 logger = logging.getLogger(__name__)
 
 """CSRF"""
-# @ensure_csrf_cookie
-# @csrf_exempt
-# def get_csrf_token(request):
-#     token = get_token(request)
-#     return JsonResponse({'csrfToken': token})
-
-# def get_csrf_token(request):
-#     token = get_token(request)
-#     return JsonResponse({'csrfToken': token})
-
 def get_csrf_token(request):
     if 'csrftoken' not in request.session:
         # This sets the token in the session and also returns it
@@ -365,7 +355,7 @@ def create_coupons(num_coupons, discount):
 
 def get_coupon():
     try:
-        coupon = Coupon.objects.filter(active=True, discount=15).first()
+        coupon = Coupon.objects.filter(active=True, discount=10).first()
         print("coupon: ", coupon)
         return coupon
     except Coupon.DoesNotExist:
