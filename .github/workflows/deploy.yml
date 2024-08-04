@@ -1,12 +1,12 @@
-name: SSH Test
+name: Deploy to VPS
 
 on:
   push:
     branches:
-      - master
+      - main  # Adjust this to your deployment branch
 
 jobs:
-  test-ssh:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -14,13 +14,13 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Set up SSH
-      run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-        echo "${{ secrets.SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
-        chmod 600 ~/.ssh/id_rsa
-        chmod 644 ~/.ssh/known_hosts
+      uses: webfactory/ssh-agent@v0.7.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-    - name: Test SSH connection
+    - name: Connect to VPS and pull latest changes
       run: |
-        ssh -o StrictHostKeyChecking=no root@78.111.67.122 "touch /tmp/github_test_file"
+        ssh -o StrictHostKeyChecking=no root@78.111.67.122 << 'EOF'
+        cd /root/skinsoko_project
+        git pull origin master  # Adjust the branch name as needed
+        EOF
