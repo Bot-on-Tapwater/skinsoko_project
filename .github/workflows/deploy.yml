@@ -1,9 +1,9 @@
-name: Deploy to VPS
+name: Deploy
 
 on:
   push:
     branches:
-      - master  # Adjust this to your deployment branch
+      - master
 
 jobs:
   deploy:
@@ -11,16 +11,21 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v2
 
-    - name: Set up SSH
-      uses: webfactory/ssh-agent@v0.7.0
-      with:
-        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-    - name: Connect to VPS and pull latest changes
+    - name: Set up SSH key
       run: |
-        ssh -o StrictHostKeyChecking=no root@78.111.67.122 << 'EOF'
-        cd /root/skinsoko_project
-        git pull origin master  # Adjust the branch name as needed
-        EOF
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        eval $(ssh-agent -s)
+        ssh-add ~/.ssh/id_rsa
+
+    - name: Set up Ansible
+      run: |
+        sudo apt update
+        sudo apt install -y ansible
+
+    - name: Run Ansible playbook
+      run: |
+        ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i ansible/hosts ansible/deploy.yml -vvvv
