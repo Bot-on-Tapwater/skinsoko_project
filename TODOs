@@ -27,3 +27,7 @@ Update pesapal submit order requests details
 Fix bug with order status not being updated after payment
 
 Change coupon to 10% in maillist
+
+TESTING ANSIBLE CI/CD
+
+TESTING GITHUB ACTIONS
