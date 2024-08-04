@@ -1,9 +1,9 @@
-name: Deploy to VPS
+name: Deploy
 
 on:
   push:
     branches:
-      - master  # Or whichever branch you want to trigger the deployment
+      - main
 
 jobs:
   deploy:
@@ -11,17 +11,26 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
-    - name: Set up SSH
-      uses: webfactory/ssh-agent@v0.5.3
+    - name: Set up Python
+      uses: actions/setup-python@v4
       with:
-        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install ansible
+
+    - name: Add SSH known hosts
+      run: |
+        mkdir -p ~/.ssh
+        ssh-keyscan -H 78.111.67.122 >> ~/.ssh/known_hosts
 
     - name: Run Ansible Playbook
+      env:
+        ANSIBLE_HOST_KEY_CHECKING: 'false'  # Optional: Disable host key checking if you're testing
+        ANSIBLE_SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}  # Your SSH private key
       run: |
-        sudo apt-get update
-        sudo apt-get install -y ansible
-        ansible-galaxy collection install community.general
         ansible-playbook -i hosts deploy.yml
-      working-directory: ansible
