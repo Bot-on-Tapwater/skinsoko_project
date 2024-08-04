@@ -54,10 +54,12 @@ logger = logging.getLogger(__name__)
 #     return JsonResponse({'csrfToken': token})
 
 def get_csrf_token(request):
-    session_id = request.session.session_key
-    token = get_token(request)
-    print(f"Session ID: {session_id}, CSRF Token: {token}")  # Log session ID and CSRF token
-    return JsonResponse({'csrfToken': token})
+    if 'csrftoken' not in request.session:
+        # This sets the token in the session and also returns it
+        request.session['csrftoken'] = get_token(request)
+    csrf_token = request.session['csrftoken']
+    print(f"Session ID: {request.session.session_key}, CSRF Token: {csrf_token}")
+    return JsonResponse({'csrfToken': csrf_token})
 
 """CONSOLIDATED DATA"""
 def extract_json_data(response):
