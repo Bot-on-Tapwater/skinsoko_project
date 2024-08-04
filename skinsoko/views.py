@@ -49,8 +49,14 @@ logger = logging.getLogger(__name__)
 #     token = get_token(request)
 #     return JsonResponse({'csrfToken': token})
 
+# def get_csrf_token(request):
+#     token = get_token(request)
+#     return JsonResponse({'csrfToken': token})
+
 def get_csrf_token(request):
+    session_id = request.session.session_key
     token = get_token(request)
+    print(f"Session ID: {session_id}, CSRF Token: {token}")  # Log session ID and CSRF token
     return JsonResponse({'csrfToken': token})
 
 """CONSOLIDATED DATA"""
