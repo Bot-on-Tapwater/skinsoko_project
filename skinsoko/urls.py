@@ -4,6 +4,9 @@ from .views import social_auth
 from . import views
 
 urlpatterns = [
+    # CSRF
+    path('api/csrf-token/', views.get_csrf_token),
+
     # Consolidated data
     path('consolidated_data/', views.consolidated_data_view, name='consolidated-data'),
     # Database

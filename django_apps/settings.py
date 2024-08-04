@@ -182,9 +182,11 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 SESSION_COOKIE_SECURE = True
 SESSION_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_DOMAIN = '.skinsoko.com'
 
 CSRF_COOKIE_SAMESITE = 'None'
 CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_DOMAIN = '.skinsoko.com'
 
 CSRF_TRUSTED_ORIGINS = ['https://shop.skinsoko.com', 'http://shop.skinsoko.com', 'https://skinsoko.com', 'http://skinsoko.com', 'http://localhost:3000', 'https://localhost:3000']
 
