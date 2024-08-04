@@ -9,7 +9,8 @@ import uuid
 from django.contrib.sessions.models import Session
 from functools import wraps
 from django.views.decorators.http import require_http_methods
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
+from django.middleware.csrf import get_token
 import datetime
 from .models import Product, MainCategory, SubCategory, Brand, Wishlist, User, Order, ShoppingCart, CartItem, Review, Address, OrderItem, Towns, Coupon, Maillist
 import re
@@ -41,6 +42,13 @@ import random
 # Configure logging
 logger = logging.getLogger(__name__)
 
+"""CSRF"""
+@ensure_csrf_cookie
+@csrf_exempt
+def get_csrf_token(request):
+    token = get_token(request)
+    return JsonResponse({'csrfToken': token})
+
 """CONSOLIDATED DATA"""
 def extract_json_data(response):
     """Helper function to extract JSON data from a JsonResponse object"""
@@ -52,6 +60,7 @@ seconds = 60
 minutes = 15
 
 
+@ensure_csrf_cookie
 def consolidated_data_view(request):
     consolidated_data = extract_json_data(consolidated_data_no_sesssion_or_user_data(request))
     user_status_response = user_status(request)
@@ -59,7 +68,7 @@ def consolidated_data_view(request):
     cart_response = get_contents_of_shopping_cart_of_user(request)
     # brands_response = get_list_of_all_brands(request)
     # categories_response = get_list_of_all_main_categories(request)
-
+	
     consolidated_data['user_status'] = extract_json_data(user_status_response)
     # products_data = extract_json_data(products_response)
     consolidated_data['cart'] = extract_json_data(cart_response)
@@ -290,12 +299,13 @@ def populate_database(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 """MAILLIST"""
-@csrf_exempt
+# @csrf_exempt
+@ensure_csrf_cookie
 def maillist_create(request):
     csrf_cookie = request.COOKIES.get('csrftoken')
     logger.info(f'CSRF Cookie: {csrf_cookie}')
     print("csrf cookie: ", csrf_cookie)
-    print("request: ", request)
+    print("request: ", request.headers)
 
     if request.method == 'POST':
         data = request.POST  # Assuming form data is sent via POST
