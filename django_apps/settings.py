@@ -188,6 +188,8 @@ CSRF_COOKIE_SAMESITE = 'None'
 CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_DOMAIN = '.skinsoko.com'
 
+CSRF_USE_SESSIONS = True
+
 CSRF_TRUSTED_ORIGINS = ['https://shop.skinsoko.com', 'http://shop.skinsoko.com', 'https://skinsoko.com', 'http://skinsoko.com', 'http://localhost:3000', 'https://localhost:3000']
 
 # CSRF_TRUSTED_ORIGINS = ["http://localhost:3000"]
