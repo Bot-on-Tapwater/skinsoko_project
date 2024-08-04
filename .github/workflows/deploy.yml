@@ -21,10 +21,10 @@ jobs:
         eval $(ssh-agent -s)
         ssh-add ~/.ssh/id_rsa
 
-    - name: Set up Ansible
-      run: |
-        sudo apt update
-        sudo apt install -y ansible
+    # - name: Set up Ansible
+    #   run: |
+    #     sudo apt update
+    #     sudo apt install -y ansible
 
     - name: Run Ansible playbook
       run: |
