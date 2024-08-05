@@ -301,8 +301,8 @@ def populate_database(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 """MAILLIST"""
-# @csrf_exempt
-@ensure_csrf_cookie
+# # # @csrf_exempt
+# @ensure_csrf_cookie
 def maillist_create(request):
     csrf_cookie = request.COOKIES.get('csrftoken')
     logger.info(f'CSRF Cookie: {csrf_cookie}')
@@ -395,7 +395,7 @@ def generate_coupons(request):
     coupons = Coupon.objects.filter(active=True).all()
     return JsonResponse([coupon.to_dict() for coupon in coupons], safe=False)
 
-@csrf_exempt
+# # @csrf_exempt
 def validate_coupon(request):
     if request.method == 'POST':
         try:
@@ -442,7 +442,7 @@ def get_pesapal_token():
             print(e)
             return JsonResponse({"error": "An error occurred"}, status=500)
 
-@csrf_exempt
+# # @csrf_exempt
 def get_pesapal_token_view(request):
     return JsonResponse(get_pesapal_token(), safe=False)
 
@@ -468,7 +468,7 @@ def register_ipn():
     else:
         return JsonResponse({"error": "Failed to register IPN."}, status=response.status_code)
 
-@csrf_exempt
+# # @csrf_exempt
 def pesapal_submit_order(request, order_id):
 
     submit_order_url = 'https://pay.pesapal.com/v3/api/Transactions/SubmitOrderRequest'
@@ -530,7 +530,7 @@ def pesapal_transaction_status(request, tracking_id):
 
     return response
 
-@csrf_exempt
+# # @csrf_exempt
 def ipn_notification_view(request):
     try:
         data = request.POST if request.method == 'POST' else request.GET
@@ -588,7 +588,7 @@ def ipn_notification_view(request):
 
 
 
-@csrf_exempt
+# # @csrf_exempt
 def register_ipn_view(request):
     return JsonResponse(register_ipn(), safe=False)
 
@@ -632,7 +632,7 @@ def user_status(request):
     else:
         return JsonResponse({'user': False})
 
-@csrf_exempt
+# # @csrf_exempt
 @require_http_methods(["POST", "GET"])
 def register_view(request):
     if request.method == 'POST':
@@ -728,7 +728,7 @@ def verify_email(request):
             return JsonResponse({"error": "user login/registration failed"})
 
 @require_http_methods(["POST", "GET"])
-@csrf_exempt
+# # @csrf_exempt
 def login_view(request, email=None, password=None):
     if request.method == "POST" or (email and password):
         try:
@@ -760,7 +760,7 @@ def login_view(request, email=None, password=None):
         return JsonResponse({"error": "user login failed"}, status=401)
     
 @require_http_methods(["POST", "GET"])
-@csrf_exempt
+# # @csrf_exempt
 def test_login_view(request):
     if request.method == "POST":
         try:
@@ -787,7 +787,7 @@ def test_login_view(request):
     else:
         return JsonResponse({"error": "user login/registration failed"})
 
-@csrf_exempt
+# # @csrf_exempt
 @require_http_methods(["POST", "GET"])
 def request_password_reset(request):
     if request.method == "POST":
@@ -835,7 +835,7 @@ def send_password_reset_email(user, reset_link):
     send_mail(subject, message, 'from@example.com', [user.email])
 
 
-@csrf_exempt
+# # @csrf_exempt
 #@require_http_methods(["GET, POST"])
 def validate_passsword_reset_token(request):
     # if 'token' in request.GET:
@@ -857,7 +857,7 @@ def validate_passsword_reset_token(request):
         }
         return JsonResponse({"error": "Token invalid"})
 
-@csrf_exempt
+# # @csrf_exempt
 def reset_password(request, password, email):
     try:
         #password = request.POST['password']
@@ -982,7 +982,7 @@ def get_user_with_user_id_profile_details(request):
         return JsonResponse({"error": f"User does not exist."}, status=404)
 
 @login_required
-@csrf_exempt
+# # @csrf_exempt
 @require_http_methods(["PUT"])
 def update_user_with_user_id_profile_details(request):
     try:
@@ -1068,7 +1068,7 @@ def get_contents_of_shopping_cart_of_user(request):
         return JsonResponse(None, safe=False)
 
 @require_http_methods(["POST"])
-@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
+# # @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 # @login_required
 def add_product_to_user_cart(request, productId):
     try:
@@ -1136,7 +1136,7 @@ def add_product_to_user_cart(request, productId):
     return JsonResponse({"success": True}, safe=False)
 
 @require_http_methods(["POST"])
-@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
+# # @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def update_product_in_user_cart(request, productId):
     try:
         id = request.session.get('user_id')
@@ -1225,7 +1225,7 @@ def update_product_quantity(userId):
 
 
 @require_http_methods(["DELETE"])
-@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
+# # @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 # @login_required
 def remove_product_from_user_cart(request, productId):
     try:
@@ -1257,7 +1257,7 @@ def remove_product_from_user_cart(request, productId):
     return JsonResponse({"message": "item deleted"})
 
 # @require_http_methods(["DELETE", "POST"])
-@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
+# # @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 # @login_required
 def clear_entire_shopping_cart(request):
     try:
@@ -1365,7 +1365,7 @@ def get_order_items_for_order_with_order_id_helper(id):
     return [order_item.to_dict() for order_item in specific_order_items]
 
 @require_http_methods(["POST"])
-@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
+# # @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 @login_required
 def create_new_order(request):
     try:
@@ -1418,7 +1418,6 @@ def create_new_order(request):
     # return JsonResponse({"success": True}, safe=False)
     return redirect('submit_order_request', order_id=new_order.order_id)
 
-@csrf_exempt
 @require_http_methods(["PUT"])
 def cancel_order_with_order_id(request, id):
     try:
@@ -1433,7 +1432,7 @@ def cancel_order_with_order_id(request, id):
     except Order.DoesNotExist:
         return JsonResponse({"error": f"Order with ID: {id} does not exist."}, status=404)
 
-@csrf_exempt
+# # @csrf_exempt
 @require_http_methods(["PUT"])
 def update_order_to_delivered_with_order_id(request, id):
     try:
@@ -1550,7 +1549,7 @@ def list_reviews_created_by_user_with_user_id(request):
 
 
 @require_http_methods(["POST"])
-@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
+# # @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 @login_required
 def creat_review_for_product_with_product_id(request, slug):
     try:
@@ -1588,7 +1587,7 @@ def creat_review_for_product_with_product_id(request, slug):
     except MultiValueDictKeyError as e:
         return JsonResponse({"error": f"The form value for attribute {str(e)} is missing."}, status=400)
 
-@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
+# # @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 @require_http_methods(["DELETE"])
 @login_required
 def user_delete_review(request, id):
@@ -1623,7 +1622,7 @@ def get_user_saved_addresses(request):
         return JsonResponse(None, safe=False)
 
 @require_http_methods(["POST"])
-@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
+# # @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 @login_required
 def add_address_to_user_profile(request):
     try:
@@ -1652,7 +1651,7 @@ def add_address_to_user_profile(request):
 
 @require_http_methods(["PUT"])
 @login_required
-@csrf_exempt
+# # @csrf_exempt
 def update_details_of_address_with_address_id(request, id):
     try:
         userId = request.session.get('user_id')
@@ -1683,7 +1682,7 @@ def update_details_of_address_with_address_id(request, id):
 
 @require_http_methods(["DELETE"])
 @login_required
-@csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
+# # @csrf_exempt # !!!SECURITY RISK!!! COMMENT OUT CODE
 def delete_address_with_address_id(request, id):
     try:
         userId = request.session.get('user_id')
@@ -1722,7 +1721,7 @@ def list_all_towns(request):
         return JsonResponse(None, safe=False)
 
 """WISHLIST"""
-@csrf_exempt
+# # @csrf_exempt
 def get_user_wishlist(request):
     userId = request.session.get('user_id')
 
@@ -1735,7 +1734,7 @@ def get_user_wishlist(request):
     else:  # we don't need to return an error here
         return JsonResponse(None, safe=False)
 
-@csrf_exempt
+# # @csrf_exempt
 @require_http_methods(["POST"])
 def add_item_to_wishlist(request, productId):
     userId = request.session.get('user_id')
@@ -1761,7 +1760,7 @@ def add_item_to_wishlist(request, productId):
     except Product.DoesNotExist:
         return JsonResponse({"error": f"Product with ID: {productId} does not exist."}, status=404)
 
-@csrf_exempt
+# # @csrf_exempt
 @require_http_methods(["DELETE"])
 def remove_item_from_wishlist(request, productId):
     userId = request.session.get('user_id')
