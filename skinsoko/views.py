@@ -479,7 +479,7 @@ def pesapal_submit_order(request, order_id):
 
     try:
         coupon = Coupon.objects.get(order=order)
-        amount = order.total_amount * coupon.discount / 100
+        amount = order.total_amount * (100 - coupon.discount) / 100
     
     except Coupon.DoesNotExist:
         coupon = None
@@ -514,7 +514,7 @@ def pesapal_submit_order(request, order_id):
         print(response_data)
         print("amount: ",amount)
         print("coupon: ", coupon, coupon.discount)
-        
+
         return JsonResponse(response_data, safe=False)
         # redirect("transaction_status", tracking_id=response_data["order_tracking_id"])
     else:
