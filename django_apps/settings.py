@@ -64,6 +64,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
+    'skinsoko.middelware.EnsureCSRFMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -188,7 +189,7 @@ CSRF_COOKIE_SAMESITE = 'None'
 CSRF_COOKIE_SECURE = True
 CSRF_COOKIE_DOMAIN = '.skinsoko.com'
 
-CSRF_USE_SESSIONS = True
+# CSRF_USE_SESSIONS = True
 
 CSRF_TRUSTED_ORIGINS = ['https://shop.skinsoko.com', 'http://shop.skinsoko.com', 'https://skinsoko.com', 'http://skinsoko.com', 'http://localhost:3000', 'https://localhost:3000']
 
