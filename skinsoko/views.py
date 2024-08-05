@@ -513,6 +513,8 @@ def pesapal_submit_order(request, order_id):
         response_data = response.json()
         print(response_data)
         print("amount: ",amount)
+        print("coupon: ", coupon, coupon.discount)
+        
         return JsonResponse(response_data, safe=False)
         # redirect("transaction_status", tracking_id=response_data["order_tracking_id"])
     else:
