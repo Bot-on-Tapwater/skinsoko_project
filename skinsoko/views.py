@@ -62,7 +62,7 @@ seconds = 60
 minutes = 15
 
 
-@ensure_csrf_cookie
+# @ensure_csrf_cookie
 def consolidated_data_view(request):
     consolidated_data = extract_json_data(consolidated_data_no_sesssion_or_user_data(request))
     user_status_response = user_status(request)
@@ -302,7 +302,6 @@ def populate_database(request):
 
 """MAILLIST"""
 # # # @csrf_exempt
-# @ensure_csrf_cookie
 def maillist_create(request):
     csrf_cookie = request.COOKIES.get('csrftoken')
     logger.info(f'CSRF Cookie: {csrf_cookie}')
