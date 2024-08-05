@@ -511,6 +511,7 @@ def pesapal_submit_order(request, order_id):
 
     if response.status_code == 200:
         response_data = response.json()
+        print(response_data)
         return JsonResponse(response_data, safe=False)
         # redirect("transaction_status", tracking_id=response_data["order_tracking_id"])
     else:
