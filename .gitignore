@@ -2,3 +2,6 @@
 /myvenv
 /eridosolutions/__pycache__
 /django_apps/__pycache__
+/venv
+*__pycache__*
+*migrations*
