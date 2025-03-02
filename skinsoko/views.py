@@ -643,11 +643,18 @@ def create_minimal_order(request):
         "merchant_remarks": "None",
         "no_of_items": 1
     }
-    #path relatiive to base url
+    #path relative to base url
     orderPath = "/v1/checkout/create-order-minimal"
 
-    #crate new order
-    response = selcom_client.postFunc(orderPath, orderDict)
+    # print(orderPath)
+    try:
+        #crate new order
+        response = selcom_client.postFunc(orderPath, orderDict)
+    
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+    
+    # print(response)
     
     try:
         response_data = response.json()
