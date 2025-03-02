@@ -601,8 +601,6 @@ def register_ipn_view(request):
 
 """SELCOM"""
 
-selcom_client = apigwClient.Client(settings.SELCOM_BASE_URL, settings.SELCOM_API_KEY, settings.SELCOM_API_SECRET)
-
 def generate_selcom_headers(data):
     # Generate the timestamp in ISO 8601 format
     timestamp = datetime.datetime.now().isoformat()
@@ -648,8 +646,12 @@ def create_minimal_order(request):
 
     # print(orderPath)
     try:
+        print(f"BASEURL: {settings.SELCOM_BASE_URL}, API_KEY: {settings.SELCOM_API_KEY}, API_SECRET: {settings.SELCOM_API_SECRET}")
+        
+        client = apigwClient.Client(settings.SELCOM_BASE_URL, settings.SELCOM_API_KEY, settings.SELCOM_API_SECRET)
+        
         #crate new order
-        response = selcom_client.postFunc(orderPath, orderDict)
+        response = client.postFunc(orderPath, orderDict)
     
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
