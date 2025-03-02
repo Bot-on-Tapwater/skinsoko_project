@@ -30,6 +30,9 @@ urlpatterns = [
     path("pesapal/submit_order/<uuid:order_id>/", views.pesapal_submit_order, name="submit_order_request"),
     path("pesapal/transaction_status/<str:tracking_id>/", views.pesapal_transaction_status, name="transaction_status"),
     path("pesapal/ipn/notification/", views.ipn_notification_view, name="ipn_notification"),
+    
+    # Selcom
+    path("selcom/create_minimal_order/", views.create_minimal_order),
     # Email & SMTP
 
     # User Authentication & Authorization

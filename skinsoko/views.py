@@ -1,3 +1,6 @@
+import base64
+import hashlib
+import hmac
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib.auth.tokens import default_token_generator
 from django.http import HttpResponse, JsonResponse, QueryDict
@@ -37,6 +40,7 @@ from django.db import transaction
 import os
 from django.utils.text import slugify
 import random
+from selcom_apigw_client import apigwClient
 # Create your views here.
 
 # Configure logging
@@ -594,6 +598,64 @@ def ipn_notification_view(request):
 # # @csrf_exempt
 def register_ipn_view(request):
     return JsonResponse(register_ipn(), safe=False)
+
+"""SELCOM"""
+
+selcom_client = apigwClient.Client(settings.SELCOM_BASE_URL, settings.SELCOM_API_KEY, settings.SELCOM_API_SECRET)
+
+def generate_selcom_headers(data):
+    # Generate the timestamp in ISO 8601 format
+    timestamp = datetime.datetime.now().isoformat()
+
+    # Create the string to sign
+    signed_fields = ','.join(data.keys())
+    string_to_sign = f"timestamp={timestamp}&" + '&'.join([f"{key}={value}" for key, value in data.items()])
+
+    # Generate the digest
+    digest = hmac.new(settings.SELCOM_API_SECRET.encode(), string_to_sign.encode(), hashlib.sha256).digest()
+    digest_base64 = base64.b64encode(digest).decode()
+
+    # Generate the authorization header
+    authorization = f"SELCOM {base64.b64encode(settings.SELCOM_API_KEY.encode()).decode()}"
+
+    headers = {
+        'Authorization': authorization,
+        'Digest-Method': 'HS256',
+        'Digest': digest_base64,
+        'Timestamp': timestamp,
+        'Signed-Fields': signed_fields,
+        'Content-Type': 'application/json'
+    }
+
+    return headers
+
+def create_minimal_order(request):
+    #data
+    orderDict = {
+        "vendor": settings.SELCOM_VENDOR_ID,
+        "order_id": str(uuid.uuid4()),
+        "buyer_email": "mundabrandon@outlook.com",
+        "buyer_name": "Munda Brandon",
+        "buyer_phone": "254703676507",
+        "amount": 10,
+        "currency": "TZS",
+        "buyer_remarks": "None",
+        "merchant_remarks": "None",
+        "no_of_items": 1
+    }
+    #path relatiive to base url
+    orderPath = "/v1/checkout/create-order-minimal"
+
+    #crate new order
+    response = selcom_client.postFunc(orderPath, orderDict)
+    
+    try:
+        response_data = response.json()
+    except requests.exceptions.JSONDecodeError:
+        return JsonResponse({"error": "Invalid response from Selcom API"}, status=500)
+    
+    return JsonResponse(response_data, safe=False)
+
 
 """SOCIAL AUTH"""
 @psa('social:complete')

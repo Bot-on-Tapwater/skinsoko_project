@@ -178,6 +178,12 @@ AUTH0_DOMAIN = os.environ.get("AUTH0_DOMAIN")
 AUTH0_CLIENT_ID = os.environ.get("AUTH0_CLIENT_ID")
 AUTH0_CLIENT_SECRET = os.environ.get("AUTH0_CLIENT_SECRET")
 
+# Selcom Credentials
+SELCOM_API_KEY = os.environ.get("SELCOM_API_KEY")
+SELCOM_API_SECRET = os.environ.get("SELCOM_API_SECRET")
+SELCOM_BASE_URL = os.environ.get("SELCOM_BASE_URL")
+SELCOM_VENDOR_ID = os.environ.get("SELCOM_VENDOR_ID")
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
