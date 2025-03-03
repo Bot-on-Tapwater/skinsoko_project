@@ -642,24 +642,27 @@ def create_minimal_order(request):
         "no_of_items": 1
     }
     #path relative to base url
-    orderPath = "/v1/checkout/create-order-minimal"
+    orderPath = '/v1/checkout/create-order-minimal'
 
     # print(orderPath)
     try:
         print(f"BASEURL: {settings.SELCOM_BASE_URL}, API_KEY: {settings.SELCOM_API_KEY}, API_SECRET: {settings.SELCOM_API_SECRET}")
         
         client = apigwClient.Client(settings.SELCOM_BASE_URL, settings.SELCOM_API_KEY, settings.SELCOM_API_SECRET)
-        
-        #crate new order
-        response = client.postFunc(orderPath, orderDict)
     
     except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+        return JsonResponse({"function": "client", "error": str(e)}, status=500)
     
-    # print(response)
+    try:    
+        #crate new order
+        response = client.postFunc(orderPath, orderDict)
+
+    except Exception as e:
+        return JsonResponse({"function": "postFunc", "error": str(e)}, status=500)
     
     try:
-        response_data = response.json()
+        # response_data = response.json()
+        response_data = response
     except requests.exceptions.JSONDecodeError:
         return JsonResponse({"error": "Invalid response from Selcom API"}, status=500)
     
