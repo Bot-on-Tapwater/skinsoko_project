@@ -687,10 +687,10 @@ def selcom_webhook(request):
             return JsonResponse({"error": "Invalid payload"}, status=400)
 
         try:
-            order = Order.objects.get(order_id=order_id)
+            # order = Order.objects.get(order_id=order_id)
             if payment_status == "COMPLETED":
-                order.order_status = "Payment Completed"
-                order.save()
+                # order.order_status = "Payment Completed"
+                # order.save()
                 logger.info(f"Order {order_id} payment completed.")
                 
                 # Send email notification
@@ -704,7 +704,7 @@ def selcom_webhook(request):
                     f"Best regards,\n"
                     f"The Skinsoko Team"
                 )
-                recipient_list = [order.user.email, "mundabrandon@outlook.com"]
+                recipient_list = ["mundabrandon@outlook.com"]
                 send_mail(subject, message, settings.EMAIL_HOST_USER, recipient_list)
                 
                 return JsonResponse({"message": "Payment status updated and email sent"}, status=200)
