@@ -635,7 +635,7 @@ def create_minimal_order(request):
         "buyer_email": "mundabrandon@outlook.com",
         "buyer_name": "Munda Brandon",
         "buyer_phone": "255779620505",
-        "amount": 550,
+        "amount": 1100,
         "redirect_url": "aHR0cHM6Ly9za2luc29rby5jb20=",
         "cancel_url": "aHR0cHM6Ly9za2luc29rby5jb20=",
         "webhook": "aHR0cHM6Ly9zaG9wLnNraW5zb2tvLmNvbS9za2luc29rby9zZWxjb20vd2ViaG9vay8=",
