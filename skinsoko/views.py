@@ -635,7 +635,7 @@ def create_minimal_order(request):
         "buyer_email": "mundabrandon@outlook.com",
         "buyer_name": "Munda Brandon",
         "buyer_phone": "255712132132",
-        "amount": 200,
+        "amount": 1100,
         "currency": "TZS",
         "buyer_remarks": "None",
         "merchant_remarks": "None",
