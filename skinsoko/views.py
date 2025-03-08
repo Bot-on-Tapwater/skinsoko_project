@@ -668,6 +668,57 @@ def create_minimal_order(request):
     
     return JsonResponse(response_data, safe=False)
 
+@csrf_exempt
+@require_http_methods(["POST"])
+def selcom_webhook(request):
+    try:
+        payload = json.loads(request.body)
+        logger.info(f"Selcom webhook received: {payload}")
+
+        order_id = payload.get('order_id')
+        transid = payload.get('transid')
+        amount = payload.get('amount')
+        payment_status = payload.get('payment_status')
+
+        if not order_id or not transid or not amount or not payment_status:
+            return JsonResponse({"error": "Invalid payload"}, status=400)
+
+        try:
+            order = Order.objects.get(order_id=order_id)
+            if payment_status == "COMPLETED":
+                order.order_status = "Payment Completed"
+                order.save()
+                logger.info(f"Order {order_id} payment completed.")
+                
+                # Send email notification
+                subject = "Payment Successful"
+                message = (
+                    f"Dear Customer,\n\n"
+                    f"Your payment for order {order_id} has been successfully completed.\n"
+                    f"Transaction ID: {transid}\n"
+                    f"Amount: {amount}\n\n"
+                    f"Thank you for shopping with us!\n"
+                    f"Best regards,\n"
+                    f"The Skinsoko Team"
+                )
+                recipient_list = [order.user.email, "mundabrandon@outlook.com"]
+                send_mail(subject, message, settings.EMAIL_HOST_USER, recipient_list)
+                
+                return JsonResponse({"message": "Payment status updated and email sent"}, status=200)
+            else:
+                logger.warning(f"Order {order_id} payment status: {payment_status}")
+                return JsonResponse({"message": "Payment status not completed"}, status=200)
+        except Order.DoesNotExist:
+            logger.error(f"Order {order_id} does not exist.")
+            return JsonResponse({"error": "Order not found"}, status=404)
+
+    except json.JSONDecodeError:
+        logger.error("Invalid JSON payload")
+        return JsonResponse({"error": "Invalid JSON payload"}, status=400)
+    except Exception as e:
+        logger.error(f"Unexpected error: {e}")
+        return JsonResponse({"error": "An unexpected error occurred"}, status=500)
+
 
 """SOCIAL AUTH"""
 @psa('social:complete')

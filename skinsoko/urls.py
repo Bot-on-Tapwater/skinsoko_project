@@ -33,6 +33,7 @@ urlpatterns = [
     
     # Selcom
     path("selcom/create_minimal_order/", views.create_minimal_order),
+    path("selcom/webhook/", views.selcom_webhook),
     # Email & SMTP
 
     # User Authentication & Authorization
