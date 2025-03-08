@@ -736,7 +736,7 @@ def get_selcom_order_status(request):
         orderStatusPath = "/v1/checkout/order-status"
 
         response = client.getFunc(orderStatusPath, orderStatusDict)
-        response_data = response.json()
+        response_data = response
 
         return JsonResponse(response_data, safe=False)
     except Exception as e:
