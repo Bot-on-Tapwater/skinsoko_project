@@ -718,6 +718,29 @@ def selcom_webhook(request):
     except Exception as e:
         logger.error(f"Unexpected error: {e}")
         return JsonResponse({"error": "An unexpected error occurred"}, status=500)
+    
+@require_http_methods(["GET"])
+def get_selcom_order_status(request):
+    try:
+        order_id = request.GET.get('order_id')
+        if not order_id:
+            return JsonResponse({"error": "order_id parameter is required"}, status=400)
+
+        apiKey = settings.SELCOM_API_KEY
+        apiSecret = settings.SELCOM_API_SECRET
+        baseUrl = settings.SELCOM_BASE_URL
+
+        client = apigwClient.Client(baseUrl, apiKey, apiSecret)
+
+        orderStatusDict = {"order_id": order_id}
+        orderStatusPath = "/v1/checkout/order-status"
+
+        response = client.getFunc(orderStatusPath, orderStatusDict)
+        response_data = response.json()
+
+        return JsonResponse(response_data, safe=False)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
 
 
 """SOCIAL AUTH"""
