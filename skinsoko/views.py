@@ -634,7 +634,7 @@ def create_minimal_order(request):
         "order_id": str(uuid.uuid4()),
         "buyer_email": "mundabrandon@outlook.com",
         "buyer_name": "Munda Brandon",
-        "buyer_phone": "255779620505",
+        "buyer_phone": "255752036666",
         "amount": 1100,
         "redirect_url": "aHR0cHM6Ly9za2luc29rby5jb20=",
         "cancel_url": "aHR0cHM6Ly9za2luc29rby5jb20=",
