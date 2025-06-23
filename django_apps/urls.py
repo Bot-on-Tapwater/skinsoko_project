@@ -22,7 +22,7 @@ from django.conf.urls.static import static
 from django.contrib.auth import views as auth_views
 
 urlpatterns = [
-    path("skinsoko", include("skinsoko.urls")),  # TODO: Change from "skinsoko/" to ""
+    path("skinsoko", include("skinsoko.urls")),
     path("admin/", admin.site.urls),
     path("social-auth/", include("social_django.urls", namespace="social")),
 ]

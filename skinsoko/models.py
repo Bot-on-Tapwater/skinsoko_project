@@ -1,11 +1,6 @@
 from django.db import models
-from django.core.validators import MaxValueValidator, MinValueValidator
-from django.utils import timezone
 from django.contrib.auth.hashers import make_password
-from django.core.validators import MaxValueValidator
 import uuid
-from django.db.models import CheckConstraint, Q
-from datetime import timedelta
 
 
 class User(models.Model):
@@ -32,7 +27,7 @@ class User(models.Model):
 
 class MainCategory(models.Model):
 
-    main_category_id = models.AutoField(primary_key=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
 
     def __str__(self):
@@ -40,14 +35,14 @@ class MainCategory(models.Model):
 
     def to_dict(self, request=None):
         return {
-            "main_category_id": self.main_category_id,
+            "id": str(self.id),
             "name": self.name,
         }
 
 
 class SubCategory(models.Model):
 
-    sub_category_id = models.AutoField(primary_key=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     main_category = models.ForeignKey(
         MainCategory, on_delete=models.CASCADE, related_name="subcategories"
     )
@@ -58,8 +53,8 @@ class SubCategory(models.Model):
 
     def to_dict(self, request=None):
         return {
-            "sub_category_id": self.sub_category_id,
-            "main_category_id": self.main_category_id,
+            "id": str(self.id),
+            "main_category_id": str(self.id),
             "main_category_name": self.main_category.name,  # Assuming MainCategory has a 'name' field
             "name": self.name,
         }
@@ -67,19 +62,19 @@ class SubCategory(models.Model):
 
 class Brand(models.Model):
 
-    brand_id = models.AutoField(primary_key=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
 
     def __str__(self):
         return self.name
 
     def to_dict(self, request=None):
-        return {"brand_id": self.brand_id, "name": self.name}
+        return {"id": str(self.id), "name": self.name}
 
 
 class Product(models.Model):
 
-    product_id = models.AutoField(primary_key=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255, null=False, unique=True, db_index=True)
     description = models.TextField(null=False)
     ingredients = models.TextField(null=False)
@@ -98,7 +93,7 @@ class Product(models.Model):
 
     def to_dict(self, request=None):
         return {
-            "product_id": self.product_id,
+            "id": str(self.id),
             "name": self.name,
             "description": self.description,
             "ingredients": self.ingredients,
@@ -106,7 +101,6 @@ class Product(models.Model):
             "discount": self.discount,
             "discounted_price": self.discounted_price,
             "quantity_in_stock": self.quantity_in_stock,
-            # 'subcategories': [subcategory.to_dict() for subcategory in self.subcategories.all()],
             "best_seller": self.best_seller,
             "slug": self.slug,
             "image": self.image,
@@ -128,17 +122,17 @@ class Product(models.Model):
 
 class ShoppingCart(models.Model):
 
-    cart_id = models.AutoField(primary_key=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     session_key = models.CharField(max_length=40, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Cart ID: {self.cart_id} - User: {self.user}"
+        return f"Cart Id: {str(self.id)} - User: {self.user}"
 
     def to_dict(self, request=None):
         return {
-            "cart_id": self.cart_id,
+            "id": str(self.id),
             "user": self.user.id if self.user else None,
             "session_key": self.session_key,
             "created_at": str(self.created_at),
@@ -147,13 +141,13 @@ class ShoppingCart(models.Model):
 
 class CartItem(models.Model):
 
-    item_id = models.AutoField(primary_key=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     cart = models.ForeignKey(ShoppingCart, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
 
     def __str__(self):
-        return f"Item ID: {self.item_id} - Product: {self.product.name} - Quantity: {self.quantity}"
+        return f"Item Id: {str(self.id)} - Product: {self.product.name} - Quantity: {self.quantity}"
 
     def to_dict(self, request=None):
         product_price = (
@@ -163,9 +157,9 @@ class CartItem(models.Model):
         )
 
         return {
-            "product_id": self.product.product_id if self.product else None,
+            "id": str(self.id),
+            "product_id": str(self.product.id) if self.product else None,
             "product_image": self.product.image if self.product else None,
-            # 'cart': self.cart.to_dict() if self.cart else None,
             "product_slug": self.product.slug if self.product else None,
             "product_name": self.product.name if self.product else None,
             "product_price": product_price,
@@ -185,7 +179,7 @@ class Order(models.Model):
         ("Delivered", "Delivered"),
     ]
 
-    order_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     total_amount = models.PositiveIntegerField()
     order_status = models.CharField(
@@ -194,11 +188,11 @@ class Order(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Order ID: {self.order_id} - User: {self.user.email} - Status: {self.order_status}"
+        return f"Order Id: {str(self.id)} - User: {self.user.email} - Status: {self.order_status}"
 
     def to_dict(self, request=None):
         return {
-            "order_id": str(self.order_id),
+            "id": str(self.id),
             "user": str(self.user.id) if self.user else None,
             "total_amount": str(self.total_amount),
             "order_status": self.order_status,
@@ -208,21 +202,19 @@ class Order(models.Model):
 
 class OrderItem(models.Model):
 
-    item_id = models.AutoField(primary_key=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
     unit_price = models.PositiveIntegerField()
 
     def __str__(self):
-        return f"Item ID: {self.item_id} - Product: {self.product.name} - Order: {self.order.order_id}"
+        return f"Item Id: {str(self.id)} - Product: {self.product.name} - Order: {str(self.order.id)}"
 
     def to_dict(self, request=None):
         return {
-            "order_item_id": self.item_id,
-            "order": str(
-                self.order.order_id
-            ),  # Assuming you want to include the order ID
+            "id": self.id,
+            "order": str(self.order.id),  # Assuming you want to include the order ID
             "product": self.product.to_dict() if self.product else None,
             "quantity": self.quantity,
             "unit_price": self.unit_price,
@@ -231,7 +223,7 @@ class OrderItem(models.Model):
 
 class Review(models.Model):
 
-    review_id = models.AutoField(primary_key=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     rating = models.PositiveIntegerField()
@@ -240,11 +232,11 @@ class Review(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Review ID: {self.review_id} - Product: {self.product.name} - User: {self.user.email}"
+        return f"Review Id: {str(self.id)} - Product: {self.product.name} - User: {self.user.email}"
 
     def to_dict(self, request=None):
         return {
-            "review_id": self.review_id,
+            "id": str(self.id),
             "product": self.product.to_dict() if self.product else None,
             "user": self.user.email,
             "rating": self.rating,
@@ -256,7 +248,7 @@ class Review(models.Model):
 
 class Address(models.Model):
 
-    address_id = models.AutoField(primary_key=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     full_name = models.CharField(max_length=255, null=True)
     street_address = models.CharField(max_length=255, null=True)
@@ -266,11 +258,11 @@ class Address(models.Model):
     additional_details = models.CharField(max_length=500, null=True)
 
     def __str__(self):
-        return f"Address ID: {self.address_id} - User: {self.user.email}"
+        return f"Address Id: {str(self.id)} - User: {self.user.email}"
 
     def to_dict(self, request=None):
         return {
-            "address_id": self.address_id,
+            "id": self.id,
             "user": self.user.email if self.user else None,
             "full_name": self.full_name,
             "street_address": self.street_address,
@@ -283,23 +275,23 @@ class Address(models.Model):
 
 class Towns(models.Model):
 
-    town_id = models.AutoField(primary_key=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
     delivery_fee = models.PositiveIntegerField()
 
     def to_dict(self, request=None):
         return {
-            "town_id": self.town_id,
+            "id": self.id,
             "name": self.name,
             "delivery_fee": self.delivery_fee,
         }
 
     def __str__(self):
-        return f"Town ID: {self.town_id}, Name: {self.name}, Delivery Fee: {self.delivery_fee}"
+        return f"Town Id: {str(self.id)}, Name: {self.name}, Delivery Fee: {self.delivery_fee}"
 
 
 class Wishlist(models.Model):
-    wishlist_id = models.AutoField(primary_key=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="wishlists")
     product = models.ForeignKey(
         Product, on_delete=models.CASCADE, related_name="wishlisted_by"
@@ -307,12 +299,13 @@ class Wishlist(models.Model):
     added_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Wishlist ID: {self.wishlist_id} - User: {self.user.email} - Product: {self.product.name}"
+        return f"Wishlist Id: {str(self.id)} - User: {self.user.email} - Product: {self.product.name}"
 
     def to_dict(self, request=None):
         return {
+            "id": str(self.id),
             "product_slug": self.product.slug,
-            "product_id": self.product.product_id if self.product else None,
+            "product_id": str(self.product.id) if self.product else None,
             "product_image": self.product.image if self.product else None,
             "product_name": self.product.name if self.product else None,
             "product_price": self.product.price if self.product else None,
@@ -324,6 +317,7 @@ class Wishlist(models.Model):
 
 
 class Coupon(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     code = models.CharField(max_length=50, unique=True)
     discount = models.DecimalField(max_digits=5, decimal_places=2)
     active = models.BooleanField(default=True)
@@ -334,6 +328,7 @@ class Coupon(models.Model):
 
     def to_dict(self):
         return {
+            "id": str(self.id),
             "code": self.code,
             "discount": float(
                 self.discount
@@ -344,6 +339,7 @@ class Coupon(models.Model):
 
 
 class Maillist(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(null=False, unique=True)
     phone_number = models.CharField(max_length=255, null=True)
 
@@ -352,6 +348,7 @@ class Maillist(models.Model):
 
     def to_dict(self):
         return {
+            "id": str(self.id),
             "email": self.email,
             "phone_number": self.phone_number,
         }
