@@ -1,0 +1,178 @@
+/admin/	django.contrib.admin.sites.index	admin:index
+/admin/<app_label>/	django.contrib.admin.sites.app_index	admin:app_list
+/admin/<url>	django.contrib.admin.sites.catch_all_view
+/admin/auth/group/	django.contrib.admin.options.changelist_view	admin:auth_group_changelist
+/admin/auth/group/<path:object_id>/	django.views.generic.base.RedirectView
+/admin/auth/group/<path:object_id>/change/	django.contrib.admin.options.change_view	admin:auth_group_change
+/admin/auth/group/<path:object_id>/delete/	django.contrib.admin.options.delete_view	admin:auth_group_delete
+/admin/auth/group/<path:object_id>/history/	django.contrib.admin.options.history_view	admin:auth_group_history
+/admin/auth/group/add/	django.contrib.admin.options.add_view	admin:auth_group_add
+/admin/auth/user/	django.contrib.admin.options.changelist_view	admin:auth_user_changelist
+/admin/auth/user/<id>/password/	django.contrib.auth.admin.user_change_password	admin:auth_user_password_change
+/admin/auth/user/<path:object_id>/	django.views.generic.base.RedirectView
+/admin/auth/user/<path:object_id>/change/	django.contrib.admin.options.change_view	admin:auth_user_change
+/admin/auth/user/<path:object_id>/delete/	django.contrib.admin.options.delete_view	admin:auth_user_delete
+/admin/auth/user/<path:object_id>/history/	django.contrib.admin.options.history_view	admin:auth_user_history
+/admin/auth/user/add/	django.contrib.auth.admin.add_view	admin:auth_user_add
+/admin/autocomplete/	django.contrib.admin.sites.autocomplete_view	admin:autocomplete
+/admin/jsi18n/	django.contrib.admin.sites.i18n_javascript	admin:jsi18n
+/admin/login/	django.contrib.admin.sites.login	admin:login
+/admin/logout/	django.contrib.admin.sites.logout	admin:logout
+/admin/password_change/	django.contrib.admin.sites.password_change	admin:password_change
+/admin/password_change/done/	django.contrib.admin.sites.password_change_done	admin:password_change_done
+/admin/r/<int:content_type_id>/<path:object_id>/	django.contrib.contenttypes.views.shortcut	admin:view_on_site
+/admin/skinsoko/address/	django.contrib.admin.options.changelist_view	admin:skinsoko_address_changelist
+/admin/skinsoko/address/<path:object_id>/	django.views.generic.base.RedirectView
+/admin/skinsoko/address/<path:object_id>/change/	django.contrib.admin.options.change_view	admin:skinsoko_address_change
+/admin/skinsoko/address/<path:object_id>/delete/	django.contrib.admin.options.delete_view	admin:skinsoko_address_delete
+/admin/skinsoko/address/<path:object_id>/history/	django.contrib.admin.options.history_view	admin:skinsoko_address_history
+/admin/skinsoko/address/add/	django.contrib.admin.options.add_view	admin:skinsoko_address_add
+/admin/skinsoko/brand/	django.contrib.admin.options.changelist_view	admin:skinsoko_brand_changelist
+/admin/skinsoko/brand/<path:object_id>/	django.views.generic.base.RedirectView
+/admin/skinsoko/brand/<path:object_id>/change/	django.contrib.admin.options.change_view	admin:skinsoko_brand_change
+/admin/skinsoko/brand/<path:object_id>/delete/	django.contrib.admin.options.delete_view	admin:skinsoko_brand_delete
+/admin/skinsoko/brand/<path:object_id>/history/	django.contrib.admin.options.history_view	admin:skinsoko_brand_history
+/admin/skinsoko/brand/add/	django.contrib.admin.options.add_view	admin:skinsoko_brand_add
+/admin/skinsoko/cartitem/	django.contrib.admin.options.changelist_view	admin:skinsoko_cartitem_changelist
+/admin/skinsoko/cartitem/<path:object_id>/	django.views.generic.base.RedirectView
+/admin/skinsoko/cartitem/<path:object_id>/change/	django.contrib.admin.options.change_view	admin:skinsoko_cartitem_change
+/admin/skinsoko/cartitem/<path:object_id>/delete/	django.contrib.admin.options.delete_view	admin:skinsoko_cartitem_delete
+/admin/skinsoko/cartitem/<path:object_id>/history/	django.contrib.admin.options.history_view	admin:skinsoko_cartitem_history
+/admin/skinsoko/cartitem/add/	django.contrib.admin.options.add_view	admin:skinsoko_cartitem_add
+/admin/skinsoko/coupon/	django.contrib.admin.options.changelist_view	admin:skinsoko_coupon_changelist
+/admin/skinsoko/coupon/<path:object_id>/	django.views.generic.base.RedirectView
+/admin/skinsoko/coupon/<path:object_id>/change/	django.contrib.admin.options.change_view	admin:skinsoko_coupon_change
+/admin/skinsoko/coupon/<path:object_id>/delete/	django.contrib.admin.options.delete_view	admin:skinsoko_coupon_delete
+/admin/skinsoko/coupon/<path:object_id>/history/	django.contrib.admin.options.history_view	admin:skinsoko_coupon_history
+/admin/skinsoko/coupon/add/	django.contrib.admin.options.add_view	admin:skinsoko_coupon_add
+/admin/skinsoko/maillist/	django.contrib.admin.options.changelist_view	admin:skinsoko_maillist_changelist
+/admin/skinsoko/maillist/<path:object_id>/	django.views.generic.base.RedirectView
+/admin/skinsoko/maillist/<path:object_id>/change/	django.contrib.admin.options.change_view	admin:skinsoko_maillist_change
+/admin/skinsoko/maillist/<path:object_id>/delete/	django.contrib.admin.options.delete_view	admin:skinsoko_maillist_delete
+/admin/skinsoko/maillist/<path:object_id>/history/	django.contrib.admin.options.history_view	admin:skinsoko_maillist_history
+/admin/skinsoko/maillist/add/	django.contrib.admin.options.add_view	admin:skinsoko_maillist_add
+/admin/skinsoko/maincategory/	django.contrib.admin.options.changelist_view	admin:skinsoko_maincategory_changelist
+/admin/skinsoko/maincategory/<path:object_id>/	django.views.generic.base.RedirectView
+/admin/skinsoko/maincategory/<path:object_id>/change/	django.contrib.admin.options.change_view	admin:skinsoko_maincategory_change
+/admin/skinsoko/maincategory/<path:object_id>/delete/	django.contrib.admin.options.delete_view	admin:skinsoko_maincategory_delete
+/admin/skinsoko/maincategory/<path:object_id>/history/	django.contrib.admin.options.history_view	admin:skinsoko_maincategory_history
+/admin/skinsoko/maincategory/add/	django.contrib.admin.options.add_view	admin:skinsoko_maincategory_add
+/admin/skinsoko/order/	django.contrib.admin.options.changelist_view	admin:skinsoko_order_changelist
+/admin/skinsoko/order/<path:object_id>/	django.views.generic.base.RedirectView
+/admin/skinsoko/order/<path:object_id>/change/	django.contrib.admin.options.change_view	admin:skinsoko_order_change
+/admin/skinsoko/order/<path:object_id>/delete/	django.contrib.admin.options.delete_view	admin:skinsoko_order_delete
+/admin/skinsoko/order/<path:object_id>/history/	django.contrib.admin.options.history_view	admin:skinsoko_order_history
+/admin/skinsoko/order/add/	django.contrib.admin.options.add_view	admin:skinsoko_order_add
+/admin/skinsoko/orderitem/	django.contrib.admin.options.changelist_view	admin:skinsoko_orderitem_changelist
+/admin/skinsoko/orderitem/<path:object_id>/	django.views.generic.base.RedirectView
+/admin/skinsoko/orderitem/<path:object_id>/change/	django.contrib.admin.options.change_view	admin:skinsoko_orderitem_change
+/admin/skinsoko/orderitem/<path:object_id>/delete/	django.contrib.admin.options.delete_view	admin:skinsoko_orderitem_delete
+/admin/skinsoko/orderitem/<path:object_id>/history/	django.contrib.admin.options.history_view	admin:skinsoko_orderitem_history
+/admin/skinsoko/orderitem/add/	django.contrib.admin.options.add_view	admin:skinsoko_orderitem_add
+/admin/skinsoko/product/	django.contrib.admin.options.changelist_view	admin:skinsoko_product_changelist
+/admin/skinsoko/product/<path:object_id>/	django.views.generic.base.RedirectView
+/admin/skinsoko/product/<path:object_id>/change/	django.contrib.admin.options.change_view	admin:skinsoko_product_change
+/admin/skinsoko/product/<path:object_id>/delete/	django.contrib.admin.options.delete_view	admin:skinsoko_product_delete
+/admin/skinsoko/product/<path:object_id>/history/	django.contrib.admin.options.history_view	admin:skinsoko_product_history
+/admin/skinsoko/product/add/	django.contrib.admin.options.add_view	admin:skinsoko_product_add
+/admin/skinsoko/review/	django.contrib.admin.options.changelist_view	admin:skinsoko_review_changelist
+/admin/skinsoko/review/<path:object_id>/	django.views.generic.base.RedirectView
+/admin/skinsoko/review/<path:object_id>/change/	django.contrib.admin.options.change_view	admin:skinsoko_review_change
+/admin/skinsoko/review/<path:object_id>/delete/	django.contrib.admin.options.delete_view	admin:skinsoko_review_delete
+/admin/skinsoko/review/<path:object_id>/history/	django.contrib.admin.options.history_view	admin:skinsoko_review_history
+/admin/skinsoko/review/add/	django.contrib.admin.options.add_view	admin:skinsoko_review_add
+/admin/skinsoko/shoppingcart/	django.contrib.admin.options.changelist_view	admin:skinsoko_shoppingcart_changelist
+/admin/skinsoko/shoppingcart/<path:object_id>/	django.views.generic.base.RedirectView
+/admin/skinsoko/shoppingcart/<path:object_id>/change/	django.contrib.admin.options.change_view	admin:skinsoko_shoppingcart_change
+/admin/skinsoko/shoppingcart/<path:object_id>/delete/	django.contrib.admin.options.delete_view	admin:skinsoko_shoppingcart_delete
+/admin/skinsoko/shoppingcart/<path:object_id>/history/	django.contrib.admin.options.history_view	admin:skinsoko_shoppingcart_history
+/admin/skinsoko/shoppingcart/add/	django.contrib.admin.options.add_view	admin:skinsoko_shoppingcart_add
+/admin/skinsoko/subcategory/	django.contrib.admin.options.changelist_view	admin:skinsoko_subcategory_changelist
+/admin/skinsoko/subcategory/<path:object_id>/	django.views.generic.base.RedirectView
+/admin/skinsoko/subcategory/<path:object_id>/change/	django.contrib.admin.options.change_view	admin:skinsoko_subcategory_change
+/admin/skinsoko/subcategory/<path:object_id>/delete/	django.contrib.admin.options.delete_view	admin:skinsoko_subcategory_delete
+/admin/skinsoko/subcategory/<path:object_id>/history/	django.contrib.admin.options.history_view	admin:skinsoko_subcategory_history
+/admin/skinsoko/subcategory/add/	django.contrib.admin.options.add_view	admin:skinsoko_subcategory_add
+/admin/skinsoko/towns/	django.contrib.admin.options.changelist_view	admin:skinsoko_towns_changelist
+/admin/skinsoko/towns/<path:object_id>/	django.views.generic.base.RedirectView
+/admin/skinsoko/towns/<path:object_id>/change/	django.contrib.admin.options.change_view	admin:skinsoko_towns_change
+/admin/skinsoko/towns/<path:object_id>/delete/	django.contrib.admin.options.delete_view	admin:skinsoko_towns_delete
+/admin/skinsoko/towns/<path:object_id>/history/	django.contrib.admin.options.history_view	admin:skinsoko_towns_history
+/admin/skinsoko/towns/add/	django.contrib.admin.options.add_view	admin:skinsoko_towns_add
+/admin/skinsoko/user/	django.contrib.admin.options.changelist_view	admin:skinsoko_user_changelist
+/admin/skinsoko/user/<path:object_id>/	django.views.generic.base.RedirectView
+/admin/skinsoko/user/<path:object_id>/change/	django.contrib.admin.options.change_view	admin:skinsoko_user_change
+/admin/skinsoko/user/<path:object_id>/delete/	django.contrib.admin.options.delete_view	admin:skinsoko_user_delete
+/admin/skinsoko/user/<path:object_id>/history/	django.contrib.admin.options.history_view	admin:skinsoko_user_history
+/admin/skinsoko/user/add/	django.contrib.admin.options.add_view	admin:skinsoko_user_add
+/admin/skinsoko/wishlist/	django.contrib.admin.options.changelist_view	admin:skinsoko_wishlist_changelist
+/admin/skinsoko/wishlist/<path:object_id>/	django.views.generic.base.RedirectView
+/admin/skinsoko/wishlist/<path:object_id>/change/	django.contrib.admin.options.change_view	admin:skinsoko_wishlist_change
+/admin/skinsoko/wishlist/<path:object_id>/delete/	django.contrib.admin.options.delete_view	admin:skinsoko_wishlist_delete
+/admin/skinsoko/wishlist/<path:object_id>/history/	django.contrib.admin.options.history_view	admin:skinsoko_wishlist_history
+/admin/skinsoko/wishlist/add/	django.contrib.admin.options.add_view	admin:skinsoko_wishlist_add
+/skinsoko/api/csrf-token/	skinsoko.views.get_csrf_token
+/skinsoko/brands/	skinsoko.views.get_list_of_all_brands	category:list-all-brand-categories
+/skinsoko/consolidated_data/	skinsoko.views.consolidated_data_view	data:consolidated-data
+/skinsoko/coupons/generate/	skinsoko.views.generate_coupons
+/skinsoko/coupons/validate/	skinsoko.views.validate_coupon
+/skinsoko/data_deletion/	skinsoko.views.data_deletion	misc:data-deletion
+/skinsoko/database/populate/	skinsoko.views.populate_database
+/skinsoko/database/populate/categories/	skinsoko.views.populate_categories
+/skinsoko/database/populate/products/	skinsoko.views.populate_products
+/skinsoko/database/populate/towns/	skinsoko.views.populate_towns
+/skinsoko/login/	skinsoko.views.login_view	auth:login
+/skinsoko/logout/	skinsoko.views.logout_view	auth:logout
+/skinsoko/maillist/all/	skinsoko.views.maillist_all	maillist:maillist-all
+/skinsoko/maillist/create/	skinsoko.views.maillist_create	maillist:maillist-create
+/skinsoko/main-categories/	skinsoko.views.get_list_of_all_main_categories	category:list-all-categories
+/skinsoko/orders/	skinsoko.views.get_list_of_all_orders	order:list-all-orders
+/skinsoko/orders/<uuid:id>/	skinsoko.views.get_details_of_order_with_order_id	order:get-order-details
+/skinsoko/orders/<uuid:id>/cancel/	skinsoko.views.cancel_order_with_order_id	order:cancel-order
+/skinsoko/orders/<uuid:id>/deliver/	skinsoko.views.update_order_to_delivered_with_order_id	order:delivered-order
+/skinsoko/orders/<uuid:id>/order_items/	skinsoko.views.get_order_items_for_order_with_order_id	order:get-order-items
+/skinsoko/orders/paid/	skinsoko.views.get_list_of_paid_for_orders
+/skinsoko/password_reset/request/	skinsoko.views.request_password_reset	auth:request-password-reset
+/skinsoko/password_reset/reset/	skinsoko.views.reset_password
+/skinsoko/password_reset/validate/	skinsoko.views.validate_passsword_reset_token
+/skinsoko/pesapal/api_token/	skinsoko.views.get_pesapal_token_view
+/skinsoko/pesapal/ipn/	skinsoko.views.register_ipn_view
+/skinsoko/pesapal/ipn/notification/	skinsoko.views.ipn_notification_view	pesapal:ipn_notification
+/skinsoko/pesapal/submit_order/<uuid:order_id>/	skinsoko.views.pesapal_submit_order	pesapal:submit_order_request
+/skinsoko/pesapal/transaction_status/<str:tracking_id>/	skinsoko.views.pesapal_transaction_status	pesapal:transaction_status
+/skinsoko/privacy/	skinsoko.views.privacy_policy	misc:privacy-policy
+/skinsoko/products/	skinsoko.views.list_all_products	product:list-all-products
+/skinsoko/products/<slug:slug>/	skinsoko.views.get_product_with_product_id	product:get-product-details
+/skinsoko/products/<slug:slug>/reviews/	skinsoko.views.get_reviews_for_product_with_product_id	review:get-product-reviews
+/skinsoko/register/	skinsoko.views.register_view	auth:register
+/skinsoko/search/	skinsoko.views.search	product:search-products
+/skinsoko/selcom/create_minimal_order/	skinsoko.views.create_minimal_order
+/skinsoko/selcom/order_status/	skinsoko.views.get_selcom_order_status
+/skinsoko/selcom/webhook/	skinsoko.views.selcom_webhook
+/skinsoko/subcategories/<str:main_category>/	skinsoko.views.get_list_of_all_sub_categories_in_a_main_category	category:list-all-sub-categories
+/skinsoko/tos/	skinsoko.views.TOS	misc:terms-of-service
+/skinsoko/towns/	skinsoko.views.list_all_towns	address:list-all-towns
+/skinsoko/user_status/	skinsoko.views.user_status
+/skinsoko/users/	skinsoko.views.get_user_with_user_id_profile_details	user:get-user-profile-details
+/skinsoko/users/addresses/	skinsoko.views.get_user_saved_addresses	address:get-user-addresses
+/skinsoko/users/addresses/<int:id>/delete/	skinsoko.views.delete_address_with_address_id	address:delete-address
+/skinsoko/users/addresses/<int:id>/update/	skinsoko.views.update_details_of_address_with_address_id	address:update-address-details
+/skinsoko/users/addresses/contacts/	skinsoko.views.get_contacts_from_address
+/skinsoko/users/addresses/create/	skinsoko.views.add_address_to_user_profile	address:add-address-to-profile
+/skinsoko/users/cart/	skinsoko.views.get_contents_of_shopping_cart_of_user	cart:get-cart-contents
+/skinsoko/users/cart/add/<int:productId>/	skinsoko.views.add_product_to_user_cart	cart:add-product-to-cart
+/skinsoko/users/cart/clear/	skinsoko.views.clear_entire_shopping_cart	cart:clear-cart
+/skinsoko/users/cart/remove/<int:productId>/	skinsoko.views.remove_product_from_user_cart	cart:remove-product-from-cart
+/skinsoko/users/cart/update/<int:productId>/	skinsoko.views.update_product_in_user_cart	cart:update-product-in-cart
+/skinsoko/users/orders/	skinsoko.views.list_orders_placed_by_user_with_user_id	order:get-user-orders
+/skinsoko/users/orders/create/	skinsoko.views.create_new_order	order:create-new-order
+/skinsoko/users/products/<slug:slug>/reviews/create/	skinsoko.views.creat_review_for_product_with_product_id	review:create-product-review
+/skinsoko/users/reviews/	skinsoko.views.list_reviews_created_by_user_with_user_id	review:list-user-reviews
+/skinsoko/users/reviews/<int:id>/delete/	skinsoko.views.user_delete_review	review:delete-user-review
+/skinsoko/users/wishlists/	skinsoko.views.get_user_wishlist	wishlist:list-all-wishlists
+/skinsoko/users/wishlists/add/<int:productId>/	skinsoko.views.add_item_to_wishlist	wishlist:add-item-to-wishlist
+/skinsoko/users/wishlists/remove/<int:productId>/	skinsoko.views.remove_item_from_wishlist	wishlist:remove-item-from-wishlist
+/social-auth/complete/<str:backend>/	social_django.views.complete	social:complete
+/social-auth/disconnect/<str:backend>/	social_django.views.disconnect	social:disconnect
+/social-auth/disconnect/<str:backend>/<int:association_id>/	social_django.views.disconnect	social:disconnect_individual
+/social-auth/login/<str:backend>/	social_django.views.auth	social:begin

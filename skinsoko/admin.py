@@ -1,82 +1,151 @@
 from django.contrib import admin
-from .models import User, MainCategory, SubCategory, Brand, Product, ShoppingCart, CartItem, Order, OrderItem, Review, Address, Towns, Wishlist, Coupon, Maillist
+from django.contrib.admin import ModelAdmin
+from django.db.models.query import QuerySet
+from typing import Any
+from .models import (
+    User,
+    MainCategory,
+    SubCategory,
+    Brand,
+    Product,
+    ShoppingCart,
+    CartItem,
+    Order,
+    OrderItem,
+    Review,
+    Address,
+    Towns,
+    Wishlist,
+    Coupon,
+    Maillist,
+)
 
-class UserAdmin(admin.ModelAdmin):
-    list_display = ('id', 'email', 'password_reset_token')
-    fields = ('id', 'email', 'password', 'password_reset_token')
-    readonly_fields = ('id',)
-    search_fields = ('email',)
 
-class MainCategoryAdmin(admin.ModelAdmin):
-    list_display = ('main_category_id', 'name')
-    search_fields = ('name',)
+class UserAdmin(ModelAdmin):
+    list_display: tuple[str, ...] = ("id", "email", "password_reset_token")
+    fields: tuple[str, ...] = ("id", "email", "password", "password_reset_token")
+    readonly_fields: tuple[str, ...] = ("id",)
+    search_fields: tuple[str, ...] = ("email",)
 
-class SubCategoryAdmin(admin.ModelAdmin):
-    list_display = ('sub_category_id', 'main_category', 'name')
-    search_fields = ('name', 'main_category__name')
-    list_filter = ('main_category',)
 
-class BrandAdmin(admin.ModelAdmin):
-    list_display = ('brand_id', 'name')
-    search_fields = ('name',)
+class MainCategoryAdmin(ModelAdmin):
+    list_display: tuple[str, ...] = ("main_category_id", "name")
+    search_fields: tuple[str, ...] = ("name",)
 
-class ProductAdmin(admin.ModelAdmin):
-    prepopulated_fields = {"slug": ("name",)}
-    list_display = ('name', 'price', 'discount', 'discounted_price', 'quantity_in_stock', 'best_seller', 'brand')
-    search_fields = ('name', 'brand__name')
-    list_filter = ('best_seller', 'brand', 'subcategories')
-    ordering = ('-price',)
 
-class ShoppingCartAdmin(admin.ModelAdmin):
-    list_display = ('cart_id', 'user', 'session_key', 'created_at')
-    search_fields = ('user__email', 'session_key')
-    list_filter = ('created_at',)
+class SubCategoryAdmin(ModelAdmin):
+    list_display: tuple[str, ...] = ("sub_category_id", "main_category", "name")
+    search_fields: tuple[str, ...] = ("name", "main_category__name")
+    list_filter: tuple[str, ...] = ("main_category",)
 
-class CartItemAdmin(admin.ModelAdmin):
-    list_display = ('item_id', 'cart', 'product', 'quantity')
-    search_fields = ('cart__cart_id', 'product__name')
-    list_filter = ('cart', 'product')
 
-class OrderAdmin(admin.ModelAdmin):
-    list_display = ('order_id', 'user', 'total_amount', 'order_status', 'created_at')
-    search_fields = ('user__email', 'order_id')
-    list_filter = ('order_status', 'created_at')
+class BrandAdmin(ModelAdmin):
+    list_display: tuple[str, ...] = ("brand_id", "name")
+    search_fields: tuple[str, ...] = ("name",)
 
-class OrderItemAdmin(admin.ModelAdmin):
-    list_display = ('item_id', 'order', 'product', 'quantity', 'unit_price')
-    search_fields = ('order__order_id', 'product__name')
-    list_filter = ('order', 'product')
 
-class ReviewAdmin(admin.ModelAdmin):
-    list_display = ('review_id', 'product', 'user', 'rating', 'full_name', 'created_at')
-    search_fields = ('product__name', 'user__email', 'full_name')
-    list_filter = ('rating', 'created_at')
+class ProductAdmin(ModelAdmin):
+    prepopulated_fields: dict[str, tuple[str, ...]] = {"slug": ("name",)}
+    list_display: tuple[str, ...] = (
+        "name",
+        "price",
+        "discount",
+        "discounted_price",
+        "quantity_in_stock",
+        "best_seller",
+        "brand",
+    )
+    search_fields: tuple[str, ...] = ("name", "brand__name")
+    list_filter: tuple[str, ...] = ("best_seller", "brand", "subcategories")
+    ordering: tuple[str, ...] = ("-price",)
 
-class AddressAdmin(admin.ModelAdmin):
-    list_display = ('address_id', 'user', 'full_name', 'street_address', 'town', 'county', 'phone_number')
-    search_fields = ('user__email', 'full_name', 'town')
-    list_filter = ('town', 'county')
 
-class TownsAdmin(admin.ModelAdmin):
-    list_display = ('town_id', 'name', 'delivery_fee')
-    search_fields = ('name',)
-    list_filter = ('delivery_fee',)
+class ShoppingCartAdmin(ModelAdmin):
+    list_display: tuple[str, ...] = ("cart_id", "user", "session_key", "created_at")
+    search_fields: tuple[str, ...] = ("user__email", "session_key")
+    list_filter: tuple[str, ...] = ("created_at",)
 
-class WishlistAdmin(admin.ModelAdmin):
-    list_display = ('wishlist_id', 'user', 'product', 'added_at')
-    search_fields = ('user__email', 'product__name')
-    list_filter = ('added_at',)
 
-class CouponAdmin(admin.ModelAdmin):
-    list_display = ('code', 'discount', 'active', 'order')
-    search_fields = ('code',)
-    list_filter = ('active', 'order')
+class CartItemAdmin(ModelAdmin):
+    list_display: tuple[str, ...] = ("item_id", "cart", "product", "quantity")
+    search_fields: tuple[str, ...] = ("cart__cart_id", "product__name")
+    list_filter: tuple[str, ...] = ("cart", "product")
 
-class MaillistAdmin(admin.ModelAdmin):
-    list_display = ('email', 'phone_number')
-    search_fields = ('email', 'phone_number')
 
-# Register your models with the admin site
+class OrderAdmin(ModelAdmin):
+    list_display: tuple[str, ...] = (
+        "order_id",
+        "user",
+        "total_amount",
+        "order_status",
+        "created_at",
+    )
+    search_fields: tuple[str, ...] = ("user__email", "order_id")
+    list_filter: tuple[str, ...] = ("order_status", "created_at")
+
+
+class OrderItemAdmin(ModelAdmin):
+    list_display: tuple[str, ...] = (
+        "item_id",
+        "order",
+        "product",
+        "quantity",
+        "unit_price",
+    )
+    search_fields: tuple[str, ...] = ("order__order_id", "product__name")
+    list_filter: tuple[str, ...] = ("order", "product")
+
+
+class ReviewAdmin(ModelAdmin):
+    list_display: tuple[str, ...] = (
+        "review_id",
+        "product",
+        "user",
+        "rating",
+        "full_name",
+        "created_at",
+    )
+    search_fields: tuple[str, ...] = ("product__name", "user__email", "full_name")
+    list_filter: tuple[str, ...] = ("rating", "created_at")
+
+
+class AddressAdmin(ModelAdmin):
+    list_display: tuple[str, ...] = (
+        "address_id",
+        "user",
+        "full_name",
+        "street_address",
+        "town",
+        "county",
+        "phone_number",
+    )
+    search_fields: tuple[str, ...] = ("user__email", "full_name", "town")
+    list_filter: tuple[str, ...] = ("town", "county")
+
+
+class TownsAdmin(ModelAdmin):
+    list_display: tuple[str, ...] = ("town_id", "name", "delivery_fee")
+    search_fields: tuple[str, ...] = ("name",)
+    list_filter: tuple[str, ...] = ("delivery_fee",)
+
+
+class WishlistAdmin(ModelAdmin):
+    list_display: tuple[str, ...] = ("wishlist_id", "user", "product", "added_at")
+    search_fields: tuple[str, ...] = ("user__email", "product__name")
+    list_filter: tuple[str, ...] = ("added_at",)
+
+
+class CouponAdmin(ModelAdmin):
+    list_display: tuple[str, ...] = ("code", "discount", "active", "order")
+    search_fields: tuple[str, ...] = ("code",)
+    list_filter: tuple[str, ...] = ("active", "order")
+
+
+class MaillistAdmin(ModelAdmin):
+    list_display: tuple[str, ...] = ("email", "phone_number")
+    search_fields: tuple[str, ...] = ("email", "phone_number")
+
+
 admin.site.register(User, UserAdmin)
 admin.site.register(MainCategory, MainCategoryAdmin)
 admin.site.register(SubCategory, SubCategoryAdmin)
