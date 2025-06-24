@@ -213,7 +213,7 @@ class AddressViews:
         try:
             userId = request.session.get("user_id")
 
-            address_to_update = Address.objects.get(address_id=id)
+            address_to_update = Address.objects.get(id=id)
 
             user = User.objects.get(id=userId)
 
@@ -250,7 +250,7 @@ class AddressViews:
         try:
             userId = request.session.get("user_id")
 
-            address_to_delete = Address.objects.get(address_id=id, user=userId)
+            address_to_delete = Address.objects.get(id=id, user=userId)
 
             address_to_delete.delete()
 
@@ -316,7 +316,7 @@ class CartViews:
 
             cart_items = [
                 item.to_dict()
-                for item in CartItem.objects.filter(cart=cart_contents_of_user.cart_id)
+                for item in CartItem.objects.filter(cart=cart_contents_of_user.id)
             ]
 
             # dict to hold user's cart summary
@@ -353,16 +353,13 @@ class CartViews:
         try:
             id = request.session.get("user_id")
 
-            product = Product.objects.get(product_id=productId)
+            product = Product.objects.get(id=productId)
 
             quantity = request.POST["quantity"]
 
-            if (
-                int(quantity)
-                > Product.objects.get(product_id=productId).quantity_in_stock
-            ):
+            if int(quantity) > Product.objects.get(id=productId).quantity_in_stock:
                 return JsonResponse(
-                    f"Quantity in stock is {Product.objects.get(product_id=productId).quantity_in_stock}, reduce your current quantity of ({quantity}) items.",
+                    f"Quantity in stock is {Product.objects.get(id=productId).quantity_in_stock}, reduce your current quantity of ({quantity}) items.",
                     safe=False,
                 )
 
@@ -457,7 +454,7 @@ class CartViews:
 
             quantity = request.POST["new_product_quantity"]
 
-            product = get_object_or_404(Product, product_id=productId)
+            product = get_object_or_404(Product, id=productId)
 
             if int(quantity) > product.quantity_in_stock:
                 return JsonResponse(
@@ -519,9 +516,7 @@ class CartViews:
             user_cart = ShoppingCart.objects.get(user=userId)
 
             for item in CartItem.objects.filter(cart=user_cart):
-                product_to_update_quantity = Product.objects.get(
-                    product_id=item.product.product_id
-                )
+                product_to_update_quantity = Product.objects.get(id=item.product.id)
 
                 print(
                     "quantity in stock: ", product_to_update_quantity.quantity_in_stock
@@ -562,7 +557,7 @@ class CartViews:
 
             cart_item_to_delete = CartItem.objects.get(
                 cart=ShoppingCart.objects.get(user=id),
-                product=Product.objects.get(product_id=productId),
+                product=Product.objects.get(id=productId),
             )
 
             cart_item_to_delete.delete()
@@ -1080,7 +1075,7 @@ class DatabaseViews:
     def populate_categories(request):
         try:
             # Path to the CSV file
-            csv_file_path = os.path.join(settings.BASE_DIR, "categories.csv")
+            csv_file_path = os.path.join(settings.BASE_DIR, "misc/categories.csv")
 
             # Load the CSV file into a DataFrame, skipping the first row if it contains extra unnamed columns
             df = pd.read_csv(csv_file_path, header=1)
@@ -1134,7 +1129,7 @@ class DatabaseViews:
     def populate_towns(request):
         try:
             # Path to the CSV file
-            csv_file_path = os.path.join(settings.BASE_DIR, "towns.csv")
+            csv_file_path = os.path.join(settings.BASE_DIR, "misc/towns.csv")
 
             # Load the CSV file into a DataFrame
             df = pd.read_csv(csv_file_path, header=None)
@@ -1264,7 +1259,7 @@ class DatabaseViews:
     def populate_products(request):
         try:
             products = DatabaseViews.read_csv_and_create_dict(
-                os.path.join(settings.BASE_DIR, "products.csv")
+                os.path.join(settings.BASE_DIR, "misc/products.csv")
             )
 
             for product_data in products:
@@ -1405,15 +1400,13 @@ class OrderViews:
 
         for order in all_orders:
 
-            orders_items_addresses[str(order.order_id)] = {
+            orders_items_addresses[str(order.id)] = {
                 "order": order.to_dict(),
                 "order_items": OrderViews.get_order_items_for_order_with_order_id_helper(
-                    order.order_id
+                    order.id
                 ),
                 "order_address": Address.objects.get(user=order.user.id).to_dict(),
             }
-
-            # print(orders_items_addresses[str(order.order_id)])
 
         return JsonResponse(orders_items_addresses, safe=False)
 
@@ -1421,7 +1414,7 @@ class OrderViews:
     @require_http_methods(["GET"])
     def get_details_of_order_with_order_id(request, id):
         try:
-            specific_order_details = Order.objects.get(order_id=id)
+            specific_order_details = Order.objects.get(id=id)
 
         except Order.DoesNotExist:
             return JsonResponse(
@@ -1434,7 +1427,7 @@ class OrderViews:
     def get_order_items_for_order_with_order_id(request, id):
         try:
             specific_order_items = OrderItem.objects.filter(
-                order=Order.objects.get(order_id=id)
+                order=Order.objects.get(id=id)
             )
 
         except Order.DoesNotExist:
@@ -1450,7 +1443,7 @@ class OrderViews:
     def get_order_items_for_order_with_order_id_helper(id):
         try:
             specific_order_items = OrderItem.objects.filter(
-                order=Order.objects.get(order_id=id)
+                order=Order.objects.get(id=id)
             )
 
         except Order.DoesNotExist:
@@ -1528,13 +1521,13 @@ class OrderViews:
                 {"error": f"User with ID: {userId} has no items in cart."}, status=404
             )
 
-        return redirect("submit_order_request", order_id=new_order.order_id)
+        return redirect("submit_order_request", order_id=new_order.id)
 
     @staticmethod
     @require_http_methods(["PUT"])
     def cancel_order_with_order_id(request, id):
         try:
-            order_to_cancel = Order.objects.get(order_id=id)
+            order_to_cancel = Order.objects.get(id=id)
 
             order_to_cancel.order_status = "Cancelled"
 
@@ -1551,7 +1544,7 @@ class OrderViews:
     @require_http_methods(["PUT"])
     def update_order_to_delivered_with_order_id(request, id):
         try:
-            order_to_update = Order.objects.get(order_id=id)
+            order_to_update = Order.objects.get(id=id)
 
             order_to_update.order_status = "Delivered"
 
@@ -1628,7 +1621,7 @@ class PesapalViews:
         )
 
         user_id = request.session.get("user_id")
-        order = get_object_or_404(Order, pk=order_id)
+        order = get_object_or_404(Order, pk=id)
         user_address = Address.objects.get(user=user_id)
         town = Towns.objects.get(name=user_address.town)
 
@@ -1714,7 +1707,7 @@ class PesapalViews:
                 print(response_data)
                 if response_data["status_code"] == 1:
                     order = Order.objects.get(
-                        order_id=uuid.UUID(response_data["merchant_reference"])
+                        id=uuid.UUID(response_data["merchant_reference"])
                     )
                     userId = order.user.id
                     print("user id: ", userId)
@@ -1734,7 +1727,7 @@ class PesapalViews:
                         coupon.save()
                         print(f"coupon status: {coupon.active}")
                     except Coupon.DoesNotExist:
-                        logger.info(f"No coupon found for order {order.order_id}")
+                        logger.info(f"No coupon found for order {order.id}")
                     return JsonResponse(response_data, safe=False)
 
                 else:
@@ -1878,7 +1871,7 @@ class ReviewViews:
     @staticmethod
     @require_http_methods(["POST"])
     @DecoratorFunctions.login_required
-    def creat_review_for_product_with_product_id(request, slug):
+    def create_review_for_product_with_product_id(request, slug):
         try:
             userId = request.session.get("user_id")
             user_leaving_review = User.objects.get(id=userId)
@@ -1941,7 +1934,7 @@ class ReviewViews:
         try:
             userId = request.session.get("user_id")
 
-            review_to_delete = Review.objects.get(review_id=id, user=userId)
+            review_to_delete = Review.objects.get(id=id, user=userId)
 
             review_to_delete.delete()
 
@@ -2059,7 +2052,6 @@ class SelcomViews:
                 return JsonResponse({"error": "Invalid payload"}, status=400)
 
             try:
-                # order = Order.objects.get(order_id=order_id)
                 if payment_status == "COMPLETED":
                     # order.order_status = "Payment Completed"
                     # order.save()
@@ -2197,7 +2189,7 @@ class WishlistViews:
 
         try:
             user = User.objects.get(id=userId)
-            product = Product.objects.get(product_id=productId)
+            product = Product.objects.get(id=productId)
 
             if Wishlist.objects.filter(user=user, product=product).exists():
                 return JsonResponse({"error": "Item already in wishlist."}, status=400)
@@ -2228,7 +2220,7 @@ class WishlistViews:
         view_url = request.build_absolute_uri()
         try:
             user = User.objects.get(id=userId)
-            product = Product.objects.get(product_id=productId)
+            product = Product.objects.get(id=productId)
 
             wishlist_item_to_delete = Wishlist.objects.get(user=user, product=product)
 

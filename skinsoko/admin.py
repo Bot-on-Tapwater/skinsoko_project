@@ -29,18 +29,18 @@ class UserAdmin(ModelAdmin):
 
 
 class MainCategoryAdmin(ModelAdmin):
-    list_display: tuple[str, ...] = ("main_category_id", "name")
+    list_display: tuple[str, ...] = ("id", "name")
     search_fields: tuple[str, ...] = ("name",)
 
 
 class SubCategoryAdmin(ModelAdmin):
-    list_display: tuple[str, ...] = ("sub_category_id", "main_category", "name")
+    list_display: tuple[str, ...] = ("id", "main_category", "name")
     search_fields: tuple[str, ...] = ("name", "main_category__name")
     list_filter: tuple[str, ...] = ("main_category",)
 
 
 class BrandAdmin(ModelAdmin):
-    list_display: tuple[str, ...] = ("brand_id", "name")
+    list_display: tuple[str, ...] = ("id", "name")
     search_fields: tuple[str, ...] = ("name",)
 
 
@@ -61,44 +61,44 @@ class ProductAdmin(ModelAdmin):
 
 
 class ShoppingCartAdmin(ModelAdmin):
-    list_display: tuple[str, ...] = ("cart_id", "user", "session_key", "created_at")
+    list_display: tuple[str, ...] = ("id", "user", "session_key", "created_at")
     search_fields: tuple[str, ...] = ("user__email", "session_key")
     list_filter: tuple[str, ...] = ("created_at",)
 
 
 class CartItemAdmin(ModelAdmin):
-    list_display: tuple[str, ...] = ("item_id", "cart", "product", "quantity")
-    search_fields: tuple[str, ...] = ("cart__cart_id", "product__name")
+    list_display: tuple[str, ...] = ("id", "cart", "product", "quantity")
+    search_fields: tuple[str, ...] = ("cart__id", "product__name")
     list_filter: tuple[str, ...] = ("cart", "product")
 
 
 class OrderAdmin(ModelAdmin):
     list_display: tuple[str, ...] = (
-        "order_id",
+        "id",
         "user",
         "total_amount",
         "order_status",
         "created_at",
     )
-    search_fields: tuple[str, ...] = ("user__email", "order_id")
+    search_fields: tuple[str, ...] = ("user__email", "id")
     list_filter: tuple[str, ...] = ("order_status", "created_at")
 
 
 class OrderItemAdmin(ModelAdmin):
     list_display: tuple[str, ...] = (
-        "item_id",
+        "id",
         "order",
         "product",
         "quantity",
         "unit_price",
     )
-    search_fields: tuple[str, ...] = ("order__order_id", "product__name")
+    search_fields: tuple[str, ...] = ("order__id", "product__name")
     list_filter: tuple[str, ...] = ("order", "product")
 
 
 class ReviewAdmin(ModelAdmin):
     list_display: tuple[str, ...] = (
-        "review_id",
+        "id",
         "product",
         "user",
         "rating",
@@ -111,7 +111,7 @@ class ReviewAdmin(ModelAdmin):
 
 class AddressAdmin(ModelAdmin):
     list_display: tuple[str, ...] = (
-        "address_id",
+        "id",
         "user",
         "full_name",
         "street_address",
@@ -124,13 +124,13 @@ class AddressAdmin(ModelAdmin):
 
 
 class TownsAdmin(ModelAdmin):
-    list_display: tuple[str, ...] = ("town_id", "name", "delivery_fee")
+    list_display: tuple[str, ...] = ("id", "name", "delivery_fee")
     search_fields: tuple[str, ...] = ("name",)
     list_filter: tuple[str, ...] = ("delivery_fee",)
 
 
 class WishlistAdmin(ModelAdmin):
-    list_display: tuple[str, ...] = ("wishlist_id", "user", "product", "added_at")
+    list_display: tuple[str, ...] = ("id", "user", "product", "added_at")
     search_fields: tuple[str, ...] = ("user__email", "product__name")
     list_filter: tuple[str, ...] = ("added_at",)
 

@@ -13,12 +13,12 @@ address_patterns = [
         name="add-address-to-profile",
     ),
     path(
-        "users/addresses/<int:id>/update/",
+        "users/addresses/<uuid:id>/update/",
         views.AddressViews.update_details_of_address_with_address_id,
         name="update-address-details",
     ),
     path(
-        "users/addresses/<int:id>/delete/",
+        "users/addresses/<uuid:id>/delete/",
         views.AddressViews.delete_address_with_address_id,
         name="delete-address",
     ),
@@ -47,12 +47,12 @@ cart_patterns = [
         name="get-cart-contents",
     ),
     path(
-        "users/cart/add/<int:productId>/",
+        "users/cart/add/<uuid:productId>/",
         views.CartViews.add_product_to_user_cart,
         name="add-product-to-cart",
     ),
     path(
-        "users/cart/remove/<int:productId>/",
+        "users/cart/remove/<uuid:productId>/",
         views.CartViews.remove_product_from_user_cart,
         name="remove-product-from-cart",
     ),
@@ -62,7 +62,7 @@ cart_patterns = [
         name="clear-cart",
     ),
     path(
-        "users/cart/update/<int:productId>/",
+        "users/cart/update/<uuid:productId>/",
         views.CartViews.update_product_in_user_cart,
         name="update-product-in-cart",
     ),
@@ -96,7 +96,7 @@ csrf_patterns = [path("api/csrf-token/", views.CsrfViews.get_csrf_token)]
 
 data_patterns = [
     path(
-        "consolidated_data/",
+        "consolidated-data/",
         views.DataViews.consolidated_data_view,
         name="consolidated-data",
     ),
@@ -139,7 +139,7 @@ order_patterns = [
         name="cancel-order",
     ),
     path(
-        "orders/<uuid:id>/order_items/",
+        "orders/<uuid:id>/order-items/",
         views.OrderViews.get_order_items_for_order_with_order_id,
         name="get-order-items",
     ),
@@ -158,7 +158,9 @@ product_patterns = [
         views.ProductViews.get_product_with_product_id,
         name="get-product-details",
     ),
-    path("search/", views.ProductViews.search, name="search-products"),
+    path(
+        "search/", views.ProductViews.search, name="search-products"
+    ),  # TODO: Pass as query to list all products function
 ]
 
 review_patterns = [
@@ -174,11 +176,11 @@ review_patterns = [
     ),
     path(
         "users/products/<slug:slug>/reviews/create/",
-        views.ReviewViews.creat_review_for_product_with_product_id,
+        views.ReviewViews.create_review_for_product_with_product_id,
         name="create-product-review",
     ),
     path(
-        "users/reviews/<int:id>/delete/",
+        "users/reviews/<uuid:id>/delete/",
         views.ReviewViews.user_delete_review,
         name="delete-user-review",
     ),
@@ -199,12 +201,12 @@ wishlist_patterns = [
         name="list-all-wishlists",
     ),
     path(
-        "users/wishlists/add/<int:productId>/",
+        "users/wishlists/add/<uuid:productId>/",
         views.WishlistViews.add_item_to_wishlist,
         name="add-item-to-wishlist",
     ),
     path(
-        "users/wishlists/remove/<int:productId>/",
+        "users/wishlists/remove/<uuid:productId>/",
         views.WishlistViews.remove_item_from_wishlist,
         name="remove-item-from-wishlist",
     ),
